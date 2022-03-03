@@ -82,7 +82,11 @@ https://github.com/zilliztech/milvus_cli/tree/main/doc
 
 ## Community
 
-👉 Join the Milvus community on [Milvus forum](https://discuss.milvus.io/c/milvus-tools/14) to share your suggestions, advice, and questions with our engineering team.
+💬 Community isn’t just about writing code together. Come join the conversation, share your knowledge and get your questions answered on [Milvus Slack Channel](https://join.slack.com/t/milvusio/shared_invite/zt-e0u4qu3k-bI2GDNys3ZqX1YCJ9OM~GQ)!
+
+<a href="https://join.slack.com/t/milvusio/shared_invite/zt-e0u4qu3k-bI2GDNys3ZqX1YCJ9OM~GQ">
+    <img src="https://assets.zilliz.com/readme_slack_4a07c4c92f.png" alt="Miluvs Slack Channel"  height="150" width="500">
+</a>
 
 <br><!-- Do not remove start of hero-bot --><br>
 <img src="https://img.shields.io/badge/all--contributors-5-orange"><br>
