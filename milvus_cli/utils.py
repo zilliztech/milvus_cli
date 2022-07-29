@@ -70,10 +70,10 @@ class PyOrm(object):
             )
         aliasList = map(lambda x: x[0], allConnections)
         if tempAlias in aliasList:
-            host, port = connections.get_connection_addr(tempAlias).values()
+            secure, host, port = connections.get_connection_addr(tempAlias).values()
             # return """Host: {}\nPort: {}\nAlias: {}""".format(host, port, alias)
             return tabulate(
-                [["Host", host], ["Port", port], ["Alias", tempAlias]],
+                [["Host", host], ["Port", port], ["Alias", tempAlias],["Secure",secure]],
                 tablefmt="pretty",
             )
         else:
@@ -121,7 +121,7 @@ class PyOrm(object):
         collectionNames = self._list_collection_names(timeout)
         for name in collectionNames:
             loadingProgress = self.showCollectionLoadingProgress(name)
-            loaded, total = loadingProgress.values()
+            loaded, total, alias = loadingProgress.values()
             # isLoaded = (total > 0) and (loaded == total)
             # shouldBeAdded = isLoaded if showLoadedOnly else True
             # if shouldBeAdded:
@@ -433,7 +433,6 @@ class PyOrm(object):
 
     def query(self, collectionName, queryParameters):
         collection = self.getTargetCollection(collectionName)
-        collection.load()
         print(queryParameters)
         res = collection.query(**queryParameters)
         # return f"- Query results: {res}"
