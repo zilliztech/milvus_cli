@@ -30,7 +30,7 @@ Python >= 3.8.5
 
 #### Install from PyPI (Recommended)
 
-Run `pip install milvus-cli==0.2.0`
+Run `pip install milvus-cli==0.3.0`
 
 #### Install from a tarball
 
