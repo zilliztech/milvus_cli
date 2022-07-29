@@ -6,6 +6,8 @@ from functools import reduce
 from Types import DataTypeByNum
 from Types import ParameterException, ConnectException
 from time import time
+from string import Template
+from pymilvus import __version__
 
 
 def getPackageVersion():
@@ -89,7 +91,8 @@ class PyOrm(object):
         result = target.schema.fields
         if showVectorOnly:
             return reduce(
-                lambda x, y: x + [y.name] if y.dtype in [100, 101] else x, result, []
+                lambda x, y: x + [y.name] if y.dtype in [100,
+                                                         101] else x, result, []
             )
         return [i.name for i in result]
 
@@ -194,9 +197,11 @@ class PyOrm(object):
         )
 
     def releasePartition(self, collectionName, partitionName):
-        targetPartition = self.getTargetPartition(collectionName, partitionName)
+        targetPartition = self.getTargetPartition(
+            collectionName, partitionName)
         targetPartition.release()
-        result = self.showCollectionLoadingProgress(collectionName, [partitionName])
+        result = self.showCollectionLoadingProgress(
+            collectionName, [partitionName])
         return result
 
     def releasePartitions(self, collectionName, partitionNameList):
@@ -204,16 +209,19 @@ class PyOrm(object):
         for name in partitionNameList:
             tmp = self.releasePartition(collectionName, name)
             result.append(
-                [name, tmp.get("num_loaded_entities"), tmp.get("num_total_entities")]
+                [name, tmp.get("num_loaded_entities"),
+                 tmp.get("num_total_entities")]
             )
         return tabulate(
             result, headers=["Partition Name", "Loaded", "Total"], tablefmt="grid"
         )
 
     def loadPartition(self, collectionName, partitionName):
-        targetPartition = self.getTargetPartition(collectionName, partitionName)
+        targetPartition = self.getTargetPartition(
+            collectionName, partitionName)
         targetPartition.load()
-        result = self.showCollectionLoadingProgress(collectionName, [partitionName])
+        result = self.showCollectionLoadingProgress(
+            collectionName, [partitionName])
         return result
 
     def loadPartitions(self, collectionName, partitionNameList):
@@ -221,7 +229,8 @@ class PyOrm(object):
         for name in partitionNameList:
             tmp = self.loadPartition(collectionName, name)
             result.append(
-                [name, tmp.get("num_loaded_entities"), tmp.get("num_total_entities")]
+                [name, tmp.get("num_loaded_entities"),
+                 tmp.get("num_total_entities")]
             )
         return tabulate(
             result, headers=["Partition Name", "Loaded", "Total"], tablefmt="grid"
@@ -280,8 +289,10 @@ class PyOrm(object):
         schemaDetails = """Description: {}\n\nAuto ID: {}\n\nFields(* is the primary field):{}""".format(
             schema.description, schema.auto_id, fieldSchemaDetails
         )
-        partitionDetails = "  - " + "\n- ".join(map(lambda x: x.name, partitions))
-        indexesDetails = "  - " + "\n- ".join(map(lambda x: x.field_name, indexes))
+        partitionDetails = "  - " + \
+            "\n- ".join(map(lambda x: x.name, partitions))
+        indexesDetails = "  - " + \
+            "\n- ".join(map(lambda x: x.field_name, indexes))
         rows.append(["Name", target.name])
         rows.append(["Description", target.description])
         rows.append(["Is Empty", target.is_empty])
@@ -313,7 +324,8 @@ class PyOrm(object):
         rows.append(["Index Type", index.params["index_type"]])
         rows.append(["Metric Type", index.params["metric_type"]])
         params = index.params["params"]
-        paramsDetails = "\n- ".join(map(lambda k: f"{k[0]}: {k[1]}", params.items()))
+        paramsDetails = "\n- ".join(
+            map(lambda k: f"{k[0]}: {k[1]}", params.items()))
         rows.append(["Params", paramsDetails])
         return tabulate(rows, tablefmt="grid")
 
@@ -329,7 +341,8 @@ class PyOrm(object):
             if fieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
                 fieldList.append(
                     FieldSchema(
-                        name=fieldName, dtype=DataType[fieldType], dim=int(fieldData)
+                        name=fieldName, dtype=DataType[fieldType], dim=int(
+                            fieldData)
                     )
                 )
             else:
@@ -433,7 +446,8 @@ class PyOrm(object):
 
     def insert(self, collectionName, data, partitionName=None, timeout=None):
         collection = self.getTargetCollection(collectionName)
-        result = collection.insert(data, partition_name=partitionName, timeout=timeout)
+        result = collection.insert(
+            data, partition_name=partitionName, timeout=timeout)
         entitiesNum = collection.num_entities
         return [result, entitiesNum]
 
@@ -459,7 +473,8 @@ class PyOrm(object):
 
     def deleteEntities(self, expr, collectionName, partition_name=None, timeout=None):
         collection = self.getTargetCollection(collectionName)
-        result = collection.delete(expr, partition_name=partition_name, timeout=timeout)
+        result = collection.delete(
+            expr, partition_name=partition_name, timeout=timeout)
         return result
 
     def getQuerySegmentInfo(self, collectionName, timeout=None, prettierFormat=False):
@@ -471,7 +486,8 @@ class PyOrm(object):
         if not prettierFormat or not result:
             return result
         firstChild = result[0]
-        headers = ["segmentID", "collectionID", "partitionID", "mem_size", "num_rows"]
+        headers = ["segmentID", "collectionID",
+                   "partitionID", "mem_size", "num_rows"]
         return tabulate(
             [[getattr(_, i) for i in headers] for _ in result],
             headers=headers,
@@ -579,6 +595,21 @@ class PyOrm(object):
         collection = self.getTargetCollection(collectionName)
         return collection.get_compaction_plans(timeout=timeout)
 
+    def listCredUsers(self):
+        from pymilvus import list_cred_users
+        users = list_cred_users(self.alias)
+        return users
+
+    def createCredUser(self, username=None, password=None):
+        from pymilvus import create_credential
+        create_credential(username, password, self.alias)
+        return self.listCredUsers()
+
+    def deleteCredUser(self, username=None):
+        from pymilvus import delete_credential
+        delete_credential(username, self.alias)
+        return self.listCredUsers()
+
 
 class Completer(object):
     # COMMANDS = ['clear', 'connect', 'create', 'delete', 'describe', 'exit',
@@ -594,13 +625,13 @@ class Completer(object):
         "clear": [],
         "compact": [],
         "connect": [],
-        "create": ["alias", "collection", "partition", "index"],
-        "delete": ["alias", "collection", "entities", "partition", "index"],
+        "create": ["alias", "collection", "partition", "index","user"],
+        "delete": ["alias", "collection", "entities", "partition", "index","user"],
         "describe": ["collection", "partition", "index"],
         "exit": [],
         "help": [],
         "import": [],
-        "list": ["collections", "partitions", "indexes"],
+        "list": ["collections", "partitions", "indexes","users"],
         "load_balance": [],
         "load": [],
         "query": [],
@@ -702,11 +733,12 @@ class Completer(object):
             if args:
                 return (impl(args) + [None])[state]
             return [cmd + " "][state]
-        results = [c + " " for c in self.COMMANDS if c.startswith(cmd)] + [None]
+        results = [
+            c + " " for c in self.COMMANDS if c.startswith(cmd)] + [None]
         return results[state]
 
 
-WELCOME_MSG = """
+msgTemp = Template("""
                                                
                                                
   __  __ _ _                    ____ _     ___ 
@@ -715,9 +747,14 @@ WELCOME_MSG = """
  | |  | | | |\ V /| |_| \__ \ | |___| |___ | | 
  |_|  |_|_|_| \_/  \__,_|___/  \____|_____|___|
                                                
-                                               
+Milvus cli version: ${cli}
+Pymilvus version: ${py}                                             
+
 Learn more: https://github.com/zilliztech/milvus_cli.
 
-"""
+""")
+
+
+WELCOME_MSG = msgTemp.safe_substitute(cli=getPackageVersion(), py=__version__)
 
 EXIT_MSG = "\n\nThanks for using.\nWe hope your feedback: https://github.com/zilliztech/milvus_cli/issues/new.\n\n"
