@@ -67,6 +67,30 @@ def help():
     type=int,
 )
 @click.option(
+    "-s",
+    "--secure",
+    "secure",
+    help="[Optional] - Secure, default is `False`.",
+    default=False,
+    type=bool,
+)
+@click.option(
+    "-u",
+    "--username",
+    "username",
+    help="[Optional] - Username , default is `None`.",
+    default=None,
+    type=str,
+)
+@click.option(
+    "-pwd",
+    "--password",
+    "password",
+    help="[Optional] - Password , default is `None`.",
+    default=None,
+    type=str,
+)
+@click.option(
     "-D",
     "--disconnect",
     "disconnect",
@@ -75,7 +99,7 @@ def help():
     is_flag=True,
 )
 @click.pass_obj
-def connect(obj, alias, host, port, disconnect):
+def connect(obj, alias, host, port,secure,username,password, disconnect):
     """
     Connect to Milvus.
 
@@ -84,7 +108,7 @@ def connect(obj, alias, host, port, disconnect):
         milvus_cli > connect -h 127.0.0.1 -p 19530 -a default
     """
     try:
-        obj.connect(alias, host, port, disconnect)
+        obj.connect(alias, host, port, disconnect,secure,username,password)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
@@ -424,6 +448,16 @@ def indexes(obj, collection):
     except Exception as e:
         click.echo(message=e, err=True)
 
+@listDetails.command()
+@click.pass_obj
+def users(obj):
+    """List all users in Milvus"""
+    try:
+        obj.checkConnection()
+        click.echo(obj.listCredUsers())
+    except Exception as e:
+        click.echo(message=e, err=True)
+
 
 @cli.group("describe", no_args_is_help=False)
 @click.pass_obj
@@ -716,6 +750,27 @@ def createIndex(obj):
         click.echo("Create index successfully!")
 
 
+@createDetails.command("user")
+@click.option("-u", "--username", "username", help="The username of milvus user.")
+@click.option("-p", "--password", "password", help="The pawssord of milvus user.")
+@click.pass_obj
+def createUser(obj, username, password):
+    """
+    Create user.
+
+    Example:
+
+        milvus_cli > create user -u zilliz -p zilliz
+    """
+    try:
+        obj.checkConnection()
+        click.echo(obj.createCredUser(username,password))
+        click.echo("Create user successfully")
+    except Exception as e:
+        click.echo(message=e, err=True)
+    
+
+
 @cli.group("delete", no_args_is_help=False)
 @click.pass_obj
 def deleteObject(obj):
@@ -867,6 +922,31 @@ def deleteIndex(obj, collectionName, timeout):
             "Drop index failed!"
         )
 
+
+@deleteObject.command("user")
+@click.option("-u", "--username", "username", help="The username of milvus user")
+@click.pass_obj
+def deleteUser(obj, username):
+    """
+    Drop user in milvus by username
+
+    Example:
+
+        milvus_cli > delete user -u zilliz
+    """
+    click.echo(
+        "Warning!\nYou are trying to delete the user in milvus. This action cannot be undone!\n"
+    )
+    if not click.confirm("Do you want to continue?"):
+        return
+    try:
+        obj.checkConnection()
+        result = obj.deleteCredUser(username)
+        click.echo("Drop user successfully!")
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+   
 
 @deleteObject.command("entities")
 @click.option("-c", "--collection-name", "collectionName", help="Collection name.")
