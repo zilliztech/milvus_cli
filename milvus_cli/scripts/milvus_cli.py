@@ -67,6 +67,30 @@ def help():
     type=int,
 )
 @click.option(
+    "-s",
+    "--secure",
+    "secure",
+    help="[Optional] - Secure, default is `False`.",
+    default=False,
+    type=bool,
+)
+@click.option(
+    "-u",
+    "--username",
+    "username",
+    help="[Optional] - Username , default is `None`.",
+    default=None,
+    type=str,
+)
+@click.option(
+    "-pwd",
+    "--password",
+    "password",
+    help="[Optional] - Password , default is `None`.",
+    default=None,
+    type=str,
+)
+@click.option(
     "-D",
     "--disconnect",
     "disconnect",
@@ -75,7 +99,7 @@ def help():
     is_flag=True,
 )
 @click.pass_obj
-def connect(obj, alias, host, port, disconnect):
+def connect(obj, alias, host, port,secure,username,password, disconnect):
     """
     Connect to Milvus.
 
@@ -84,7 +108,7 @@ def connect(obj, alias, host, port, disconnect):
         milvus_cli > connect -h 127.0.0.1 -p 19530 -a default
     """
     try:
-        obj.connect(alias, host, port, disconnect)
+        obj.connect(alias, host, port, disconnect,secure,username,password)
     except Exception as e:
         click.echo(message=e, err=True)
     else:

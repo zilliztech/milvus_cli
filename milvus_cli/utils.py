@@ -37,16 +37,19 @@ class PyOrm(object):
     port = 19530
     alias = "default"
 
-    def connect(self, alias=None, host=None, port=None, disconnect=False):
+    def connect(self, alias=None, host=None, port=None, disconnect=False, secure=False, username=None, password=None):
         self.alias = alias
         self.host = host
         self.port = port
+        trimUsername = None if username is None else username.strip()
+        trimPwd = None if password is None else password.strip()
+
         from pymilvus import connections
 
         if disconnect:
             connections.disconnect(alias)
             return
-        connections.connect(self.alias, host=self.host, port=self.port)
+        connections.connect(self.alias, host=self.host, port=self.port,user=trimUsername,password=trimPwd,secure=secure)
 
     def checkConnection(self):
         from pymilvus import list_collections
