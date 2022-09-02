@@ -113,6 +113,7 @@ DataTypeByNum = {
     10: "FLOAT",
     11: "DOUBLE",
     20: "STRING",
+    21: "VARCHAR",
     100: "BINARY_VECTOR",
     101: "FLOAT_VECTOR",
     999: "UNKNOWN",
