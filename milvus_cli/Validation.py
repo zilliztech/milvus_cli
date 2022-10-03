@@ -29,7 +29,7 @@ def validateCollectionParameter(collectionName, primaryField, fields):
         fieldList = field.split(":")
         if not (len(fieldList) == 3):
             raise ParameterException(
-                'Field should contain three paremeters and concat by ":".'
+                'Field should contain three parameters concatenated by ":".'
             )
         [fieldName, fieldType, fieldData] = fieldList
         fieldNames.append(fieldName)
@@ -71,7 +71,7 @@ def validateIndexParameter(indexType, metricType, params):
         paramList = param.split(":")
         if not (len(paramList) == 2):
             raise ParameterException(
-                'Params should contain two paremeters and concat by ":".'
+                'Params should contain two parameters concatenated by ":".'
             )
         [paramName, paramValue] = paramList
         paramNames.append(paramName)
@@ -143,7 +143,7 @@ def validateSearchParams(
             paramList = param.split(":")
             if not (len(paramList) == 2):
                 raise ParameterException(
-                    'Params should contain two paremeters and concat by ":".'
+                    'Params should contain two parameters concatenated by ":".'
                 )
             [paramName, paramValue] = paramList
             if paramName not in SearchParams:
