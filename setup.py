@@ -17,7 +17,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "Click==8.0.1",
-        "pymilvus==2.1.1",
+        "pymilvus==2.1.2",
         "tabulate==0.8.9",
         "requests==2.26.0",
     ],
