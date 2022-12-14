@@ -738,10 +738,6 @@ class Completer(object):
             c + " " for c in self.COMMANDS if c.startswith(cmd)] + [None]
         return results[state]
 
-pyorm = PyOrm()
-pyorm.connect('default','127.0.0.1','19530',False,False,'root','Milvus')
-conn = pyorm.showConnection('default')
-print(conn)
 
 msgTemp = Template("""
                                                
