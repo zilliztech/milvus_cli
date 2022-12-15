@@ -402,19 +402,12 @@ def listDetails(obj):
     default=None,
     type=float,
 )
-@click.option(
-    "--show-loaded",
-    "-l",
-    "showLoaded",
-    help="[Optional] - Only show loaded collections.",
-    default=False,
-)
 @click.pass_obj
-def collections(obj, timeout, showLoaded):
+def collections(obj, timeout):
     """List all collections."""
     try:
         obj.checkConnection()
-        click.echo(obj.listCollections(timeout, showLoaded))
+        click.echo(obj.listCollections(timeout))
     except Exception as e:
         click.echo(message=e, err=True)
 

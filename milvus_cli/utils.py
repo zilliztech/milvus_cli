@@ -49,7 +49,10 @@ class PyOrm(object):
         if disconnect:
             connections.disconnect(alias)
             return
-        connections.connect(self.alias, host=self.host, port=self.port,user=trimUsername,password=trimPwd,secure=secure)
+        try:
+            connections.connect(self.alias, host=self.host, port=self.port,user=trimUsername,password=trimPwd,secure=secure)
+        except Exception as e:
+            raise ConnectException(f"Connect to Milvus error!{str(e)}")
 
     def checkConnection(self):
         from pymilvus import list_collections
@@ -59,30 +62,30 @@ class PyOrm(object):
         except Exception as e:
             raise ConnectException(f"Connect to Milvus error!{str(e)}")
 
-    def showConnection(self, alias="default", showAll=False):
+    def showConnection(self, alias, showAll=False):
         from pymilvus import connections
-
-        tempAlias = self.alias if self.alias else alias
+        tempAlias = alias if alias else self.alias
         allConnections = connections.list_connections()
         if showAll:
             return tabulate(
                 allConnections, headers=["Alias", "Instance"], tablefmt="pretty"
             )
         aliasList = map(lambda x: x[0], allConnections)
+    
         if tempAlias in aliasList:
-            secure, host, port = connections.get_connection_addr(tempAlias).values()
+            address, user = connections.get_connection_addr(tempAlias).values()
             # return """Host: {}\nPort: {}\nAlias: {}""".format(host, port, alias)
             return tabulate(
-                [["Host", host], ["Port", port], ["Alias", tempAlias],["Secure",secure]],
+                [["Address", address], ["User", user], ["Alias", tempAlias]],
                 tablefmt="pretty",
             )
         else:
             return "Connection not found!"
 
     def _list_collection_names(self, timeout=None):
-        from pymilvus import list_collections
+        from pymilvus import utility
 
-        return list(list_collections(timeout, self.alias))
+        return list(utility.list_collections(timeout, self.alias))
 
     def _list_partition_names(self, collectionName):
         target = self.getTargetCollection(collectionName)
@@ -116,19 +119,15 @@ class PyOrm(object):
             #     details[p] = result.params['params'][p]
             return details
 
-    def listCollections(self, timeout=None, showLoadedOnly=False):
+    def listCollections(self, timeout=None):
         result = []
         collectionNames = self._list_collection_names(timeout)
         for name in collectionNames:
-            loadingProgress = self.showCollectionLoadingProgress(name)
-            loaded, total, alias = loadingProgress.values()
-            # isLoaded = (total > 0) and (loaded == total)
-            # shouldBeAdded = isLoaded if showLoadedOnly else True
-            # if shouldBeAdded:
-            result.append([name, "{}/{}".format(loaded, total)])
+            result.append([name])
+   
         return tabulate(
             result,
-            headers=["Collection Name", "Entities(Loaded/Total)"],
+            headers=["Collection Name"],
             tablefmt="grid",
             showindex=True,
         )
@@ -138,10 +137,10 @@ class PyOrm(object):
         return col.num_entities
 
     def showCollectionLoadingProgress(self, collectionName, partition_names=None):
-        from pymilvus import loading_progress
+        from pymilvus import utility
 
         self.flushCollectionByNumEntities(collectionName)
-        return loading_progress(collectionName, partition_names, self.alias)
+        return utility.loading_progress(collectionName, partition_names, self.alias)
 
     def showIndexBuildingProgress(self, collectionName, index_name=""):
         from pymilvus import index_building_progress
@@ -598,18 +597,18 @@ class PyOrm(object):
         return collection.get_compaction_plans(timeout=timeout)
 
     def listCredUsers(self):
-        from pymilvus import list_cred_users
-        users = list_cred_users(self.alias)
+        from pymilvus import utility
+        users = utility.list_usernames(self.alias)
         return users
 
     def createCredUser(self, username=None, password=None):
-        from pymilvus import create_credential
-        create_credential(username, password, self.alias)
+        from pymilvus import utility
+        utility.create_user(username, password, self.alias)
         return self.listCredUsers()
 
     def deleteCredUser(self, username=None):
-        from pymilvus import delete_credential
-        delete_credential(username, self.alias)
+        from pymilvus import utility
+        utility.delete_user(username, self.alias)
         return self.listCredUsers()
 
 
