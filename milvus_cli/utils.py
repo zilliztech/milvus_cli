@@ -329,7 +329,6 @@ class PyOrm(object):
 
     def getIndexDetails(self, collection, indexName):
         index = collection.index(index_name=indexName)
-        print(index)
         if not index:
             return "No index!"
         rows = []
