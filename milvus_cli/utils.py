@@ -17,8 +17,7 @@ def getPackageVersion():
         version = pkg_resources.require("milvus_cli")[0].version
     except Exception as e:
         raise ParameterException(
-            "Could not get version under single executable file mode."
-        )
+            "Could not get version under single executable file mode.")
     return version
 
 
@@ -37,7 +36,14 @@ class PyOrm(object):
     port = 19530
     alias = "default"
 
-    def connect(self, alias=None, host=None, port=None, disconnect=False, secure=False, username=None, password=None):
+    def connect(self,
+                alias=None,
+                host=None,
+                port=None,
+                disconnect=False,
+                secure=False,
+                username=None,
+                password=None):
         self.alias = alias
         self.host = host
         self.port = port
@@ -50,7 +56,12 @@ class PyOrm(object):
             connections.disconnect(alias)
             return
         try:
-            connections.connect(self.alias, host=self.host, port=self.port,user=trimUsername,password=trimPwd,secure=secure)
+            connections.connect(self.alias,
+                                host=self.host,
+                                port=self.port,
+                                user=trimUsername,
+                                password=trimPwd,
+                                secure=secure)
         except Exception as e:
             raise ConnectException(f"Connect to Milvus error!{str(e)}")
 
@@ -67,11 +78,11 @@ class PyOrm(object):
         tempAlias = alias if alias else self.alias
         allConnections = connections.list_connections()
         if showAll:
-            return tabulate(
-                allConnections, headers=["Alias", "Instance"], tablefmt="pretty"
-            )
+            return tabulate(allConnections,
+                            headers=["Alias", "Instance"],
+                            tablefmt="pretty")
         aliasList = map(lambda x: x[0], allConnections)
-    
+
         if tempAlias in aliasList:
             address, user = connections.get_connection_addr(tempAlias).values()
             # return """Host: {}\nPort: {}\nAlias: {}""".format(host, port, alias)
@@ -97,9 +108,8 @@ class PyOrm(object):
         result = target.schema.fields
         if showVectorOnly:
             return reduce(
-                lambda x, y: x + [y.name] if y.dtype in [100,
-                                                         101] else x, result, []
-            )
+                lambda x, y: x + [y.name]
+                if y.dtype in [100, 101] else x, result, [])
         return [i.name for i in result]
 
     def _list_index(self, collectionName):
@@ -124,7 +134,7 @@ class PyOrm(object):
         collectionNames = self._list_collection_names(timeout)
         for name in collectionNames:
             result.append([name])
-   
+
         return tabulate(
             result,
             headers=["Collection Name"],
@@ -136,11 +146,14 @@ class PyOrm(object):
         col = self.getTargetCollection(collectionName)
         return col.num_entities
 
-    def showCollectionLoadingProgress(self, collectionName, partition_names=None):
+    def showCollectionLoadingProgress(self,
+                                      collectionName,
+                                      partition_names=None):
         from pymilvus import utility
 
         self.flushCollectionByNumEntities(collectionName)
-        return utility.loading_progress(collectionName, partition_names, self.alias)
+        return utility.loading_progress(collectionName, partition_names,
+                                        self.alias)
 
     def showIndexBuildingProgress(self, collectionName, index_name=""):
         from pymilvus import index_building_progress
@@ -171,13 +184,11 @@ class PyOrm(object):
         target.load()
         result = self.showCollectionLoadingProgress(collectionName)
         return tabulate(
-            [
-                [
-                    collectionName,
-                    result.get("num_loaded_entities"),
-                    result.get("num_total_entities"),
-                ]
-            ],
+            [[
+                collectionName,
+                result.get("num_loaded_entities"),
+                result.get("num_total_entities"),
+            ]],
             headers=["Collection Name", "Loaded", "Total"],
             tablefmt="grid",
         )
@@ -187,56 +198,56 @@ class PyOrm(object):
         target.release()
         result = self.showCollectionLoadingProgress(collectionName)
         return tabulate(
-            [
-                [
-                    collectionName,
-                    result.get("num_loaded_entities"),
-                    result.get("num_total_entities"),
-                ]
-            ],
+            [[
+                collectionName,
+                result.get("num_loaded_entities"),
+                result.get("num_total_entities"),
+            ]],
             headers=["Collection Name", "Loaded", "Total"],
             tablefmt="grid",
         )
 
     def releasePartition(self, collectionName, partitionName):
-        targetPartition = self.getTargetPartition(
-            collectionName, partitionName)
+        targetPartition = self.getTargetPartition(collectionName,
+                                                  partitionName)
         targetPartition.release()
-        result = self.showCollectionLoadingProgress(
-            collectionName, [partitionName])
+        result = self.showCollectionLoadingProgress(collectionName,
+                                                    [partitionName])
         return result
 
     def releasePartitions(self, collectionName, partitionNameList):
         result = []
         for name in partitionNameList:
             tmp = self.releasePartition(collectionName, name)
-            result.append(
-                [name, tmp.get("num_loaded_entities"),
-                 tmp.get("num_total_entities")]
-            )
-        return tabulate(
-            result, headers=["Partition Name", "Loaded", "Total"], tablefmt="grid"
-        )
+            result.append([
+                name,
+                tmp.get("num_loaded_entities"),
+                tmp.get("num_total_entities")
+            ])
+        return tabulate(result,
+                        headers=["Partition Name", "Loaded", "Total"],
+                        tablefmt="grid")
 
     def loadPartition(self, collectionName, partitionName):
-        targetPartition = self.getTargetPartition(
-            collectionName, partitionName)
+        targetPartition = self.getTargetPartition(collectionName,
+                                                  partitionName)
         targetPartition.load()
-        result = self.showCollectionLoadingProgress(
-            collectionName, [partitionName])
+        result = self.showCollectionLoadingProgress(collectionName,
+                                                    [partitionName])
         return result
 
     def loadPartitions(self, collectionName, partitionNameList):
         result = []
         for name in partitionNameList:
             tmp = self.loadPartition(collectionName, name)
-            result.append(
-                [name, tmp.get("num_loaded_entities"),
-                 tmp.get("num_total_entities")]
-            )
-        return tabulate(
-            result, headers=["Partition Name", "Loaded", "Total"], tablefmt="grid"
-        )
+            result.append([
+                name,
+                tmp.get("num_loaded_entities"),
+                tmp.get("num_total_entities")
+            ])
+        return tabulate(result,
+                        headers=["Partition Name", "Loaded", "Total"],
+                        tablefmt="grid")
 
     def listPartitions(self, collectionName):
         target = self.getTargetCollection(collectionName)
@@ -252,20 +263,21 @@ class PyOrm(object):
     def listIndexes(self, collectionName):
         target = self.getTargetCollection(collectionName)
         result = target.indexes
+
         rows = list(
             map(
                 lambda x: [
-                    x.field_name,
-                    x.params["index_type"],
-                    x.params["metric_type"],
-                    x.params["params"]["nlist"],
+                    x.field_name, x.index_name, x._index_params['index_type'],
+                    x._index_params['metric_type'], x._index_params['params']
                 ],
                 result,
-            )
-        )
+            ))
         return tabulate(
             rows,
-            headers=["Field Name", "Index Type", "Metric Type", "Nlist"],
+            headers=[
+                "Field Name", "Index Name", "Index Type", "Metric Type",
+                "Params"
+            ],
             tablefmt="grid",
             showindex=True,
         )
@@ -289,8 +301,7 @@ class PyOrm(object):
             _params_desc = f"dim: {_dim}" if _dim else ""
             fieldSchemaDetails += f"\n - {_name} {_type} {_params_desc} {_desc}"
         schemaDetails = """Description: {}\n\nAuto ID: {}\n\nFields(* is the primary field):{}""".format(
-            schema.description, schema.auto_id, fieldSchemaDetails
-        )
+            schema.description, schema.auto_id, fieldSchemaDetails)
         partitionDetails = "  - " + \
             "\n- ".join(map(lambda x: x.name, partitions))
         indexesDetails = "  - " + \
@@ -316,8 +327,9 @@ class PyOrm(object):
         rows.append(["Number of Entities", partition.num_entities])
         return tabulate(rows, tablefmt="grid")
 
-    def getIndexDetails(self, collection):
-        index = collection.index()
+    def getIndexDetails(self, collection, indexName):
+        index = collection.index(index_name=indexName)
+        print(index)
         if not index:
             return "No index!"
         rows = []
@@ -331,9 +343,8 @@ class PyOrm(object):
         rows.append(["Params", paramsDetails])
         return tabulate(rows, tablefmt="grid")
 
-    def createCollection(
-        self, collectionName, primaryField, autoId, description, fields
-    ):
+    def createCollection(self, collectionName, primaryField, autoId,
+                         description, fields):
         from pymilvus import Collection, DataType, FieldSchema, CollectionSchema
 
         fieldList = []
@@ -342,17 +353,14 @@ class PyOrm(object):
             isVector = False
             if fieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
                 fieldList.append(
-                    FieldSchema(
-                        name=fieldName, dtype=DataType[fieldType], dim=int(
-                            fieldData)
-                    )
-                )
+                    FieldSchema(name=fieldName,
+                                dtype=DataType[fieldType],
+                                dim=int(fieldData)))
             else:
                 fieldList.append(
-                    FieldSchema(
-                        name=fieldName, dtype=DataType[fieldType], description=fieldData
-                    )
-                )
+                    FieldSchema(name=fieldName,
+                                dtype=DataType[fieldType],
+                                description=fieldData))
         schema = CollectionSchema(
             fields=fieldList,
             primary_field=primaryField,
@@ -367,9 +375,8 @@ class PyOrm(object):
         collection.create_partition(partitionName, description=description)
         return self.getPartitionDetails(collection, partitionName)
 
-    def createIndex(
-        self, collectionName, fieldName, indexType, metricType, params, timeout
-    ):
+    def createIndex(self, collectionName, fieldName, indexName, indexType,
+                    metricType, params, timeout):
         collection = self.getTargetCollection(collectionName)
         indexParams = {}
         for param in params:
@@ -381,8 +388,12 @@ class PyOrm(object):
             "params": indexParams,
             "metric_type": metricType,
         }
-        collection.create_index(fieldName, index, timeout=timeout)
-        return self.getIndexDetails(collection)
+        collection.create_index(field_name=fieldName,
+                                index_params=index,
+                                index_name=indexName,
+                                timeout=timeout)
+
+        return self.getIndexDetails(collection, indexName)
 
     def isCollectionExist(self, collectionName):
         from pymilvus import has_collection
@@ -392,8 +403,8 @@ class PyOrm(object):
     def isPartitionExist(self, collection, partitionName):
         return collection.has_partition(partitionName)
 
-    def isIndexExist(self, collection):
-        return collection.has_index()
+    def isIndexExist(self, collection, indexName):
+        return collection.has_index(index_name=indexName)
 
     def dropCollection(self, collectionName, timeout):
         collection = self.getTargetCollection(collectionName)
@@ -405,10 +416,10 @@ class PyOrm(object):
         collection.drop_partition(partitionName, timeout=timeout)
         return self.isPartitionExist(collection, partitionName)
 
-    def dropIndex(self, collectionName, timeout):
+    def dropIndex(self, collectionName, indexName, timeout):
         collection = self.getTargetCollection(collectionName)
-        collection.drop_index(timeout=timeout)
-        return self.isIndexExist(collection)
+        collection.drop_index(index_name=indexName, timeout=timeout)
+        return self.listIndexes(collectionName)
 
     def search(self, collectionName, searchParameters, prettierFormat=True):
         collection = self.getTargetCollection(collectionName)
@@ -447,15 +458,19 @@ class PyOrm(object):
 
     def insert(self, collectionName, data, partitionName=None, timeout=None):
         collection = self.getTargetCollection(collectionName)
-        result = collection.insert(
-            data, partition_name=partitionName, timeout=timeout)
+        result = collection.insert(data,
+                                   partition_name=partitionName,
+                                   timeout=timeout)
         entitiesNum = collection.num_entities
         return [result, entitiesNum]
 
-    def importData(self, collectionName, data, partitionName=None, timeout=None):
-        [result, entitiesNum] = self.insert(
-            collectionName, data, partitionName, timeout
-        )
+    def importData(self,
+                   collectionName,
+                   data,
+                   partitionName=None,
+                   timeout=None):
+        [result, entitiesNum] = self.insert(collectionName, data,
+                                            partitionName, timeout)
         insert_count = result.insert_count
         timestamp = result.timestamp
         prettierResult = []
@@ -464,46 +479,62 @@ class PyOrm(object):
         prettierResult.append(["Milvus timestamp: ", timestamp])
         return tabulate(prettierResult)
 
-    def calcDistance(self, vectors_left, vectors_right, params=None, timeout=None):
+    def calcDistance(self,
+                     vectors_left,
+                     vectors_right,
+                     params=None,
+                     timeout=None):
         from pymilvus import utility
 
-        result = utility.calc_distance(
-            vectors_left, vectors_right, params, timeout, using=self.alias
-        )
+        result = utility.calc_distance(vectors_left,
+                                       vectors_right,
+                                       params,
+                                       timeout,
+                                       using=self.alias)
         return result
 
-    def deleteEntities(self, expr, collectionName, partition_name=None, timeout=None):
+    def deleteEntities(self,
+                       expr,
+                       collectionName,
+                       partition_name=None,
+                       timeout=None):
         collection = self.getTargetCollection(collectionName)
-        result = collection.delete(
-            expr, partition_name=partition_name, timeout=timeout)
+        result = collection.delete(expr,
+                                   partition_name=partition_name,
+                                   timeout=timeout)
         return result
 
-    def getQuerySegmentInfo(self, collectionName, timeout=None, prettierFormat=False):
+    def getQuerySegmentInfo(self,
+                            collectionName,
+                            timeout=None,
+                            prettierFormat=False):
         from pymilvus import utility
 
-        result = utility.get_query_segment_info(
-            collectionName, timeout=timeout, using=self.alias
-        )
+        result = utility.get_query_segment_info(collectionName,
+                                                timeout=timeout,
+                                                using=self.alias)
         if not prettierFormat or not result:
             return result
         firstChild = result[0]
-        headers = ["segmentID", "collectionID",
-                   "partitionID", "mem_size", "num_rows"]
+        headers = [
+            "segmentID", "collectionID", "partitionID", "mem_size", "num_rows"
+        ]
         return tabulate(
             [[getattr(_, i) for i in headers] for _ in result],
             headers=headers,
             showindex=True,
         )
 
-    def createCollectionAlias(
-        self, collectionName, collectionAliasName="", timeout=None
-    ):
+    def createCollectionAlias(self,
+                              collectionName,
+                              collectionAliasName="",
+                              timeout=None):
         from pymilvus import utility
 
         collection = self.getTargetCollection(collectionName)
-        result = utility.create_alias(
-            collection.name, collectionAliasName, timeout=timeout
-        )
+        result = utility.create_alias(collection.name,
+                                      collectionAliasName,
+                                      timeout=timeout)
         return result
 
     def dropCollectionAlias(self, collectionAliasName="", timeout=None):
@@ -512,38 +543,45 @@ class PyOrm(object):
         result = utility.drop_alias(collectionAliasName, timeout=timeout)
         return result
 
-    def alterCollectionAlias(
-        self, collectionName, collectionAliasName="", timeout=None
-    ):
+    def alterCollectionAlias(self,
+                             collectionName,
+                             collectionAliasName="",
+                             timeout=None):
         from pymilvus import utility
 
         collection = self.getTargetCollection(collectionName)
-        result = utility.alter_alias(
-            collection.name, collectionAliasName, timeout=timeout
-        )
+        result = utility.alter_alias(collection.name,
+                                     collectionAliasName,
+                                     timeout=timeout)
         return result
 
-    def createCollectionAliasList(self, collectionName, aliasList=[], timeout=None):
+    def createCollectionAliasList(self,
+                                  collectionName,
+                                  aliasList=[],
+                                  timeout=None):
         from pymilvus import utility
 
         collection = self.getTargetCollection(collectionName)
         result = []
         for aliasItem in aliasList:
-            aliasResult = utility.create_alias(
-                collection.name, aliasItem, timeout=timeout
-            )
+            aliasResult = utility.create_alias(collection.name,
+                                               aliasItem,
+                                               timeout=timeout)
             result.append(aliasResult)
         return result
 
-    def alterCollectionAliasList(self, collectionName, aliasList=[], timeout=None):
+    def alterCollectionAliasList(self,
+                                 collectionName,
+                                 aliasList=[],
+                                 timeout=None):
         from pymilvus import utility
 
         collection = self.getTargetCollection(collectionName)
         result = []
         for aliasItem in aliasList:
-            aliasResult = utility.alter_alias(
-                collection.name, aliasItem, timeout=timeout
-            )
+            aliasResult = utility.alter_alias(collection.name,
+                                              aliasItem,
+                                              timeout=timeout)
             result.append(aliasResult)
         return result
 
@@ -555,12 +593,17 @@ class PyOrm(object):
         print("alias==>", result)
         return result
 
-    def loadBalance(self, src_node_id, dst_node_ids, sealed_segment_ids, timeout=None):
+    def loadBalance(self,
+                    src_node_id,
+                    dst_node_ids,
+                    sealed_segment_ids,
+                    timeout=None):
         from pymilvus import utility
 
-        res = utility.load_balance(
-            src_node_id, dst_node_ids, sealed_segment_ids, timeout=timeout
-        )
+        res = utility.load_balance(src_node_id,
+                                   dst_node_ids,
+                                   sealed_segment_ids,
+                                   timeout=timeout)
         return res
 
     def mkts_from_hybridts(self, hybridts, milliseconds=0.0):
@@ -626,13 +669,14 @@ class Completer(object):
         "clear": [],
         "compact": [],
         "connect": [],
-        "create": ["alias", "collection", "partition", "index","user"],
-        "delete": ["alias", "collection", "entities", "partition", "index","user"],
+        "create": ["alias", "collection", "partition", "index", "user"],
+        "delete":
+        ["alias", "collection", "entities", "partition", "index", "user"],
         "describe": ["collection", "partition", "index"],
         "exit": [],
         "help": [],
         "import": [],
-        "list": ["collections", "partitions", "indexes","users"],
+        "list": ["collections", "partitions", "indexes", "users"],
         "load_balance": [],
         "load": [],
         "query": [],
@@ -661,6 +705,7 @@ class Completer(object):
             setattr(self, "complete_%s" % cmd, complete_example)
 
     def makeComplete(self, cmd, sub_cmds):
+
         def f_complete(args):
             f"Completions for the {cmd} command."
             if not args:
@@ -688,7 +733,8 @@ class Completer(object):
         dirname, rest = os.path.split(path)
         tmp = dirname if dirname else "."
         res = [
-            os.path.join(dirname, p) for p in self._listdir(tmp) if p.startswith(rest)
+            os.path.join(dirname, p) for p in self._listdir(tmp)
+            if p.startswith(rest)
         ]
         # more than one match, or single match which does not exist (typo)
         if len(res) > 1 or not os.path.exists(path):
@@ -734,27 +780,26 @@ class Completer(object):
             if args:
                 return (impl(args) + [None])[state]
             return [cmd + " "][state]
-        results = [
-            c + " " for c in self.COMMANDS if c.startswith(cmd)] + [None]
+        results = [c + " "
+                   for c in self.COMMANDS if c.startswith(cmd)] + [None]
         return results[state]
 
 
 msgTemp = Template("""
-                                               
-                                               
-  __  __ _ _                    ____ _     ___ 
+
+
+  __  __ _ _                    ____ _     ___
  |  \/  (_) |_   ___   _ ___   / ___| |   |_ _|
- | |\/| | | \ \ / / | | / __| | |   | |    | | 
- | |  | | | |\ V /| |_| \__ \ | |___| |___ | | 
+ | |\/| | | \ \ / / | | / __| | |   | |    | |
+ | |  | | | |\ V /| |_| \__ \ | |___| |___ | |
  |_|  |_|_|_| \_/  \__,_|___/  \____|_____|___|
-                                               
+
 Milvus cli version: ${cli}
-Pymilvus version: ${py}                                             
+Pymilvus version: ${py}
 
 Learn more: https://github.com/zilliztech/milvus_cli.
 
 """)
-
 
 WELCOME_MSG = msgTemp.safe_substitute(cli=getPackageVersion(), py=__version__)
 

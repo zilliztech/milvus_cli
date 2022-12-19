@@ -19,11 +19,12 @@ from Validation import (
 from Types import ParameterException, ConnectException
 from Types import MetricTypes, IndexTypesMap, IndexTypes
 
-
 pass_context = click.make_pass_decorator(PyOrm, ensure=True)
 
 
-@click.group(no_args_is_help=False, add_help_option=False, invoke_without_command=True)
+@click.group(no_args_is_help=False,
+             add_help_option=False,
+             invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
     """Milvus_CLI"""
@@ -94,12 +95,13 @@ def help():
     "-D",
     "--disconnect",
     "disconnect",
-    help="[Optional, Flag] - Disconnect from a Milvus server by alias, default is `default`.",
+    help=
+    "[Optional, Flag] - Disconnect from a Milvus server by alias, default is `default`.",
     default=False,
     is_flag=True,
 )
 @click.pass_obj
-def connect(obj, alias, host, port,secure,username,password, disconnect):
+def connect(obj, alias, host, port, secure, username, password, disconnect):
     """
     Connect to Milvus.
 
@@ -108,7 +110,7 @@ def connect(obj, alias, host, port,secure,username,password, disconnect):
         milvus_cli > connect -h 127.0.0.1 -p 19530 -a default
     """
     try:
-        obj.connect(alias, host, port, disconnect,secure,username,password)
+        obj.connect(alias, host, port, disconnect, secure, username, password)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
@@ -159,9 +161,10 @@ def connection(obj, showAll):
 
 
 @show.command("loading_progress")
-@click.option(
-    "-c", "--collection-name", "collection", help="The name of collection is loading"
-)
+@click.option("-c",
+              "--collection-name",
+              "collection",
+              help="The name of collection is loading")
 @click.option(
     "-p",
     "--partition",
@@ -175,47 +178,52 @@ def loadingProgress(obj, collection, partition):
     """Show #loaded entities vs #total entities."""
     try:
         obj.checkConnection()
-        validateParamsByCustomFunc(
-            obj.getTargetCollection, "Collection Name Error!", collection
-        )
+        validateParamsByCustomFunc(obj.getTargetCollection,
+                                   "Collection Name Error!", collection)
         result = obj.showCollectionLoadingProgress(collection, partition)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
         click.echo(
             tabulate(
-                [[result.get("num_loaded_entities"), result.get("num_total_entities")]],
+                [[
+                    result.get("num_loaded_entities"),
+                    result.get("num_total_entities")
+                ]],
                 headers=["num_loaded_entities", "num_total_entities"],
                 tablefmt="pretty",
-            )
-        )
+            ))
 
 
 @show.command("index_progress")
-@click.option(
-    "-c", "--collection-name", "collection", help="The name of collection is loading"
-)
+@click.option("-c",
+              "--collection-name",
+              "collection",
+              help="The name of collection is loading")
 # ! TODO: To be removed
-@click.option("-i", "--index", "index", help="[Optional] - Index name.", default="")
+@click.option("-i",
+              "--index",
+              "index",
+              help="[Optional] - Index name.",
+              default="")
 @click.pass_obj
 def indexProgress(obj, collection, index):
     """Show # indexed entities vs. # total entities."""
     try:
         obj.checkConnection()
-        validateParamsByCustomFunc(
-            obj.getTargetCollection, "Collection Name Error!", collection
-        )
+        validateParamsByCustomFunc(obj.getTargetCollection,
+                                   "Collection Name Error!", collection)
         result = obj.showIndexBuildingProgress(collection, index)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
         click.echo(
             tabulate(
-                [[result.get("indexed_rows"), result.get("total_rows")]],
+                [[result.get("indexed_rows"),
+                  result.get("total_rows")]],
                 headers=["indexed_rows", "total_rows"],
                 tablefmt="pretty",
-            )
-        )
+            ))
 
 
 @show.command("query_segment")
@@ -229,14 +237,16 @@ def indexProgress(obj, collection, index):
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
     default=None,
     type=float,
 )
 @click.pass_obj
 def querySegmentInfo(obj, collection, timeout):
     """Return segments information from query nodes."""
-    click.echo(obj.getQuerySegmentInfo(collection, timeout, prettierFormat=True))
+    click.echo(
+        obj.getQuerySegmentInfo(collection, timeout, prettierFormat=True))
 
 
 @show.command("compaction_state")
@@ -250,7 +260,8 @@ def querySegmentInfo(obj, collection, timeout):
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
     default=None,
     type=float,
 )
@@ -271,7 +282,8 @@ def compactionStateInfo(obj, collection, timeout):
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
     default=None,
     type=float,
 )
@@ -282,9 +294,10 @@ def compactionStateInfo(obj, collection, timeout):
 
 
 @cli.command()
-@click.option(
-    "-c", "--collection-name", "collection", help="The name of collection to load."
-)
+@click.option("-c",
+              "--collection-name",
+              "collection",
+              help="The name of collection to load.")
 @click.option(
     "-p",
     "--partition",
@@ -297,9 +310,8 @@ def compactionStateInfo(obj, collection, timeout):
 def load(obj, collection, partition):
     """Load specified collection/partitions from disk to memory."""
     try:
-        validateParamsByCustomFunc(
-            obj.getTargetCollection, "Collection Name Error!", collection
-        )
+        validateParamsByCustomFunc(obj.getTargetCollection,
+                                   "Collection Name Error!", collection)
         for partitionName in partition:
             validateParamsByCustomFunc(
                 obj.getTargetPartition,
@@ -315,7 +327,8 @@ def load(obj, collection, partition):
         click.echo(message=e, err=True)
     else:
         if partition:
-            click.echo(f"""Load {collection}'s partitions {partition} successfully""")
+            click.echo(
+                f"""Load {collection}'s partitions {partition} successfully""")
         else:
             click.echo(f"""Load Collection {collection} successfully""")
         click.echo(result)
@@ -340,9 +353,8 @@ def load(obj, collection, partition):
 def release(obj, collection, partition):
     """Release specified collection/partitions from memory."""
     try:
-        validateParamsByCustomFunc(
-            obj.getTargetCollection, "Collection Name Error!", collection
-        )
+        validateParamsByCustomFunc(obj.getTargetCollection,
+                                   "Collection Name Error!", collection)
         for partitionName in partition:
             validateParamsByCustomFunc(
                 obj.getTargetPartition,
@@ -398,7 +410,8 @@ def listDetails(obj):
     "--timeout",
     "-t",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. When timeout is not set, client waits until server response or error occur.",
     default=None,
     type=float,
 )
@@ -413,33 +426,38 @@ def collections(obj, timeout):
 
 
 @listDetails.command()
-@click.option("-c", "--collection-name", "collection", help="The name of collection.")
+@click.option("-c",
+              "--collection-name",
+              "collection",
+              help="The name of collection.")
 @click.pass_obj
 def partitions(obj, collection):
     """List all partitions of the specified collection."""
     try:
         obj.checkConnection()
-        validateParamsByCustomFunc(
-            obj.getTargetCollection, "Collection Name Error!", collection
-        )
+        validateParamsByCustomFunc(obj.getTargetCollection,
+                                   "Collection Name Error!", collection)
         click.echo(obj.listPartitions(collection))
     except Exception as e:
         click.echo(message=e, err=True)
 
 
 @listDetails.command()
-@click.option("-c", "--collection-name", "collection", help="The name of collection.")
+@click.option("-c",
+              "--collection-name",
+              "collection",
+              help="The name of collection.")
 @click.pass_obj
 def indexes(obj, collection):
     """List all indexes of the specified collection."""
     try:
         obj.checkConnection()
-        validateParamsByCustomFunc(
-            obj.getTargetCollection, "Collection Name Error!", collection
-        )
+        validateParamsByCustomFunc(obj.getTargetCollection,
+                                   "Collection Name Error!", collection)
         click.echo(obj.listIndexes(collection))
     except Exception as e:
         click.echo(message=e, err=True)
+
 
 @listDetails.command()
 @click.pass_obj
@@ -460,7 +478,10 @@ def describeDetails(obj):
 
 
 @describeDetails.command("collection")
-@click.option("-c", "--collection-name", "collection", help="The name of collection.")
+@click.option("-c",
+              "--collection-name",
+              "collection",
+              help="The name of collection.")
 @click.pass_obj
 def describeCollection(obj, collection):
     """
@@ -478,9 +499,10 @@ def describeCollection(obj, collection):
 
 
 @describeDetails.command("partition")
-@click.option(
-    "-c", "--collection-name", "collectionName", help="The name of collection."
-)
+@click.option("-c",
+              "--collection-name",
+              "collectionName",
+              help="The name of collection.")
 @click.option(
     "-p",
     "--partition",
@@ -507,17 +529,19 @@ def describePartition(obj, collectionName, partition):
 
 
 @describeDetails.command("index")
-@click.option(
-    "-c", "--collection-name", "collectionName", help="The name of collection."
-)
+@click.option("-c",
+              "--collection-name",
+              "collectionName",
+              help="The name of collection.")
+@click.option("-in", "--index-name", "indexName", help="The name of index.")
 @click.pass_obj
-def describeIndex(obj, collectionName):
+def describeIndex(obj, collectionName, indexName):
     """
     Describe index.
 
     Example:
 
-        milvus_cli > describe index -c car
+        milvus_cli > describe index -c car -in vectorIndex
     """
     try:
         obj.checkConnection()
@@ -525,7 +549,7 @@ def describeIndex(obj, collectionName):
     except Exception as e:
         click.echo(f"Error when getting collection by name!\n{str(e)}")
     else:
-        click.echo(obj.getIndexDetails(collection))
+        click.echo(obj.getIndexDetails(collection, indexName))
 
 
 @cli.group("create", no_args_is_help=False)
@@ -563,7 +587,8 @@ def createDetails(obj):
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
@@ -585,9 +610,11 @@ def createAlias(obj, collectionName, aliasNames, alter, timeout):
     try:
         obj.checkConnection()
         if alter:
-            result = obj.alterCollectionAliasList(collectionName, aliasNames, timeout)
+            result = obj.alterCollectionAliasList(collectionName, aliasNames,
+                                                  timeout)
         else:
-            result = obj.createCollectionAliasList(collectionName, aliasNames, timeout)
+            result = obj.createCollectionAliasList(collectionName, aliasNames,
+                                                   timeout)
     except ConnectException as ce:
         click.echo("Error!\n{}".format(str(ce)))
     else:
@@ -605,9 +632,10 @@ def createAlias(obj, collectionName, aliasNames, alter, timeout):
     help="Collection name to specify alias.",
     type=str,
 )
-@click.option(
-    "-p", "--schema-primary-field", "primaryField", help="Primary field name."
-)
+@click.option("-p",
+              "--schema-primary-field",
+              "primaryField",
+              help="Primary field name.")
 @click.option(
     "-a",
     "--schema-auto-id",
@@ -627,12 +655,14 @@ def createAlias(obj, collectionName, aliasNames, alter, timeout):
     "-f",
     "--schema-field",
     "fields",
-    help='[Multiple] - FieldSchema. Usage is "<Name>:<DataType>:<Dim(if vector) or Description>"',
+    help=
+    '[Multiple] - FieldSchema. Usage is "<Name>:<DataType>:<Dim(if vector) or Description>"',
     default=None,
     multiple=True,
 )
 @click.pass_obj
-def createCollection(obj, collectionName, primaryField, autoId, description, fields):
+def createCollection(obj, collectionName, primaryField, autoId, description,
+                     fields):
     """
     Create collection.
 
@@ -649,15 +679,16 @@ def createCollection(obj, collectionName, primaryField, autoId, description, fie
         click.echo("Error!\n{}".format(str(ce)))
     else:
         click.echo(
-            obj.createCollection(
-                collectionName, primaryField, autoId, description, fields
-            )
-        )
+            obj.createCollection(collectionName, primaryField, autoId,
+                                 description, fields))
         click.echo("Create collection successfully!")
 
 
 @createDetails.command("partition")
-@click.option("-c", "--collection-name", "collectionName", help="Collection name.")
+@click.option("-c",
+              "--collection-name",
+              "collectionName",
+              help="Collection name.")
 @click.option("-p", "--partition", "partition", help="The name of partition.")
 @click.option(
     "-d",
@@ -709,20 +740,21 @@ def createIndex(obj):
     """
     try:
         obj.checkConnection()
-        collectionName = click.prompt(
-            "Collection name", type=click.Choice(obj._list_collection_names())
-        )
+        collectionName = click.prompt("Collection name",
+                                      type=click.Choice(
+                                          obj._list_collection_names()))
         fieldName = click.prompt(
             "The name of the field to create an index for",
             type=click.Choice(
-                obj._list_field_names(collectionName, showVectorOnly=True)
-            ),
+                obj._list_field_names(collectionName, showVectorOnly=True)),
         )
+        indexName = click.prompt("Index name")
+
         indexType = click.prompt("Index type", type=click.Choice(IndexTypes))
-        metricType = click.prompt("Index metric type", type=click.Choice(MetricTypes))
+        metricType = click.prompt("Index metric type",
+                                  type=click.Choice(MetricTypes))
         index_building_parameters = IndexTypesMap[indexType][
-            "index_building_parameters"
-        ]
+            "index_building_parameters"]
         params = []
         for param in index_building_parameters:
             tmpParam = click.prompt(f"Index params {param}")
@@ -736,16 +768,20 @@ def createIndex(obj):
         click.echo("Error!\n{}".format(str(ce)))
     else:
         click.echo(
-            obj.createIndex(
-                collectionName, fieldName, indexType, metricType, params, timeout
-            )
-        )
+            obj.createIndex(collectionName, fieldName, indexName, indexType,
+                            metricType, params, timeout))
         click.echo("Create index successfully!")
 
 
 @createDetails.command("user")
-@click.option("-u", "--username", "username", help="The username of milvus user.")
-@click.option("-p", "--password", "password", help="The pawssord of milvus user.")
+@click.option("-u",
+              "--username",
+              "username",
+              help="The username of milvus user.")
+@click.option("-p",
+              "--password",
+              "password",
+              help="The pawssord of milvus user.")
 @click.pass_obj
 def createUser(obj, username, password):
     """
@@ -757,11 +793,10 @@ def createUser(obj, username, password):
     """
     try:
         obj.checkConnection()
-        click.echo(obj.createCredUser(username,password))
+        click.echo(obj.createCredUser(username, password))
         click.echo("Create user successfully")
     except Exception as e:
         click.echo(message=e, err=True)
-    
 
 
 @cli.group("delete", no_args_is_help=False)
@@ -772,14 +807,17 @@ def deleteObject(obj):
 
 
 @deleteObject.command("alias")
-@click.option(
-    "-a", "--alias-name", "aliasName", help="The alias of the collection.", type=str
-)
+@click.option("-a",
+              "--alias-name",
+              "aliasName",
+              help="The alias of the collection.",
+              type=str)
 @click.option(
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
@@ -813,7 +851,8 @@ def deleteAlias(obj, aliasName, timeout):
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
@@ -838,19 +877,22 @@ def deleteCollection(obj, collectionName, timeout):
         click.echo(f"Error occurred when get collection by name!\n{str(e)}")
     else:
         result = obj.dropCollection(collectionName, timeout)
-        click.echo("Drop collection successfully!") if not result else click.echo(
-            "Drop collection failed!"
-        )
+        click.echo("Drop collection successfully!"
+                   ) if not result else click.echo("Drop collection failed!")
 
 
 @deleteObject.command("partition")
-@click.option("-c", "--collection-name", "collectionName", help="Collection name")
+@click.option("-c",
+              "--collection-name",
+              "collectionName",
+              help="Collection name")
 @click.option("-p", "--partition", "partition", help="The name of partition.")
 @click.option(
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
@@ -875,23 +917,27 @@ def deletePartition(obj, collectionName, partition, timeout):
         click.echo(f"Error occurred when get collection by name!\n{str(e)}")
     else:
         result = obj.dropPartition(collectionName, partition, timeout)
-        click.echo("Drop partition successfully!") if not result else click.echo(
-            "Drop partition failed!"
-        )
+        click.echo("Drop partition successfully!"
+                   ) if not result else click.echo("Drop partition failed!")
 
 
 @deleteObject.command("index")
-@click.option("-c", "--collection-name", "collectionName", help="Collection name")
+@click.option("-c",
+              "--collection-name",
+              "collectionName",
+              help="Collection name")
+@click.option("-in", "--index-name", "Index name", help="Index name")
 @click.option(
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
 @click.pass_obj
-def deleteIndex(obj, collectionName, timeout):
+def deleteIndex(obj, collectionName, indexName, timeout):
     """
     Drop index and its corresponding index files.
 
@@ -910,14 +956,16 @@ def deleteIndex(obj, collectionName, timeout):
     except Exception as e:
         click.echo(f"Error occurred when get collection by name!\n{str(e)}")
     else:
-        result = obj.dropIndex(collectionName, timeout)
+        result = obj.dropIndex(collectionName, indexName, timeout)
         click.echo("Drop index successfully!") if not result else click.echo(
-            "Drop index failed!"
-        )
+            "Drop index failed!")
 
 
 @deleteObject.command("user")
-@click.option("-u", "--username", "username", help="The username of milvus user")
+@click.option("-u",
+              "--username",
+              "username",
+              help="The username of milvus user")
 @click.pass_obj
 def deleteUser(obj, username):
     """
@@ -939,10 +987,13 @@ def deleteUser(obj, username):
         click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)
-   
+
 
 @deleteObject.command("entities")
-@click.option("-c", "--collection-name", "collectionName", help="Collection name.")
+@click.option("-c",
+              "--collection-name",
+              "collectionName",
+              help="Collection name.")
 @click.option(
     "-p",
     "--partition",
@@ -954,7 +1005,8 @@ def deleteUser(obj, username):
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
@@ -989,7 +1041,8 @@ def deleteEntities(obj, collectionName, partitionName, timeout):
     else:
         partitionValue = partitionName if partitionName else None
         timeoutValue = timeout if timeout else None
-        result = obj.deleteEntities(expr, collectionName, partitionValue, timeoutValue)
+        result = obj.deleteEntities(expr, collectionName, partitionValue,
+                                    timeoutValue)
         click.echo(result)
 
 
@@ -1076,15 +1129,16 @@ def search(obj):
 
         Timeout []:
     """
-    collectionName = click.prompt(
-        "Collection name", type=click.Choice(obj._list_collection_names())
-    )
+    collectionName = click.prompt("Collection name",
+                                  type=click.Choice(
+                                      obj._list_collection_names()))
     data = click.prompt(
         "The vectors of search data (the length of data is number of query (nq), the dim of every vector in data must be equal to vector field’s of collection. You can also import a CSV file without headers)"
     )
     annsField = click.prompt(
         "The vector field used to search of collection",
-        type=click.Choice(obj._list_field_names(collectionName, showVectorOnly=True)),
+        type=click.Choice(
+            obj._list_field_names(collectionName, showVectorOnly=True)),
     )
     indexDetails = obj._list_index(collectionName)
     hasIndex = not not indexDetails
@@ -1107,9 +1161,11 @@ def search(obj):
         type=int,
     )
     limit = click.prompt(
-        "The max number of returned record, also known as topk", default=None, type=int
-    )
-    expr = click.prompt("The boolean expression used to filter attribute", default="")
+        "The max number of returned record, also known as topk",
+        default=None,
+        type=int)
+    expr = click.prompt("The boolean expression used to filter attribute",
+                        default="")
     partitionNames = click.prompt(
         f'The names of partitions to search (split by "," if multiple) {obj._list_partition_names(collectionName)}',
         default="",
@@ -1154,7 +1210,9 @@ def search(obj):
         click.echo("Error!\n{}".format(str(ce)))
     else:
         if export:
-            results = obj.search(collectionName, searchParameters, prettierFormat=False)
+            results = obj.search(collectionName,
+                                 searchParameters,
+                                 prettierFormat=False)
         else:
             results = obj.search(collectionName, searchParameters)
             click.echo(f"Search results:\n")
@@ -1209,9 +1267,9 @@ def query(obj):
 
         Travel timestamp. Users can specify a timestamp in a search to get results based on a data view at a specified point in time. [0]: 428960801420883491
     """
-    collectionName = click.prompt(
-        "Collection name", type=click.Choice(obj._list_collection_names())
-    )
+    collectionName = click.prompt("Collection name",
+                                  type=click.Choice(
+                                      obj._list_collection_names()))
     expr = click.prompt("The query expression")
     partitionNames = click.prompt(
         f'The names of partitions to search (split by "," if multiple) {obj._list_partition_names(collectionName)}',
@@ -1267,14 +1325,16 @@ def query(obj):
     "-p",
     "--partition",
     "partitionName",
-    help="[Optional] - The partition name which the data will be inserted to, if partition name is not passed, then the data will be inserted to “_default” partition.",
+    help=
+    "[Optional] - The partition name which the data will be inserted to, if partition name is not passed, then the data will be inserted to “_default” partition.",
     default=None,
 )
 @click.option(
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
@@ -1332,9 +1392,8 @@ def importData(obj, collectionName, partitionName, timeout, path):
     """
     try:
         obj.checkConnection()
-        validateParamsByCustomFunc(
-            obj.getTargetCollection, "Collection Name Error!", collectionName
-        )
+        validateParamsByCustomFunc(obj.getTargetCollection,
+                                   "Collection Name Error!", collectionName)
         result = readCsvFile(path.replace('"', "").replace("'", ""))
         data = result["data"]
         result = obj.importData(collectionName, data, partitionName, timeout)
@@ -1425,12 +1484,11 @@ def calcDistance(obj):
     if click.confirm("Import left operator vectors from existing collection?"):
         left_ids = click.prompt("The vectors' ids on the left of operator")
         left_collection = click.prompt(
-            "The vectors' collection name on the left of operator"
-        )
+            "The vectors' collection name on the left of operator")
         left_partition = click.prompt(
-            "The vectors' partition name on the left of operator"
-        )
-        left_field = click.prompt("The vectors' field name on the left of operator")
+            "The vectors' partition name on the left of operator")
+        left_field = click.prompt(
+            "The vectors' field name on the left of operator")
         leftVectorMeta["vec_type"] = "import"
         leftVectorMeta["ids"] = left_ids
         leftVectorMeta["collection"] = left_collection
@@ -1447,15 +1505,15 @@ def calcDistance(obj):
         leftVectorMeta["type"] = left_type
         leftVectorMeta["vectors"] = left_vectors
     rightVectorMeta = {}
-    if click.confirm("Import right operator vectors from existing collection?"):
+    if click.confirm(
+            "Import right operator vectors from existing collection?"):
         right_ids = click.prompt("The vectors' ids on the right of operator")
         right_collection = click.prompt(
-            "The vectors' collection name on the right of operator"
-        )
+            "The vectors' collection name on the right of operator")
         right_partition = click.prompt(
-            "The vectors' partition name on the right of operator"
-        )
-        right_field = click.prompt("The vectors' field name on the right of operator")
+            "The vectors' partition name on the right of operator")
+        right_field = click.prompt(
+            "The vectors' field name on the right of operator")
         rightVectorMeta["vec_type"] = "import"
         rightVectorMeta["ids"] = right_ids
         rightVectorMeta["collection"] = right_collection
@@ -1488,9 +1546,8 @@ def calcDistance(obj):
         )
     timeout = click.prompt("Timeout(optional)", default="")
     try:
-        calcParams = validateCalcParams(
-            leftVectorMeta, rightVectorMeta, metric_type, sqrt, dim, timeout
-        )
+        calcParams = validateCalcParams(leftVectorMeta, rightVectorMeta,
+                                        metric_type, sqrt, dim, timeout)
         result = obj.calcDistance(
             calcParams["vectors_left"],
             calcParams["vectors_right"],
@@ -1503,17 +1560,15 @@ def calcDistance(obj):
         click.echo("Error!\n{}".format(str(ce)))
     else:
         click.echo(
-            "\n======\nReturn type:\n"
-            + "Assume the vectors_left: L_1, L_2, L_3\n"
-            + "Assume the vectors_right: R_a, R_b\n"
-            + 'Distance between L_n and R_m we called "D_n_m"\n'
-            + "The returned distances are arranged like this:\n"
-            + "   [[D_1_a, D_1_b],\n"
-            + "   [D_2_a, D_2_b],\n"
-            + "   [D_3_a, D_3_b]]\n"
-            + '\nNote: if some vectors doesn\'t exist in collection, the returned distance is "-1.0"\n'
-            + "======\n"
-        )
+            "\n======\nReturn type:\n" +
+            "Assume the vectors_left: L_1, L_2, L_3\n" +
+            "Assume the vectors_right: R_a, R_b\n" +
+            'Distance between L_n and R_m we called "D_n_m"\n' +
+            "The returned distances are arranged like this:\n" +
+            "   [[D_1_a, D_1_b],\n" + "   [D_2_a, D_2_b],\n" +
+            "   [D_3_a, D_3_b]]\n" +
+            '\nNote: if some vectors doesn\'t exist in collection, the returned distance is "-1.0"\n'
+            + "======\n")
         click.echo("Result:\n")
         click.echo(result)
 
@@ -1523,7 +1578,8 @@ def calcDistance(obj):
     "-h",
     "--hybridts",
     "hybridts",
-    help="The original hybrid timestamp used to generate a new hybrid timestamp. Non-negative interger range from 0 to 18446744073709551615.",
+    help=
+    "The original hybrid timestamp used to generate a new hybrid timestamp. Non-negative interger range from 0 to 18446744073709551615.",
     type=int,
 )
 @click.option(
@@ -1552,7 +1608,8 @@ def hybridts2mkts(obj, hybridts, milliseconds):
     "-e",
     "--epoch",
     "epoch",
-    help="The known Unix Epoch time used to generate a hybrid timestamp. The Unix Epoch time is the number of seconds that have elapsed since January 1, 1970 (midnight UTC/GMT).",
+    help=
+    "The known Unix Epoch time used to generate a hybrid timestamp. The Unix Epoch time is the number of seconds that have elapsed since January 1, 1970 (midnight UTC/GMT).",
     type=float,
 )
 @click.option(
@@ -1575,7 +1632,8 @@ def unixtime2mkts(obj, epoch, milliseconds):
     "-h",
     "--hybridts",
     "hybridts",
-    help="The known hybrid timestamp to convert to UNIX Epoch time. Non-negative interger range from 0 to 18446744073709551615.",
+    help=
+    "The known hybrid timestamp to convert to UNIX Epoch time. Non-negative interger range from 0 to 18446744073709551615.",
     type=int,
 )
 @click.pass_obj
@@ -1619,17 +1677,22 @@ def hybridts2unixtime(obj, hybridts):
 @click.pass_obj
 def loadBalance(obj, src_node_id, dst_node_ids, sealed_segment_ids, timeout):
     """Do load balancing operation from source query node to destination query node."""
-    res = obj.loadBalance(src_node_id, dst_node_ids, sealed_segment_ids, timeout)
+    res = obj.loadBalance(src_node_id, dst_node_ids, sealed_segment_ids,
+                          timeout)
     click.echo(res)
 
 
 @cli.command("compact")
-@click.option("-c", "--collection-name", "collectionName", help="Collection name")
+@click.option("-c",
+              "--collection-name",
+              "collectionName",
+              help="Collection name")
 @click.option(
     "-t",
     "--timeout",
     "timeout",
-    help="[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
+    help=
+    "[Optional] - An optional duration of time in seconds to allow for the RPC. If timeout is not set, the client keeps waiting until the server responds or an error occurs.",
     default=None,
     type=float,
 )
@@ -1674,7 +1737,8 @@ def runCliPrompt():
                 click.echo(message=f"{str(pe)}", err=True)
             except ConnectException as ce:
                 click.echo(
-                    message="Connect to milvus Error!\nPlease check your connection.",
+                    message=
+                    "Connect to milvus Error!\nPlease check your connection.",
                     err=True,
                 )
             except Exception as e:
