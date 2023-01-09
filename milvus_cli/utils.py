@@ -442,7 +442,6 @@ class PyOrm(object):
 
     def query(self, collectionName, queryParameters):
         collection = self.getTargetCollection(collectionName)
-        print(queryParameters)
         res = collection.query(**queryParameters)
         # return f"- Query results: {res}"
         if not len(res):
@@ -589,7 +588,6 @@ class PyOrm(object):
 
         collection = self.getTargetCollection(collectionName)
         result = utility.list_aliases(collection.name, timeout=timeout)
-        print("alias==>", result)
         return result
 
     def loadBalance(self,
