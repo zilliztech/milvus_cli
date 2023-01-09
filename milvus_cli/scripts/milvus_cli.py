@@ -157,7 +157,7 @@ def connection(obj, showAll):
     except Exception as e:
         click.echo("No connections.")
     else:
-        click.echo(obj.showConnection(showAll=showAll))
+        click.echo(obj.showConnection(False,showAll=showAll))
 
 
 @show.command("loading_progress")
@@ -926,7 +926,7 @@ def deletePartition(obj, collectionName, partition, timeout):
               "--collection-name",
               "collectionName",
               help="Collection name")
-@click.option("-in", "--index-name", "Index name", help="Index name")
+@click.option("-in", "--index-name", "indexName", help="Index name")
 @click.option(
     "-t",
     "--timeout",
@@ -943,7 +943,7 @@ def deleteIndex(obj, collectionName, indexName, timeout):
 
     Example:
 
-        milvus_cli > delete index -c car
+        milvus_cli > delete index -c car -in indexName
     """
     click.echo(
         "Warning!\nYou are trying to delete the index of collection. This action cannot be undone!\n"
@@ -957,8 +957,7 @@ def deleteIndex(obj, collectionName, indexName, timeout):
         click.echo(f"Error occurred when get collection by name!\n{str(e)}")
     else:
         result = obj.dropIndex(collectionName, indexName, timeout)
-        click.echo("Drop index successfully!") if not result else click.echo(
-            "Drop index failed!")
+        click.echo(result)
 
 
 @deleteObject.command("user")
