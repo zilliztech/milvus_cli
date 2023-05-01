@@ -32,14 +32,15 @@ def validateCollectionParameter(collectionName, primaryField, fields):
                 'Field should contain three parameters concatenated by ":".'
             )
         [fieldName, fieldType, fieldData] = fieldList
+        upperFieldType = fieldType.upper()
         fieldNames.append(fieldName)
-        if fieldType not in FiledDataTypes:
+        if upperFieldType not in FiledDataTypes:
             raise ParameterException(
                 "Invalid field data type, should be one of {}".format(
                     str(FiledDataTypes)
                 )
             )
-        if fieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
+        if upperFieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
             try:
                 int(fieldData)
             except ValueError as e:
