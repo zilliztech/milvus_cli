@@ -349,16 +349,21 @@ class PyOrm(object):
         fieldList = []
         for field in fields:
             [fieldName, fieldType, fieldData] = field.split(":")
-            isVector = False
-            if fieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
+            upperFieldType= fieldType.upper()
+            if upperFieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
                 fieldList.append(
                     FieldSchema(name=fieldName,
-                                dtype=DataType[fieldType],
+                                dtype=DataType[upperFieldType],
                                 dim=int(fieldData)))
+            elif upperFieldType == 'VARCHAR':
+                fieldList.append(
+                    FieldSchema(name=fieldName,
+                                dtype=DataType[upperFieldType],
+                                max_length=fieldData))
             else:
                 fieldList.append(
                     FieldSchema(name=fieldName,
-                                dtype=DataType[fieldType],
+                                dtype=DataType[upperFieldType],
                                 description=fieldData))
         schema = CollectionSchema(
             fields=fieldList,

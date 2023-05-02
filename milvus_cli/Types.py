@@ -29,7 +29,7 @@ FiledDataTypes = [
     "INT64",
     "FLOAT",
     "DOUBLE",
-    "STRING",
+    "VARCHAR",
     "BINARY_VECTOR",
     "FLOAT_VECTOR",
 ]
