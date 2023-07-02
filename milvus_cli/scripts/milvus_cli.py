@@ -159,6 +159,47 @@ def connection(obj, showAll):
     else:
         click.echo(obj.showConnection(False,showAll=showAll))
 
+@cli.group(no_args_is_help=False)
+@click.pass_obj
+def reset(obj):
+    """Reset password."""
+    pass
+
+@reset.command("password")
+@click.option(
+    "-u",
+    "--username",
+    "username",
+    help="[Required] - Username.",
+    required=True,
+    type=str,
+)
+@click.option(
+    "-op",
+    "--old-password",
+    "old_password",
+    help="[Required] - Old password.",
+    required=True,
+    type=str,
+)
+@click.option(
+    "-p",
+    "--new-password",
+    "new_password",
+    help="[Required] - New password.",
+    required=True,
+    type=str,
+)
+@click.pass_obj
+def resetPassword(obj, username, old_password, new_password):
+    """Reset password."""
+    try:
+        obj.checkConnection()
+        obj.resetPassword(username, old_password, new_password)
+    except Exception as e:
+        click.echo(message=e, err=True)
+    else:
+        click.echo("Reset password successfully.")
 
 @show.command("loading_progress")
 @click.option("-c",
