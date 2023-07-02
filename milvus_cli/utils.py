@@ -93,6 +93,20 @@ class PyOrm(object):
         else:
             return "Connection not found!"
 
+    def _reset_password(self, username, old_password, password):
+        from pymilvus import utility
+
+        username = None if username is None else username.strip()
+        password = None if password is None else password.strip()
+
+        try:
+            utility.reset_password(username, old_password, password, using=self.alias)
+        except Exception as e:
+            raise ParameterException(f"Reset password error!{str(e)}")
+        
+    def resetPassword(self, username, old_password, password):
+        self._reset_password(username, old_password, password)
+
     def _list_collection_names(self, timeout=None):
         from pymilvus import utility
 
