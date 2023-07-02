@@ -139,6 +139,7 @@ def show(obj):
     """Show connection, loading_progress and index_progress."""
     pass
 
+
 @show.command()
 @click.option(
     "-a",
