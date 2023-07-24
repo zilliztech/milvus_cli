@@ -18,7 +18,7 @@ class Database():
       res = db.list_database(using=tempAlias)
       print('----',res)
       return res
-    except Ellipsis as e:
+    except Exception as e:
       raise f"List database error!{str(e)}"
   
   def drop_database(self,dbName=None,alias=None):
