@@ -15,8 +15,13 @@ milvusConnection = MilvusConnection()
 
 class TestConnection(unittest.TestCase):
 
-  def test_show_connection(self):
+  def setUp(self):
     milvusConnection.connect(host=defaultAddress,port=defaultPort,alias=tempAlias)
+    
+  def tearDown(self):
+    milvusConnection.disconnect(alias=tempAlias)
+
+  def test_show_connection(self):
     res = milvusConnection.showConnection(alias=tempAlias)
     expectRes = tabulate(
             [["Address", f'{defaultAddress}:{defaultPort}'], ["User", ''], ["Alias", tempAlias]],
@@ -30,7 +35,6 @@ class TestConnection(unittest.TestCase):
     self.assertEqual(res, expectRes)
   
   def test_check_connection(self):
-    milvusConnection.connect(host=defaultAddress,port=defaultPort,alias=tempAlias)
     res = milvusConnection.checkConnection(alias=tempAlias)
     self.assertEqual(len(res), 0)
 
