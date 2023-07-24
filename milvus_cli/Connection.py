@@ -31,18 +31,21 @@ class MilvusConnection(object):
     except Exception as e:
         raise ConnectException(f"Connect to Milvus error!{str(e)}")
   
-  def checkConnection(self):
+  def checkConnection(self,alias=None):
     try:
-        list_collections(timeout=10.0, using=self.alias)
+      tempAlias = alias if alias else self.alias  
+      collections = list_collections(timeout=10.0, using=tempAlias)
+      return collections
     except Exception as e:
-        raise ConnectException(f"Connect to Milvus error!{str(e)}")
+      raise ConnectException(f"Connect to Milvus error!{str(e)}")
     
   def showConnection(self, alias=None, showAll=False):
     tempAlias = alias if alias else self.alias
     allConnections = connections.list_connections()
+    
     if showAll:
         return tabulate(allConnections,
-                        headers=["Alias", "Instance"],
+                        headers=["Alias"],
                         tablefmt="pretty")
     aliasList = map(lambda x: x[0], allConnections)
 
@@ -54,4 +57,12 @@ class MilvusConnection(object):
         )
     else:
         return "Connection not found!"
+  
+  def disconnect(self,alias=None):
+    tempAlias = alias if alias else self.alias
+    try:
+      connections.disconnect(alias=tempAlias)
+      return f"Disconnect from {tempAlias} successfully!"
+    except Exception as e:
+      raise f"Disconnect from {tempAlias} error!{str(e)}"
 
