@@ -25,12 +25,6 @@ def checkEmpty(x):
     return not not x
 
 
-def getMilvusTimestamp(isSimilar=True):
-    ts = time()
-    if isSimilar:
-        return int(ts) << 18
-
-
 class PyOrm(object):
     host = "127.0.0.1"
     port = 19530
