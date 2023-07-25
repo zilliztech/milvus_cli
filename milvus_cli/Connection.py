@@ -3,30 +3,25 @@ from Types import ConnectException
 from tabulate import tabulate
 
 class MilvusConnection(object):
-  host = "127.0.0.1"
-  port = 19530
+  uri = "127.0.0.1:19530"
   alias = "default"
 
   def connect(self,
           alias='',
-          host=None,
-          port=None,
-          secure=False,
+          uri=None,
           username=None,
           password=None):
     self.alias = alias
-    self.host = host
-    self.port = port
+    self.uri = uri
     trimUsername = None if username is None else username.strip()
     trimPwd = None if password is None else password.strip()
 
     try:
       res = connections.connect(alias= self.alias,
-                            host=self.host,
-                            port=self.port,
+                            uri=self.uri,
                             user=trimUsername,
-                            password=trimPwd,
-                            secure=secure)
+                            password=trimPwd
+                            )  
       return res
     except Exception as e:
         raise ConnectException(f"Connect to Milvus error!{str(e)}")
@@ -42,7 +37,7 @@ class MilvusConnection(object):
   def showConnection(self, alias=None, showAll=False):
     tempAlias = alias if alias else self.alias
     allConnections = connections.list_connections()
-    
+
     if showAll:
         return tabulate(allConnections,
                         headers=["Alias"],

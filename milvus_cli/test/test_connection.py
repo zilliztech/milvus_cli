@@ -8,23 +8,22 @@ parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 from Connection import MilvusConnection
 
-defaultAddress = 'localhost'
-defaultPort = 19530
+uri = "http://localhost:19530"
 tempAlias = "zilliz"
 milvusConnection = MilvusConnection()
 
 class TestConnection(unittest.TestCase):
 
   def setUp(self):
-    milvusConnection.connect(host=defaultAddress,port=defaultPort,alias=tempAlias)
-    
+    milvusConnection.connect(uri=uri ,alias=tempAlias)
+
   def tearDown(self):
     milvusConnection.disconnect(alias=tempAlias)
 
   def test_show_connection(self):
     res = milvusConnection.showConnection(alias=tempAlias)
     expectRes = tabulate(
-            [["Address", f'{defaultAddress}:{defaultPort}'], ["User", ''], ["Alias", tempAlias]],
+            [["Address", f'localhost:19530'], ["User", ''], ["Alias", tempAlias]],
             tablefmt="pretty",
         )
     self.assertEqual(res, expectRes)

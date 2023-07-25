@@ -9,8 +9,7 @@ sys.path.append(parentdir)
 from Connection import MilvusConnection
 from Database import Database
 
-defaultAddress = 'localhost'
-defaultPort = 19530
+uri = "http://localhost:19530"
 tempAlias = "zilliz"
 dbName="test_db"
 milvusConnection = MilvusConnection()
@@ -19,7 +18,7 @@ database = Database()
 class TestDatabase(unittest.TestCase):
 
   def setUp(self):
-    milvusConnection.connect(host=defaultAddress,port=defaultPort,alias=tempAlias)
+    milvusConnection.connect(uri=uri,alias=tempAlias)
     
   def tearDown(self):
     database.drop_database(dbName=dbName,alias=tempAlias)
