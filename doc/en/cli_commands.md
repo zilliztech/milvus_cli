@@ -155,7 +155,10 @@ connect [-h (text)] [-p (int)] [-a (text)] [-D]
 | :----- | :----------- | :---------------------------------------------------------------------------------------------------------- |
 | -h     | --host       | (Optional) The host name. The default is "127.0.0.1".                                                       |
 | -p     | --port       | (Optional) The port number. The default is "19530".                                                         |
+| -u     | --username       | （Optional） The username. The default is "None".                                        |
+| -pwd     | --password       | （Optional） The password. The default is "None".                                        |
 | -a     | --alias      | (Optional) The alias name of the Milvus link. The default is "default".                                     |
+| -s     | --secure      | （Optional）Connect with SSL. The default is "False".                            |
 | -D     | --disconnect | (Optional) Flag to disconnect from the Milvus server specified by an alias. The default alias is "default". |
 | --help | n/a          | Displays help for using the command.                                                                        |
 
