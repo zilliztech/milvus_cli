@@ -1,6 +1,5 @@
-from pymilvus import __version__,connections,list_collections
+from pymilvus import connections,list_collections
 from Types import ConnectException
-from tabulate import tabulate
 
 class MilvusConnection(object):
   uri = "127.0.0.1:19530"
@@ -39,17 +38,13 @@ class MilvusConnection(object):
     allConnections = connections.list_connections()
 
     if showAll:
-        return tabulate(allConnections,
-                        headers=["Alias"],
-                        tablefmt="pretty")
+        return allConnections;
+  
     aliasList = map(lambda x: x[0], allConnections)
 
     if tempAlias in aliasList:
-        address, user = connections.get_connection_addr(tempAlias).values()
-        return tabulate(
-            [["Address", address], ["User", user], ["Alias", tempAlias]],
-            tablefmt="pretty",
-        )
+        response = connections.get_connection_addr(tempAlias).values()
+        return response
     else:
         return "Connection not found!"
   
