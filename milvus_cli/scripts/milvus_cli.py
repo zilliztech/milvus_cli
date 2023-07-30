@@ -1,3 +1,6 @@
+from Cli import MilvusCli, getPackageVersion
+from Types import ParameterException, ConnectException
+from utils import WELCOME_MSG, EXIT_MSG, Completer
 from tabulate import tabulate
 import sys
 import os
@@ -7,12 +10,9 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 
-from utils import WELCOME_MSG, EXIT_MSG, Completer
-from Cli import MilvusCli
-from Types import ParameterException, ConnectException
-
 
 pass_context = click.make_pass_decorator(MilvusCli, ensure=True)
+
 
 @click.group(no_args_is_help=False,
              add_help_option=False,
@@ -22,9 +22,11 @@ def cli(ctx):
     """Milvus_CLI"""
     ctx.obj = MilvusCli()
 
+
 def print_help_msg(command):
     with click.Context(command) as ctx:
         click.echo(command.get_help(ctx))
+
 
 @cli.command()
 def help():
@@ -66,7 +68,7 @@ def help():
     type=str,
 )
 @click.pass_obj
-def connect(obj, alias,uri, username, password):
+def connect(obj, alias, uri, username, password):
     """
     Connect to Milvus.
 
@@ -80,20 +82,17 @@ def connect(obj, alias,uri, username, password):
         click.echo(message=e, err=True)
     else:
         click.echo("Connect Milvus successfully.")
-        address,username = obj.connection.showConnection(alias)
+        address, username = obj.connection.showConnection(alias)
         click.echo(tabulate(
             [["Address", address], ["User", username], ["Alias", alias]],
             tablefmt="pretty",
         ))
-         
 
 
 @cli.command()
 def version():
     """Get Milvus_CLI version."""
     click.echo(f"Milvus_CLI v{getPackageVersion()}")
-
-
 
 
 @cli.command("exit")
@@ -131,8 +130,7 @@ def runCliPrompt():
                 click.echo(message=f"{str(pe)}", err=True)
             except ConnectException as ce:
                 click.echo(
-                    message=
-                    "Connect to milvus Error!\nPlease check your connection.",
+                    message="Connect to milvus Error!\nPlease check your connection.",
                     err=True,
                 )
             except Exception as e:
