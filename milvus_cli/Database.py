@@ -1,8 +1,6 @@
 from pymilvus import db
-from Types import ConnectException
-from tabulate import tabulate
 
-class Database():
+class MilvusDatabase():
   alias = "default"
   def create_database(self,dbName=None,alias=None):
     tempAlias = alias if alias else self.alias

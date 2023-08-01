@@ -7,13 +7,13 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 from Connection import MilvusConnection
-from Database import Database
+from Database import MilvusDatabase
 
 uri = "http://localhost:19530"
 tempAlias = "zilliz"
 dbName="test_db"
 milvusConnection = MilvusConnection()
-database = Database()
+database = MilvusDatabase()
 
 class TestDatabase(unittest.TestCase):
 

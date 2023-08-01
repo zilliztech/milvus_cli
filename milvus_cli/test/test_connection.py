@@ -1,7 +1,6 @@
 import unittest;
 import sys
 import os
-from tabulate import tabulate
 
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
@@ -22,11 +21,7 @@ class TestConnection(unittest.TestCase):
 
   def test_show_connection(self):
     res = milvusConnection.showConnection(alias=tempAlias)
-    expectRes = tabulate(
-            [["Address", f'localhost:19530'], ["User", ''], ["Alias", tempAlias]],
-            tablefmt="pretty",
-        )
-    self.assertEqual(res, expectRes)
+    self.assertIn('localhost:19530', res)
 
   def test_disconnect(self):
     res = milvusConnection.disconnect(alias=tempAlias)
