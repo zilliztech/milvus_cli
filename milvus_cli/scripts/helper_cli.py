@@ -37,7 +37,28 @@ def clear():
 @cli.group(no_args_is_help=False)
 @click.pass_obj
 def show(obj):
-    """Show connection, loading_progress and index_progress."""
+    """Show connection, database, loading_progress and index_progress."""
+    pass
+
+
+@cli.group("list", no_args_is_help=False)
+@click.pass_obj
+def getList(obj):
+    """List collections,databases, partitions and indexes."""
+    pass
+
+
+@cli.group("create", no_args_is_help=False)
+@click.pass_obj
+def create(obj):
+    """Create collection, database, partition and index."""
+    pass
+
+
+@cli.group("delete", no_args_is_help=False)
+@click.pass_obj
+def delete(obj):
+    """Delete collection, database, partition,alias and index."""
     pass
 
 
