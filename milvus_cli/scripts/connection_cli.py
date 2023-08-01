@@ -83,7 +83,6 @@ def connect(obj, alias, uri, username, password):
 def connection(obj, showAll=True, name=None):
     """Show current/all connection details"""
     try:
-        click.echo("Current connection:")
         if showAll:
             allConnections = obj.connection.showConnection(showAll=True)
             click.echo(
@@ -106,5 +105,4 @@ def connection(obj, showAll=True, name=None):
                 )
             )
     except Exception as e:
-        click.echo("Current connection2:")
         click.echo(message=e, err=True)
