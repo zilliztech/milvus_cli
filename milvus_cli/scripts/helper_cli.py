@@ -37,7 +37,7 @@ def clear():
 @cli.group(no_args_is_help=False)
 @click.pass_obj
 def show(obj):
-    """Show connection, database, loading_progress and index_progress."""
+    """Show connection, database,collection, loading_progress and index_progress."""
     pass
 
 
@@ -45,6 +45,13 @@ def show(obj):
 @click.pass_obj
 def getList(obj):
     """List collections,databases, partitions and indexes."""
+    pass
+
+
+@cli.group("rename", no_args_is_help=False)
+@click.pass_obj
+def rename(obj):
+    """Rename collection"""
     pass
 
 
