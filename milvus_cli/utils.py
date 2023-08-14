@@ -692,7 +692,11 @@ class Completer(object):
             "query_segment",
             "compaction_state",
             "compaction_plans",
+            "collection",
+            "partition",
+            "index",
         ],
+        "rename": ["collection"],
         "version": [],
     }
 
