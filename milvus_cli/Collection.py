@@ -8,7 +8,7 @@ from pymilvus import (
     CollectionSchema,
 )
 from tabulate import tabulate
-from milvus_cli.Types import DataTypeByNum
+from Types import DataTypeByNum
 
 
 class MilvusCollection(object):
@@ -22,8 +22,8 @@ class MilvusCollection(object):
         autoId=None,
         description=None,
         isDynamic=None,
-        consistencyLevel=None,
-        shardsNum=2,
+        consistencyLevel="Bounded",
+        shardsNum=1,
         alias=None,
     ):
         fieldList = []
