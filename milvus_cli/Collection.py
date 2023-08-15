@@ -108,6 +108,27 @@ class MilvusCollection(object):
         else:
             return res
 
+    def load_collection(self, alias=None, collectionName=None):
+        try:
+            tempAlias = alias if alias else self.alias
+            print(tempAlias)
+            target = getTargetCollection(collectionName=collectionName, alias=tempAlias)
+            target.load()
+        except Exception as e:
+            raise Exception(f"Load collection error!{str(e)}")
+        else:
+            return f"Load collection {collectionName} successfully!"
+
+    def release_collection(self, alias=None, collectionName=None):
+        try:
+            tempAlias = alias if alias else self.alias
+            target = getTargetCollection(collectionName=collectionName, alias=tempAlias)
+            target.release()
+        except Exception as e:
+            raise Exception(f"Release collection error!{str(e)}")
+        else:
+            return f"Release collection {collectionName} successfully!"
+
     def rename_collection(self, alias=None, collectionName=None, newName=None):
         try:
             utility.rename_collection(
@@ -155,3 +176,20 @@ class MilvusCollection(object):
         rows.append(["Partitions", partitionDetails])
         rows.append(["Indexes", indexesDetails])
         return tabulate(rows, tablefmt="grid")
+
+    def get_entities_count(self, collectionName, alias=None):
+        tempAlias = alias if alias else self.alias
+        col = getTargetCollection(collectionName, tempAlias)
+        return col.num_entities
+
+    def show_loading_progress(
+        self,
+        collectionName=None,
+        alias=None,
+    ):
+        try:
+            tempAlias = alias if alias else self.alias
+            self.get_entities_count(collectionName, tempAlias)
+            return utility.loading_progress(collectionName, None, tempAlias)
+        except Exception as e:
+            raise Exception(f"Show loading progress error!{str(e)}")
