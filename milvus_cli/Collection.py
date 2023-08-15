@@ -111,7 +111,6 @@ class MilvusCollection(object):
     def load_collection(self, alias=None, collectionName=None):
         try:
             tempAlias = alias if alias else self.alias
-            print(tempAlias)
             target = getTargetCollection(collectionName=collectionName, alias=tempAlias)
             target.load()
         except Exception as e:
