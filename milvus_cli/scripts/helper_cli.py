@@ -62,6 +62,20 @@ def create(obj):
     pass
 
 
+@cli.group(no_args_is_help=False)
+@click.pass_obj
+def load(obj):
+    """Load collection, partition"""
+    pass
+
+
+@cli.group(no_args_is_help=False)
+@click.pass_obj
+def release(obj):
+    """Release collection, partition"""
+    pass
+
+
 @cli.group("delete", no_args_is_help=False)
 @click.pass_obj
 def delete(obj):

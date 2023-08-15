@@ -681,9 +681,9 @@ class Completer(object):
         "import": [],
         "list": ["collections", "databases", "partitions", "indexes", "users"],
         "load_balance": [],
-        "load": [],
+        "load": ["collection", "partition"],
         "query": [],
-        "release": [],
+        "release": ["collection", "partition"],
         "search": [],
         "show": [
             "connection",

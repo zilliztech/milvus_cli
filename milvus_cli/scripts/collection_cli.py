@@ -1,5 +1,5 @@
 from tabulate import tabulate
-from helper_cli import create, getList, delete, rename, show
+from helper_cli import create, getList, delete, rename, show, load, release
 import click
 import os
 import sys
@@ -9,7 +9,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from Validation import validateCollectionParameter
-from Types import ParameterException, ConnectException
+from Types import ParameterException
 
 
 @create.command("collection")
@@ -218,9 +218,11 @@ def rename_collection(obj, alias, collectionName, newName):
 
 
 @show.command("collection")
-@click.option("-c", "--collection-name", "collection", help="The name of collection.")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection."
+)
 @click.pass_obj
-def describeCollection(obj, collection):
+def describeCollection(obj, collectionName):
     """
     Describe collection.
 
@@ -229,6 +231,84 @@ def describeCollection(obj, collection):
         milvus_cli > describe collection -c test_collection_insert
     """
     try:
-        click.echo(obj.collection.get_collection_details(collection))
+        click.echo(obj.collection.get_collection_details(collectionName))
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@load.command("collection")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection."
+)
+@click.option(
+    "-a",
+    "--alias",
+    "alias",
+    help="The connection alias name.",
+    type=str,
+)
+@click.pass_obj
+def loadCollection(obj, collectionName, alias):
+    """
+    Load collection.
+
+    Example:
+
+        milvus_cli > load collection -c test_collection
+    """
+    try:
+        click.echo(obj.collection.load_collection(alias, collectionName))
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@release.command("collection")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection."
+)
+@click.option(
+    "-a",
+    "--alias",
+    "alias",
+    help="The connection alias name.",
+    type=str,
+)
+@click.pass_obj
+def releaseCollection(obj, alias, collectionName):
+    """
+    Release collection.
+
+    Example:
+
+        milvus_cli > release collection -c test_collection
+    """
+    try:
+        click.echo(obj.collection.release_collection(alias, collectionName))
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("loading_progress")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection."
+)
+@click.option(
+    "-a",
+    "--alias",
+    "alias",
+    help="The connection alias name.",
+    type=str,
+)
+@click.pass_obj
+def loadingProgress(obj, alias, collectionName):
+    """
+    Show loading progress.
+
+    Example:
+
+        milvus_cli > show loading_progress -c test_collection
+    """
+    try:
+        click.echo(obj.collection.show_loading_progress(collectionName, alias))
     except Exception as e:
         click.echo(message=e, err=True)
