@@ -11,6 +11,15 @@ from tabulate import tabulate
 from Types import DataTypeByNum
 
 
+def getTargetCollection(collectionName, alias=None):
+    try:
+        target = Collection(collectionName, using=alias)
+    except Exception as e:
+        raise Exception(f"Get collection error!{str(e)}")
+    else:
+        return target
+
+
 class MilvusCollection(object):
     alias = "default"
 
@@ -79,20 +88,10 @@ class MilvusCollection(object):
         else:
             return res
 
-    def getTargetCollection(self, collectionName, alias=None):
-        try:
-            tempAlias = alias if alias else self.alias
-            target = Collection(collectionName, using=tempAlias)
-        except Exception as e:
-            raise Exception(f"Get collection error!{str(e)}")
-        else:
-            return target
-
     def drop_collection(self, alias=None, collectionName=None):
         try:
-            target = self.getTargetCollection(
-                collectionName=collectionName, alias=alias
-            )
+            tempAlias = alias if alias else self.alias
+            target = getTargetCollection(collectionName=collectionName, alias=tempAlias)
             target.drop()
         except Exception as e:
             raise Exception(f"Delete collection error!{str(e)}")
@@ -123,8 +122,9 @@ class MilvusCollection(object):
 
     def get_collection_details(self, collectionName="", alias=None, collection=None):
         try:
-            target = collection or self.getTargetCollection(
-                collectionName=collectionName, alias=alias
+            tempAlias = alias if alias else self.alias
+            target = collection or getTargetCollection(
+                collectionName=collectionName, alias=tempAlias
             )
         except Exception as e:
             raise Exception(f"Get collection detail error!{str(e)}")
