@@ -192,3 +192,10 @@ class MilvusCollection(object):
             return utility.loading_progress(collectionName, None, tempAlias)
         except Exception as e:
             raise Exception(f"Show loading progress error!{str(e)}")
+
+    def list_field_names(self, collectionName, alias=None):
+        tempAlias = alias if alias else self.alias
+        target = getTargetCollection(collectionName, tempAlias)
+        result = target.schema.fields
+
+        return [i.name for i in result]

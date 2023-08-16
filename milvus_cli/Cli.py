@@ -1,6 +1,7 @@
 from Connection import MilvusConnection
 from Database import MilvusDatabase
 from Collection import MilvusCollection
+from Index import MilvusIndex
 from pymilvus import __version__
 from Types import ParameterException
 
@@ -21,3 +22,4 @@ class MilvusCli(object):
     connection = MilvusConnection()
     database = MilvusDatabase()
     collection = MilvusCollection()
+    index = MilvusIndex()
