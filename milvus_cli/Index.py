@@ -1,5 +1,6 @@
 from Collection import getTargetCollection
 from tabulate import tabulate
+from pymilvus import index_building_progress
 
 
 class MilvusIndex(object):
@@ -72,8 +73,13 @@ class MilvusIndex(object):
         collection = getTargetCollection(collectionName, tempAlias)
         return collection.has_index(index_name=indexName, timeout=timeout)
 
+    def get_index_build_progress(self, collectionName, indexName, alias):
+        tempAlias = alias if alias else self.alias
+        return index_building_progress(collectionName, indexName, tempAlias)
+
     def list_indexes(self, collectionName, alias):
-        target = getTargetCollection(collectionName, alias)
+        tempAlias = alias if alias else self.alias
+        target = getTargetCollection(collectionName, tempAlias)
         result = target.indexes
 
         rows = list(

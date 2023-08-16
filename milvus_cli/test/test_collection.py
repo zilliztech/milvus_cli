@@ -84,6 +84,10 @@ class TestCollection(unittest.TestCase):
         except Exception as e:
             self.assertIn("Show loading progress error", str(e))
 
+    def test_list_fields(self):
+        result = collection.list_field_names(collectionName, tempAlias)
+        self.assertIn("id", result)
+
 
 if __name__ == "__main__":
     unittest.main()
