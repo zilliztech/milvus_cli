@@ -679,6 +679,7 @@ class Completer(object):
         "exit": [],
         "help": [],
         "import": [],
+        "insert": [],
         "list": ["collections", "databases", "partitions", "indexes", "users"],
         "load_balance": [],
         "load": ["collection", "partition"],
