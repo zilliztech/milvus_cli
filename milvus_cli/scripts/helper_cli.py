@@ -34,7 +34,7 @@ def clear():
     click.clear()
 
 
-@cli.group(no_args_is_help=False)
+@cli.group("show", no_args_is_help=False)
 @click.pass_obj
 def show(obj):
     """Show connection, database,collection, loading_progress and index_progress."""
@@ -62,14 +62,14 @@ def create(obj):
     pass
 
 
-@cli.group(no_args_is_help=False)
+@cli.group("load", no_args_is_help=False)
 @click.pass_obj
 def load(obj):
     """Load collection, partition"""
     pass
 
 
-@cli.group(no_args_is_help=False)
+@cli.group("release", no_args_is_help=False)
 @click.pass_obj
 def release(obj):
     """Release collection, partition"""
@@ -80,6 +80,27 @@ def release(obj):
 @click.pass_obj
 def delete(obj):
     """Delete collection, database, partition,alias and index."""
+    pass
+
+
+@cli.group("search", no_args_is_help=False)
+@click.pass_obj
+def search(obj):
+    """Similarity search"""
+    pass
+
+
+@cli.group("query", no_args_is_help=False)
+@click.pass_obj
+def query(obj):
+    """Query entities in collection."""
+    pass
+
+
+@cli.group("insert", no_args_is_help=False)
+@click.pass_obj
+def insert(obj):
+    """Insert entities"""
     pass
 
 

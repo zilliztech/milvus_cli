@@ -14,7 +14,7 @@ class MilvusIndex(object):
         indexType,
         metricType,
         params,
-        alias,
+        alias=None,
     ):
         try:
             tempAlias = alias if alias else self.alias
@@ -44,7 +44,7 @@ class MilvusIndex(object):
         except Exception as e:
             raise Exception(f"Create index error!{str(e)}")
 
-    def get_index_details(self, collectionName, indexName, alias):
+    def get_index_details(self, collectionName, indexName, alias=None):
         tempAlias = alias if alias else self.alias
         collection = getTargetCollection(collectionName, tempAlias)
 
@@ -62,22 +62,22 @@ class MilvusIndex(object):
         rows.append(["Params", paramsDetails])
         return tabulate(rows, tablefmt="grid")
 
-    def drop_index(self, collectionName, indexName, alias, timeout=None):
+    def drop_index(self, collectionName, indexName, alias=None, timeout=None):
         tempAlias = alias if alias else self.alias
         collection = getTargetCollection(collectionName, tempAlias)
         collection.drop_index(index_name=indexName, timeout=timeout)
         return self.list_indexes(collectionName, tempAlias)
 
-    def has_index(self, collectionName, indexName, alias, timeout=None):
+    def has_index(self, collectionName, indexName, alias=None, timeout=None):
         tempAlias = alias if alias else self.alias
         collection = getTargetCollection(collectionName, tempAlias)
         return collection.has_index(index_name=indexName, timeout=timeout)
 
-    def get_index_build_progress(self, collectionName, indexName, alias):
+    def get_index_build_progress(self, collectionName, indexName, alias=None):
         tempAlias = alias if alias else self.alias
         return index_building_progress(collectionName, indexName, tempAlias)
 
-    def list_indexes(self, collectionName, alias):
+    def list_indexes(self, collectionName, alias=None):
         tempAlias = alias if alias else self.alias
         target = getTargetCollection(collectionName, tempAlias)
         result = target.indexes
@@ -100,3 +100,19 @@ class MilvusIndex(object):
             tablefmt="grid",
             showindex=True,
         )
+
+    def get_vector_index(self, collectionName):
+        target = getTargetCollection(collectionName, self.alias)
+        try:
+            result = target.index()
+        except Exception as e:
+            return {}
+        else:
+            details = {
+                "field_name": result.field_name,
+                "index_type": result.params["index_type"],
+                "metric_type": result.params["metric_type"],
+                "params": result.params["params"],
+            }
+
+            return details
