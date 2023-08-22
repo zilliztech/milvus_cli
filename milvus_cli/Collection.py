@@ -81,7 +81,7 @@ class MilvusCollection(object):
 
     def list_collections(self, alias=None):
         tempAlias = alias if alias else self.alias
-        print("--- alias ----", tempAlias)
+
         try:
             res = list_collections(using=tempAlias)
         except Exception as e:
