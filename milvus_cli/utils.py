@@ -673,6 +673,7 @@ class Completer(object):
         "help": [],
         "insert": [],
         "list": [
+            "connections",
             "collections",
             "databases",
             "partitions",
@@ -685,7 +686,6 @@ class Completer(object):
         "release": ["collection", "partition"],
         "search": [],
         "show": [
-            "connection",
             "index_progress",
             "loading_progress",
             "query_segment",

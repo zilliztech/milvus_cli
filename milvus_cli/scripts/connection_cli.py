@@ -1,18 +1,10 @@
 from tabulate import tabulate
-from helper_cli import show
+from helper_cli import show, getList
 from init_cli import cli
 import click
 
 
 @cli.command(no_args_is_help=False)
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="[Optional] - Milvus link alias name, default is `default`.",
-    default="default",
-    type=str,
-)
 @click.option(
     "-uri",
     "--uri",
@@ -38,7 +30,7 @@ import click
     type=str,
 )
 @click.pass_obj
-def connect(obj, alias, uri, username, password):
+def connect(obj, uri, username, password):
     """
     Connect to Milvus.
 
@@ -47,62 +39,32 @@ def connect(obj, alias, uri, username, password):
         milvus_cli > connect -h 127.0.0.1 -p 19530 -a default
     """
     try:
-        obj.connection.connect(alias, uri, username, password)
+        obj.connection.connect(uri, username, password)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
         click.echo("Connect Milvus successfully.")
-        address, username = obj.connection.showConnection(alias)
+        address, username = obj.connection.showConnection()
         click.echo(
             tabulate(
-                [["Address", address], ["User", username], ["Alias", alias]],
+                [["Address", address], ["User", username], ["Alias", "default"]],
                 tablefmt="pretty",
             )
         )
 
 
-@show.command("connection")
-@click.option(
-    "-a",
-    "--all",
-    "showAll",
-    help="[Optional, Flag] - Show all connections.",
-    default=False,
-    is_flag=True,
-    type=bool,
-)
-@click.option(
-    "-n",
-    "--name",
-    "name",
-    help="[Optional, Flag] - Show one connection by name.",
-    default=None,
-    type=str,
-)
+@getList.command("connections")
 @click.pass_obj
-def connection(obj, showAll=True, name=None):
+def connection(obj):
     """Show current/all connection details"""
     try:
-        if showAll:
-            allConnections = obj.connection.showConnection(showAll=True)
-            click.echo(
-                tabulate(
-                    allConnections,
-                    headers=["Alias", "Instance"],
-                    tablefmt="pretty",
-                )
+        allConnections = obj.connection.showConnection(showAll=True)
+        click.echo(
+            tabulate(
+                allConnections,
+                headers=["Alias", "Instance"],
+                tablefmt="pretty",
             )
-        else:
-            result = obj.connection.showConnection(showAll=False, alias=name)
-            if isinstance(result, str):
-                click.echo(result)
-                return
-            address, user = result
-            click.echo(
-                tabulate(
-                    [["Address", address], ["User", user], ["Alias", name]],
-                    tablefmt="pretty",
-                )
-            )
+        )
     except Exception as e:
         click.echo(message=e, err=True)
