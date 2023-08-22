@@ -656,14 +656,7 @@ class Completer(object):
     #         'list', 'load', 'query', 'release', 'search', 'show', 'version' ]
     RE_SPACE = re.compile(".*\s+$", re.M)
     CMDS_DICT = {
-        "calc": [
-            "distance",
-            "mkts_from_hybridts",
-            "mkts_from_unixtime",
-            "hybridts_to_unixtime",
-        ],
         "clear": [],
-        "compact": [],
         "connect": [],
         "create": ["alias", "database", "collection", "partition", "index", "user"],
         "delete": [
@@ -678,7 +671,6 @@ class Completer(object):
         "describe": ["collection", "partition", "index"],
         "exit": [],
         "help": [],
-        "import": [],
         "insert": [],
         "list": [
             "collections",
@@ -688,7 +680,6 @@ class Completer(object):
             "users",
             "aliases",
         ],
-        "load_balance": [],
         "load": ["collection", "partition"],
         "query": [],
         "release": ["collection", "partition"],
