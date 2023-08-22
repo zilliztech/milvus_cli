@@ -5,6 +5,7 @@ from database_cli import *
 from collection_cli import *
 from index_cli import *
 from data_cli import *
+from user_cli import *
 from alias_cli import *
 
 

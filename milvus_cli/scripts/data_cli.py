@@ -1,4 +1,4 @@
-from helper_cli import search, query, delete, insert
+from helper_cli import delete, insert
 from init_cli import cli
 
 import click
@@ -121,7 +121,7 @@ def query(obj):
         click.echo(obj.data.query(collectionName, queryParameters))
 
 
-@insert.command("data")
+@cli.command("insert")
 @click.option(
     "-c",
     "--collection-name",
