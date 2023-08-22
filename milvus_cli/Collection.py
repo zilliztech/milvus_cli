@@ -12,8 +12,9 @@ from Types import DataTypeByNum
 
 
 def getTargetCollection(collectionName, alias=None):
+    tempAlias = alias if alias else "default"
     try:
-        target = Collection(collectionName, using=alias)
+        target = Collection(collectionName, using=tempAlias)
     except Exception as e:
         raise Exception(f"Get collection error!{str(e)}")
     else:
@@ -81,6 +82,7 @@ class MilvusCollection(object):
 
     def list_collections(self, alias=None):
         tempAlias = alias if alias else self.alias
+
         try:
             res = list_collections(using=tempAlias)
         except Exception as e:
