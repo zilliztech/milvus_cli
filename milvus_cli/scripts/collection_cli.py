@@ -31,7 +31,6 @@ from Types import ParameterException
     default=False,
     is_flag=True,
 )
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.option(
     "-desc",
     "--schema-description",
@@ -80,7 +79,6 @@ def create_collection(
     isDynamic,
     consistencyLevel,
     shardsNum,
-    alias,
 ):
     """
     Create collection.
@@ -108,16 +106,14 @@ def create_collection(
                 isDynamic,
                 consistencyLevel,
                 shardsNum,
-                alias,
             )
         )
         click.echo("Create collection successfully!")
 
 
 @getList.command("collections")
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def list_collections(obj, alias):
+def list_collections(obj):
     """
     List all collections.
     Example:
@@ -126,15 +122,12 @@ def list_collections(obj, alias):
 
     """
     try:
-        click.echo(obj.collection.list_collections(alias))
+        click.echo(obj.collection.list_collections())
     except Exception as e:
         click.echo(message=e, err=True)
 
 
 @delete.command("collection")
-@click.option(
-    "-a", "--alias", "alias", help="[Optional]: The connection alias name.", type=str
-)
 @click.option(
     "-c",
     "--collection-name",
@@ -143,7 +136,7 @@ def list_collections(obj, alias):
     required=True,
 )
 @click.pass_obj
-def delete_collection(obj, collectionName, alias):
+def delete_collection(obj, collectionName):
     """
     Drops the collection together with its index files.
 
@@ -157,16 +150,15 @@ def delete_collection(obj, collectionName, alias):
     if not click.confirm("Do you want to continue?"):
         return
     try:
-        obj.collection.has_collection(alias, collectionName)
+        obj.collection.has_collection(collectionName)
     except Exception as e:
         click.echo(f"Error occurred when get collection by name!\n{str(e)}")
     else:
-        result = obj.collection.drop_collection(alias, collectionName)
+        result = obj.collection.drop_collection(collectionName)
         click.echo(result)
 
 
 @rename.command("collection")
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.option(
     "-old",
     "--old-collection-name",
@@ -184,7 +176,7 @@ def delete_collection(obj, collectionName, alias):
     required=True,
 )
 @click.pass_obj
-def rename_collection(obj, alias, collectionName, newName):
+def rename_collection(obj, collectionName, newName):
     """
     Rename collection.
 
@@ -193,11 +185,11 @@ def rename_collection(obj, alias, collectionName, newName):
         milvus_cli > rename collection -old car -new new_car
     """
     try:
-        obj.collection.has_collection(alias, collectionName)
+        obj.collection.has_collection(collectionName)
     except Exception as e:
         click.echo(f"Error occurred when get collection by name!\n{str(e)}")
     else:
-        result = obj.collection.rename_collection(alias, collectionName, newName)
+        result = obj.collection.rename_collection(collectionName, newName)
         click.echo(result)
 
 
@@ -224,9 +216,11 @@ def describe_collection(obj, collectionName):
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection."
 )
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def load_collection(obj, collectionName, alias):
+def load_collection(
+    obj,
+    collectionName,
+):
     """
     Load collection.
 
@@ -235,7 +229,7 @@ def load_collection(obj, collectionName, alias):
         milvus_cli > load collection -c test_collection
     """
     try:
-        click.echo(obj.collection.load_collection(alias, collectionName))
+        click.echo(obj.collection.load_collection(collectionName))
     except Exception as e:
         click.echo(message=e, err=True)
 
@@ -244,9 +238,8 @@ def load_collection(obj, collectionName, alias):
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection."
 )
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def release_collection(obj, alias, collectionName):
+def release_collection(obj, collectionName):
     """
     Release collection.
 
@@ -255,7 +248,7 @@ def release_collection(obj, alias, collectionName):
         milvus_cli > release collection -c test_collection
     """
     try:
-        click.echo(obj.collection.release_collection(alias, collectionName))
+        click.echo(obj.collection.release_collection(collectionName))
     except Exception as e:
         click.echo(message=e, err=True)
 
@@ -264,9 +257,8 @@ def release_collection(obj, alias, collectionName):
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection."
 )
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def show_loading_progress(obj, alias, collectionName):
+def show_loading_progress(obj, collectionName):
     """
     Show loading progress.
 
@@ -275,6 +267,6 @@ def show_loading_progress(obj, alias, collectionName):
         milvus_cli > show loading_progress -c test_collection
     """
     try:
-        click.echo(obj.collection.show_loading_progress(collectionName, alias))
+        click.echo(obj.collection.show_loading_progress(collectionName))
     except Exception as e:
         click.echo(message=e, err=True)

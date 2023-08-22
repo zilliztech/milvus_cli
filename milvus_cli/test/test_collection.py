@@ -9,7 +9,6 @@ from Connection import MilvusConnection
 from Collection import MilvusCollection
 
 uri = "http://localhost:19530"
-tempAlias = "zilliz2"
 collectionName = "test_collection"
 newCollectionName = "test_collection2"
 
@@ -20,7 +19,7 @@ collection = MilvusCollection()
 class TestCollection(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        milvusConnection.connect(uri=uri, alias=tempAlias)
+        milvusConnection.connect(uri=uri)
         fields = [
             "id:VARCHAR:128",
             "title:VARCHAR:512",
@@ -29,7 +28,6 @@ class TestCollection(unittest.TestCase):
         result = collection.create_collection(
             collectionName=collectionName,
             fields=fields,
-            alias=tempAlias,
             autoId=False,
             description="this is a test collection",
             primaryField="id",
@@ -40,34 +38,30 @@ class TestCollection(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        collection.drop_collection(collectionName=newCollectionName, alias=tempAlias)
-        milvusConnection.disconnect(alias=tempAlias)
+        collection.drop_collection(collectionName=newCollectionName)
+        milvusConnection.disconnect()
 
     def test_has_collection(self):
-        result = collection.has_collection(
-            collectionName=collectionName, alias=tempAlias
-        )
+        result = collection.has_collection(collectionName=collectionName)
         self.assertTrue(result)
 
     def test_load_collection(self):
         try:
-            collection.load_collection(collectionName=collectionName, alias=tempAlias)
+            collection.load_collection(collectionName=collectionName)
         except Exception as e:
             self.assertIn("Load collection error", str(e))
 
     def release_collection(self):
-        result = collection.release_collection(
-            collectionName=collectionName, alias=tempAlias
-        )
+        result = collection.release_collection(collectionName=collectionName)
         self.assertEqual(result, f"Release collection {collectionName} successfully!")
 
     def test_list_collection(self):
-        result = collection.list_collections(alias=tempAlias)
+        result = collection.list_collections()
         self.assertIsInstance(result, list)
 
     def test_rename_collection(self):
         result = collection.rename_collection(
-            alias=tempAlias, collectionName=collectionName, newName=newCollectionName
+            collectionName=collectionName, newName=newCollectionName
         )
         self.assertEqual(
             result,
@@ -75,17 +69,23 @@ class TestCollection(unittest.TestCase):
         )
 
     def test_get_data_count(self):
-        result = collection.get_entities_count(collectionName, tempAlias)
+        result = collection.get_entities_count(
+            collectionName,
+        )
         self.assertEqual(result, 0)
 
     def test_loading_progress(self):
         try:
-            collection.show_loading_progress(collectionName, tempAlias)
+            collection.show_loading_progress(
+                collectionName,
+            )
         except Exception as e:
             self.assertIn("Show loading progress error", str(e))
 
     def test_list_fields(self):
-        result = collection.list_field_names(collectionName, tempAlias)
+        result = collection.list_field_names(
+            collectionName,
+        )
         self.assertIn("id", result)
 
 
