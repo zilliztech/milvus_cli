@@ -3,6 +3,7 @@ from Database import MilvusDatabase
 from Collection import MilvusCollection
 from Index import MilvusIndex
 from Data import MilvusData
+from User import MilvusUser
 from pymilvus import __version__
 from Types import ParameterException
 
@@ -25,3 +26,4 @@ class MilvusCli(object):
     collection = MilvusCollection()
     index = MilvusIndex()
     data = MilvusData()
+    user = MilvusUser()
