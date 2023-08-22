@@ -34,7 +34,6 @@ class MilvusPartition(object):
     def load_partition(self, collectionName, partitionName, alias=None):
         try:
             target = self.describe_partition(collectionName, partitionName, alias)
-            print("---", target)
             target.load()
             return f"Load partition {partitionName} successfully!"
         except Exception as e:
