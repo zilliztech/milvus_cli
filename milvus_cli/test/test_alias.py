@@ -10,7 +10,6 @@ from Collection import MilvusCollection
 from Alias import MilvusAlias
 
 uri = "http://localhost:19530"
-tempAlias = "zilliz2"
 collectionName = "test_collection"
 collectionName2 = "test_collection2"
 colAlias = "collection_alias"
@@ -23,7 +22,7 @@ alias = MilvusAlias()
 class TestAlias(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        milvusConnection.connect(uri=uri, alias=tempAlias)
+        milvusConnection.connect(uri=uri)
         fields = [
             "id:VARCHAR:128",
             "title:VARCHAR:512",
@@ -32,7 +31,6 @@ class TestAlias(unittest.TestCase):
         collection.create_collection(
             collectionName=collectionName,
             fields=fields,
-            alias=tempAlias,
             autoId=False,
             description="this is a test collection",
             primaryField="id",
@@ -43,7 +41,6 @@ class TestAlias(unittest.TestCase):
         collection.create_collection(
             collectionName=collectionName2,
             fields=fields,
-            alias=tempAlias,
             autoId=False,
             description="this is a test collection",
             primaryField="id",
@@ -53,20 +50,27 @@ class TestAlias(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        collection.drop_collection(collectionName=collectionName, alias=tempAlias)
-        collection.drop_collection(collectionName=collectionName2, alias=tempAlias)
+        collection.drop_collection(
+            collectionName=collectionName,
+        )
+        collection.drop_collection(
+            collectionName=collectionName2,
+        )
 
-        milvusConnection.disconnect(alias=tempAlias)
+        milvusConnection.disconnect()
 
     def test_create_alias(self):
         result = alias.create_alias(
-            collectionName=collectionName, aliasName=colAlias, alias=tempAlias
+            collectionName=collectionName,
+            aliasName=colAlias,
         )
         print(result)
-        aliasList = alias.list_aliases(collectionName, tempAlias)
+        aliasList = alias.list_aliases(collectionName)
         self.assertIn(colAlias, aliasList)
 
     def test_drop_alias(self):
-        alias.drop_alias(aliasName=colAlias, alias=tempAlias)
-        aliasList = alias.list_aliases(collectionName, tempAlias)
+        alias.drop_alias(
+            aliasName=colAlias,
+        )
+        aliasList = alias.list_aliases(collectionName)
         self.assertNotIn(colAlias, aliasList)
