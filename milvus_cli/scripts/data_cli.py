@@ -23,13 +23,11 @@ from Fs import readCsvFile
     help="[Optional] - Name of partitions that contain entities.",
     default=None,
 )
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
 def delete_entities(
     obj,
     collectionName,
     partitionName,
-    alias,
 ):
     """
     Delete entities from collection.
@@ -46,7 +44,7 @@ def delete_entities(
     )
     if not click.confirm("Do you want to continue?"):
         return
-    result = obj.data.delete_entities(expr, collectionName, partitionName, alias)
+    result = obj.data.delete_entities(expr, collectionName, partitionName)
     click.echo(result)
 
 
@@ -136,9 +134,6 @@ def query(obj):
     default=None,
 )
 @click.option(
-    "-a", "--alias", "alias", help="[Optional]-The connection alias name.", type=str
-)
-@click.option(
     "-t",
     "--timeout",
     "timeout",
@@ -148,7 +143,7 @@ def query(obj):
 )
 @click.argument("path")
 @click.pass_obj
-def insert_data(obj, collectionName, partitionName, alias, timeout, path):
+def insert_data(obj, collectionName, partitionName, timeout, path):
     """
     Import data from csv file(local or remote) with headers and insert into target collection.
 
@@ -201,7 +196,7 @@ def insert_data(obj, collectionName, partitionName, alias, timeout, path):
     try:
         result = readCsvFile(path.replace('"', "").replace("'", ""))
         data = result["data"]
-        result = obj.data.insert(collectionName, data, partitionName, alias, timeout)
+        result = obj.data.insert(collectionName, data, partitionName, timeout)
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
     else:

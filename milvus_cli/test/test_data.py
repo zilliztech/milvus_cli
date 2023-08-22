@@ -11,7 +11,6 @@ from Data import MilvusData
 from Index import MilvusIndex
 
 uri = "http://localhost:19530"
-tempAlias = "zilliz2"
 collectionName = "test_collection"
 vectorName = "title_vector"
 indexName = "vec_index"
@@ -25,7 +24,7 @@ milvusData = MilvusData()
 class TestIndex(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        milvusConnection.connect(uri=uri, alias=tempAlias)
+        milvusConnection.connect(uri=uri)
         fields = [
             "name:VARCHAR:128",
             "title:VARCHAR:512",
@@ -35,7 +34,6 @@ class TestIndex(unittest.TestCase):
         collection.create_collection(
             collectionName=collectionName,
             fields=fields,
-            alias=tempAlias,
             autoId=False,
             description="this is a test collection",
             primaryField="name",
@@ -46,17 +44,16 @@ class TestIndex(unittest.TestCase):
             collectionName=collectionName,
             metricType="L2",
             indexName=indexName,
-            alias=tempAlias,
             fieldName=vectorName,
             indexType="IVF_FLAT",
             params=["nlist:128"],
         )
-        collection.load_collection(collectionName=collectionName, alias=tempAlias)
+        collection.load_collection(collectionName=collectionName)
 
     @classmethod
     def tearDownClass(cls):
-        collection.drop_collection(tempAlias, collectionName)
-        milvusConnection.disconnect(alias=tempAlias)
+        collection.drop_collection(collectionName)
+        milvusConnection.disconnect()
 
     def test_insert(self):
         data = [
@@ -70,9 +67,7 @@ class TestIndex(unittest.TestCase):
                 [0.1, 0.2, 0.3, 0.4],
             ],
         ]
-        res = milvusData.insert(
-            collectionName=collectionName, data=data, alias=tempAlias
-        )
+        res = milvusData.insert(collectionName=collectionName, data=data)
         # print(res)
         self.assertEqual(res.insert_count, 2)
         self.assertEqual(res.succ_count, 2)
@@ -88,7 +83,6 @@ class TestIndex(unittest.TestCase):
         res = milvusData.query(
             collectionName=collectionName,
             queryParameters=queryParameters,
-            alias=tempAlias,
         )
         # print(res)
         self.assertEqual(len(res), 2)
@@ -100,12 +94,10 @@ class TestIndex(unittest.TestCase):
             "param": {"nprobe": 16},
             "limit": 10,
             "round_decimal": 4,
-            "alias": tempAlias,
         }
         res = milvusData.search(
             collectionName=collectionName,
             searchParameters=searchParameters,
-            alias=tempAlias,
         )
         self.assertIsInstance(res, str)
 
@@ -113,7 +105,6 @@ class TestIndex(unittest.TestCase):
         res = milvusData.delete_entities(
             collectionName=collectionName,
             expr="name in ['1']",
-            alias=tempAlias,
         )
         self.assertEqual(res.delete_count, 1)
 

@@ -3,19 +3,21 @@ from tabulate import tabulate
 
 
 class MilvusData:
-    alias = "default"
-
-    def insert(
-        self, collectionName, data, partitionName=None, alias=None, timeout=None
-    ):
-        temaAlias = alias if alias else self.alias
-        collection = getTargetCollection(collectionName, temaAlias)
+    def insert(self, collectionName, data, partitionName=None, timeout=None):
+        collection = getTargetCollection(
+            collectionName,
+        )
         result = collection.insert(data, partition_name=partitionName, timeout=timeout)
         return result
 
-    def query(self, collectionName, queryParameters, alias=None):
-        temaAlias = alias if alias else self.alias
-        collection = getTargetCollection(collectionName, temaAlias)
+    def query(
+        self,
+        collectionName,
+        queryParameters,
+    ):
+        collection = getTargetCollection(
+            collectionName,
+        )
         res = collection.query(**queryParameters)
         return res
 
@@ -24,16 +26,17 @@ class MilvusData:
         expr,
         collectionName,
         partition_name=None,
-        alias=None,
     ):
-        temaAlias = alias if alias else self.alias
-        collection = getTargetCollection(collectionName, temaAlias)
+        collection = getTargetCollection(
+            collectionName,
+        )
         result = collection.delete(expr, partition_name=partition_name)
         return result
 
-    def search(self, collectionName, searchParameters, alias=None, prettierFormat=True):
-        tempAlias = alias if alias else self.alias
-        collection = getTargetCollection(collectionName, tempAlias)
+    def search(self, collectionName, searchParameters, prettierFormat=True):
+        collection = getTargetCollection(
+            collectionName,
+        )
         res = collection.search(**searchParameters)
         if not prettierFormat:
             return res
