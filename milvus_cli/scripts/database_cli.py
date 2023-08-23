@@ -1,5 +1,5 @@
 from tabulate import tabulate
-from helper_cli import create, getList, delete
+from helper_cli import create, getList, delete, use
 from init_cli import cli
 import click
 
@@ -13,13 +13,6 @@ import click
     required=True,
     type=str,
 )
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="The connection alias name.",
-    type=str,
-)
 @click.pass_obj
 def create_database(obj, db_name=None, alias=None):
     """
@@ -27,10 +20,10 @@ def create_database(obj, db_name=None, alias=None):
 
     Example:
 
-        milvus_cli > create database -db testdb -a default
+        milvus_cli > create database -db testdb
     """
     try:
-        res = obj.database.create_database(db_name, alias)
+        res = obj.database.create_database(db_name)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
@@ -38,24 +31,17 @@ def create_database(obj, db_name=None, alias=None):
 
 
 @getList.command("databases")
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="The connection alias name.",
-    type=str,
-)
 @click.pass_obj
-def list_databases(obj, alias=None):
+def list_databases(obj):
     """
     List databases.
 
     Example:
 
-        milvus_cli > list databases -a default
+        milvus_cli > list databases
     """
     try:
-        res = obj.database.list_databases(alias)
+        res = obj.database.list_databases()
     except Exception as e:
         click.echo(message=e, err=True)
     else:
@@ -72,35 +58,23 @@ def list_databases(obj, alias=None):
     required=True,
     type=str,
 )
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="The connection alias name.",
-    type=str,
-)
 @click.pass_obj
-def drop_database(obj, db_name=None, alias=None):
+def drop_database(obj, db_name=None):
     """
     Drop database.
 
     Example:
 
-        milvus_cli > drop database -db testdb -a default
+        milvus_cli > drop database -db testdb
     """
     try:
-        res = obj.database.drop_database(db_name, alias)
+        res = obj.database.drop_database(
+            db_name,
+        )
     except Exception as e:
         click.echo(message=e, err=True)
     else:
         click.echo(res)
-
-
-@cli.group("use", no_args_is_help=False)
-@click.pass_obj
-def use(obj):
-    """Use database"""
-    pass
 
 
 @use.command("database")
@@ -112,24 +86,19 @@ def use(obj):
     required=True,
     type=str,
 )
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="The connection alias name.",
-    type=str,
-)
 @click.pass_obj
-def use_database(obj, db_name=None, alias=None):
+def use_database(obj, db_name=None):
     """
     Use database.
 
     Example:
 
-        milvus_cli > use database -db testdb -a default
+        milvus_cli > use database -db testdb
     """
     try:
-        res = obj.database.using_database(db_name, alias)
+        res = obj.database.using_database(
+            db_name,
+        )
     except Exception as e:
         click.echo(message=e, err=True)
     else:

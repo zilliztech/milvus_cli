@@ -696,6 +696,7 @@ class Completer(object):
             "index",
         ],
         "rename": ["collection"],
+        "use": ["database"],
         "version": [],
     }
 

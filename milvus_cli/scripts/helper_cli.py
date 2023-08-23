@@ -83,6 +83,13 @@ def delete(obj):
     pass
 
 
+@cli.group("use", no_args_is_help=False)
+@click.pass_obj
+def use(obj):
+    """Use database"""
+    pass
+
+
 @cli.group("search", no_args_is_help=False)
 @click.pass_obj
 def search(obj):
