@@ -51,7 +51,8 @@ def createIndex(obj):
         )
         params = []
 
-        if indexType != "":
+        ignoreIndexType = ["", "AUTOINDEX"]
+        if indexType not in ignoreIndexType:
             index_building_parameters = IndexTypesMap[indexType][
                 "index_building_parameters"
             ]
@@ -59,8 +60,6 @@ def createIndex(obj):
                 tmpParam = click.prompt(f"Index params {param}")
                 params.append(f"{param}:{tmpParam}")
 
-        inputTimeout = click.prompt("Timeout", default="")
-        timeout = inputTimeout if inputTimeout else None
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
 
@@ -73,7 +72,6 @@ def createIndex(obj):
                 indexType,
                 metricType,
                 params,
-                timeout,
             )
         )
         click.echo("Create index successfully!")
@@ -87,9 +85,8 @@ def createIndex(obj):
     help="The collection name.",
     type=str,
 )
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def list_indexes(obj, collectionName, alias):
+def list_indexes(obj, collectionName):
     """
     List all indexes.
 
@@ -99,7 +96,7 @@ def list_indexes(obj, collectionName, alias):
 
     """
     try:
-        click.echo(obj.index.list_indexes(collectionName, alias))
+        click.echo(obj.index.list_indexes(collectionName))
     except Exception as e:
         click.echo(message=e, err=True)
 
@@ -113,9 +110,8 @@ def list_indexes(obj, collectionName, alias):
     type=str,
 )
 @click.option("-in", "--index-name", "indexName", help="Index name")
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def show_index_details(obj, collectionName, indexName, alias):
+def show_index_details(obj, collectionName, indexName):
     """
     Show index details.
 
@@ -125,7 +121,7 @@ def show_index_details(obj, collectionName, indexName, alias):
 
     """
     try:
-        click.echo(obj.index.get_index_details(collectionName, indexName, alias))
+        click.echo(obj.index.get_index_details(collectionName, indexName))
     except Exception as e:
         click.echo(message=e, err=True)
 
@@ -139,9 +135,8 @@ def show_index_details(obj, collectionName, indexName, alias):
     type=str,
 )
 @click.option("-in", "--index-name", "indexName", help="Index name")
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def delete_index(obj, collectionName, indexName, alias):
+def delete_index(obj, collectionName, indexName):
     """
     Delete index.
 
@@ -156,7 +151,7 @@ def delete_index(obj, collectionName, indexName, alias):
     if not click.confirm("Do you want to continue?"):
         return
     try:
-        click.echo(obj.index.drop_index(collectionName, indexName, alias))
+        click.echo(obj.index.drop_index(collectionName, indexName))
     except Exception as e:
         click.echo(message=e, err=True)
 
@@ -170,9 +165,8 @@ def delete_index(obj, collectionName, indexName, alias):
     type=str,
 )
 @click.option("-in", "--index-name", "indexName", help="Index name")
-@click.option("-a", "--alias", "alias", help="The connection alias name.", type=str)
 @click.pass_obj
-def show_index_progress(obj, collectionName, indexName, alias):
+def show_index_progress(obj, collectionName, indexName):
     """
     Show index progress.
 
@@ -182,6 +176,6 @@ def show_index_progress(obj, collectionName, indexName, alias):
 
     """
     try:
-        click.echo(obj.index.get_index_build_progress(collectionName, indexName, alias))
+        click.echo(obj.index.get_index_build_progress(collectionName, indexName))
     except Exception as e:
         click.echo(message=e, err=True)

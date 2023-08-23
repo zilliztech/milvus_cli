@@ -94,7 +94,7 @@ class MilvusIndex(object):
             collectionName,
         )
         result = target.indexes
-
+        print(result[0].field_name, result[0].index_name, result[0]._index_params)
         rows = list(
             map(
                 lambda x: [
@@ -102,7 +102,7 @@ class MilvusIndex(object):
                     x.index_name,
                     x._index_params["index_type"],
                     x._index_params["metric_type"],
-                    x._index_params["params"],
+                    x._index_params.get("params", {}),
                 ],
                 result,
             )
@@ -125,7 +125,7 @@ class MilvusIndex(object):
                 "field_name": result.field_name,
                 "index_type": result.params["index_type"],
                 "metric_type": result.params["metric_type"],
-                "params": result.params["params"],
+                "params": result.params.get("params", ""),
             }
 
             return details

@@ -62,8 +62,6 @@ def query(obj):
 
         The query expression: color in [2000,2002]
 
-        Name of partitions that contain entities(split by "," if multiple) []: default
-
         A list of fields to return(split by "," if multiple) []: id, color, brand
 
         timeout []:
@@ -72,7 +70,6 @@ def query(obj):
 
         Graceful time. Only used in bounded consistency level. If graceful_time is set, PyMilvus will use current timestamp minus the graceful_time as the guarantee_timestamp. This option is 5s by default if not set. [5]:
 
-        Travel timestamp. Users can specify a timestamp in a search to get results based on a data view at a specified point in time. [0]: 428960801420883491
     """
     collectionName = click.prompt(
         "Collection name", type=click.Choice(obj.collection.list_collections())
@@ -97,21 +94,14 @@ def query(obj):
         default=5,
         type=int,
     )
-    travel_timestamp = click.prompt(
-        "Travel timestamp. Users can specify a timestamp in a search to get results based on a data view at a specified point in time.",
-        default=0,
-        type=int,
-    )
-    partitionNames = []
+
     try:
         queryParameters = validateQueryParams(
             expr,
-            partitionNames,
             outputFields,
             timeout,
             guarantee_timestamp,
             graceful_time,
-            travel_timestamp,
         )
     except ParameterException as pe:
         click.echo("Error!\n{}".format(str(pe)))
@@ -149,7 +139,7 @@ def insert_data(obj, collectionName, partitionName, timeout, path):
 
     Example-1:
 
-        milvus_cli > import -c car 'examples/import_csv/vectors.csv'
+        milvus_cli > insert -c car 'examples/import_csv/vectors.csv'
 
         Reading file from local path.
 
@@ -228,8 +218,6 @@ def search(obj):
 
         The boolean expression used to filter attribute []: id > 0
 
-        The names of partitions to search (split by "," if multiple) ['_default'] []: _default
-
     Example-2(collection has index):
 
         Collection name (car, test_collection): car
@@ -262,8 +250,6 @@ def search(obj):
         The max number of returned record, also known as topk: 2
 
         The boolean expression used to filter attribute []: id > 0
-
-        The names of partitions to search (split by "," if multiple) ['_default'] []: _default
 
         timeout []:
 
@@ -306,18 +292,13 @@ def search(obj):
     #     f'The names of partitions to search (split by "," if multiple) {obj._list_partition_names(collectionName)}',
     #     default="",
     # )
-    partitionNames = []
     timeout = click.prompt("Timeout", default="")
     guarantee_timestamp = click.prompt(
         "Guarantee Timestamp(It instructs Milvus to see all operations performed before a provided timestamp. If no such timestamp is provided, then Milvus will search all operations performed to date)",
         default=0,
         type=int,
     )
-    travel_timestamp = click.prompt(
-        "Travel Timestamp(Specify a timestamp in a search to get results based on a data view)",
-        default=0,
-        type=int,
-    )
+
     export, exportPath = False, ""
     # if click.confirm('Would you like to export results as a CSV file?'):
     #     export = True
@@ -333,12 +314,10 @@ def search(obj):
             params,
             limit,
             expr,
-            partitionNames,
             timeout,
             roundDecimal,
             hasIndex=hasIndex,
             guarantee_timestamp=guarantee_timestamp,
-            travel_timestamp=travel_timestamp,
         )
     except ParameterException as pe:
         click.echo("Error!\n{}".format(str(pe)))

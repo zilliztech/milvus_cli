@@ -99,12 +99,10 @@ def validateSearchParams(
     params,
     limit,
     expr,
-    partitionNames,
     timeout,
     roundDecimal,
     hasIndex=True,
     guarantee_timestamp=None,
-    travel_timestamp=None,
 ):
     import json
 
@@ -169,14 +167,6 @@ def validateSearchParams(
         raise ParameterException('Format(int) "limit" error! {}'.format(str(e)))
     # Validate expr
     result["expr"] = expr if expr else None
-    # Validate partitionNames
-    if partitionNames:
-        try:
-            result["partition_names"] = partitionNames.replace(" ", "").split(",")
-        except Exception as e:
-            raise ParameterException(
-                'Format(list[str]) "partitionNames" error! {}'.format(str(e))
-            )
     # Validate timeout
     if timeout:
         result["timeout"] = float(timeout)
@@ -190,24 +180,11 @@ def validateSearchParams(
             raise ParameterException(
                 'Format(int) "guarantee_timestamp" error! {}'.format(str(e))
             )
-    if travel_timestamp:
-        try:
-            result["travel_timestamp"] = int(travel_timestamp)
-        except Exception as e:
-            raise ParameterException(
-                'Format(int) "travel_timestamp" error! {}'.format(str(e))
-            )
     return result
 
 
 def validateQueryParams(
-    expr,
-    partitionNames,
-    outputFields,
-    timeout,
-    guarantee_timestamp,
-    graceful_time,
-    travel_timestamp,
+    expr, outputFields, timeout, guarantee_timestamp, graceful_time, partitionNames=None
 ):
     result = {}
     if not expr:
@@ -233,8 +210,7 @@ def validateQueryParams(
         result["guarantee_timestamp"] = guarantee_timestamp
     if graceful_time and (graceful_time != 5):
         result["graceful_time"] = graceful_time
-    if travel_timestamp:
-        result["travel_timestamp"] = travel_timestamp
+
     return result
 
 
