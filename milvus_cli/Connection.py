@@ -6,15 +6,12 @@ class MilvusConnection(object):
     uri = "127.0.0.1:19530"
     alias = "default"
 
-    def connect(self, uri=None, username=None, password=None):
+    def connect(self, uri=None, token=None):
         self.uri = uri
-        trimUsername = None if username is None else username.strip()
-        trimPwd = None if password is None else password.strip()
+        trimToken = None if token is None else token.strip()
 
         try:
-            res = connections.connect(
-                alias=self.alias, uri=self.uri, user=trimUsername, password=trimPwd
-            )
+            res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken)
             return res
         except Exception as e:
             raise ConnectException(f"Connect to Milvus error!{str(e)}")

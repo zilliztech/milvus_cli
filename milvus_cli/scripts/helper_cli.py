@@ -1,7 +1,6 @@
-from Cli import getPackageVersion
 from init_cli import cli
 from Types import ConnectException, ParameterException
-from utils import WELCOME_MSG, EXIT_MSG, Completer
+from utils import WELCOME_MSG, EXIT_MSG, Completer, getPackageVersion
 import sys
 import os
 import click
