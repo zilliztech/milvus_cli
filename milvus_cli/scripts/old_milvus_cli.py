@@ -1,3 +1,5 @@
+#  Deprecated file, use milvus_cli.py instead.
+
 from tabulate import tabulate
 import sys
 import os

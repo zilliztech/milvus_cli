@@ -14,32 +14,24 @@ import click
     type=str,
 )
 @click.option(
-    "-u",
-    "--username",
-    "username",
-    help="[Optional] - Username , default is `None`.",
-    default=None,
-    type=str,
-)
-@click.option(
-    "-pwd",
-    "--password",
-    "password",
-    help="[Optional] - Password , default is `None`.",
+    "-t",
+    "--token",
+    "token",
+    help="[Optional] - token: username:password or zilliz cloud api key`.",
     default=None,
     type=str,
 )
 @click.pass_obj
-def connect(obj, uri, username, password):
+def connect(obj, uri, token):
     """
     Connect to Milvus.
 
     Example:
 
-        milvus_cli > connect -h 127.0.0.1 -p 19530 -a default
+        milvus_cli > connect -uri localhost:19530
     """
     try:
-        obj.connection.connect(uri, username, password)
+        obj.connection.connect(uri, token)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
