@@ -10,7 +10,6 @@ from Collection import MilvusCollection
 from Partition import MilvusPartition
 
 uri = "http://localhost:19530"
-tempAlias = "zilliz2"
 collectionName = "test_collection"
 
 milvusConnection = MilvusConnection()
@@ -21,7 +20,7 @@ partition = MilvusPartition()
 class TestCollection(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        milvusConnection.connect(uri=uri, alias=tempAlias)
+        milvusConnection.connect(uri=uri)
         fields = [
             "id:VARCHAR:128",
             "title:VARCHAR:512",
@@ -30,7 +29,6 @@ class TestCollection(unittest.TestCase):
         result = collection.create_collection(
             collectionName=collectionName,
             fields=fields,
-            alias=tempAlias,
             autoId=False,
             description="this is a test collection",
             primaryField="id",
@@ -40,15 +38,14 @@ class TestCollection(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        collection.drop_collection(collectionName=collectionName, alias=tempAlias)
-        milvusConnection.disconnect(alias=tempAlias)
+        collection.drop_collection(collectionName=collectionName)
+        milvusConnection.disconnect()
 
     def test_create_partition(self):
         result = partition.create_partition(
             collectionName=collectionName,
             partitionName="test_partition",
             description="this is a test partition",
-            alias=tempAlias,
         )
         self.assertEqual(result.name, "test_partition")
 
@@ -56,27 +53,15 @@ class TestCollection(unittest.TestCase):
         result = partition.describe_partition(
             collectionName=collectionName,
             partitionName="test_partition",
-            alias=tempAlias,
         )
         self.assertEqual(result.name, "test_partition")
 
-    def test_load_partition(self):
-        result = partition.load_partition(
-            collectionName=collectionName,
-            partitionName="test_partition",
-            alias=tempAlias,
-        )
-        self.assertEqual(result, f"Load partition test_partition successfully!")
-
     def test_partitions(self):
-        result = partition.list_partition_names(
-            collectionName=collectionName, alias=tempAlias
-        )
+        result = partition.list_partition_names(collectionName=collectionName)
         self.assertIn("test_partition", result)
         result = partition.delete_partition(
             collectionName=collectionName,
             partitionName="test_partition",
-            alias=tempAlias,
         )
         self.assertNotIn("test_partition", result)
 

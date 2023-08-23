@@ -4,8 +4,6 @@ from pymilvus import index_building_progress
 
 
 class MilvusIndex(object):
-    alias = "default"
-
     def create_index(
         self,
         collectionName,
@@ -14,13 +12,9 @@ class MilvusIndex(object):
         indexType,
         metricType,
         params,
-        alias=None,
     ):
         try:
-            tempAlias = alias if alias else self.alias
-            targetCollection = getTargetCollection(
-                collectionName=collectionName, alias=tempAlias
-            )
+            targetCollection = getTargetCollection(collectionName=collectionName)
         except Exception as e:
             raise Exception(f"Get collection detail error!{str(e)}")
         formatParams = {}
@@ -44,9 +38,14 @@ class MilvusIndex(object):
         except Exception as e:
             raise Exception(f"Create index error!{str(e)}")
 
-    def get_index_details(self, collectionName, indexName, alias=None):
-        tempAlias = alias if alias else self.alias
-        collection = getTargetCollection(collectionName, tempAlias)
+    def get_index_details(
+        self,
+        collectionName,
+        indexName,
+    ):
+        collection = getTargetCollection(
+            collectionName,
+        )
 
         index = collection.index(index_name=indexName)
         if not index:
@@ -62,26 +61,40 @@ class MilvusIndex(object):
         rows.append(["Params", paramsDetails])
         return tabulate(rows, tablefmt="grid")
 
-    def drop_index(self, collectionName, indexName, alias=None, timeout=None):
-        tempAlias = alias if alias else self.alias
-        collection = getTargetCollection(collectionName, tempAlias)
+    def drop_index(self, collectionName, indexName, timeout=None):
+        collection = getTargetCollection(
+            collectionName,
+        )
         collection.drop_index(index_name=indexName, timeout=timeout)
-        return self.list_indexes(collectionName, tempAlias)
+        return self.list_indexes(
+            collectionName,
+        )
 
-    def has_index(self, collectionName, indexName, alias=None, timeout=None):
-        tempAlias = alias if alias else self.alias
-        collection = getTargetCollection(collectionName, tempAlias)
+    def has_index(self, collectionName, indexName, timeout=None):
+        collection = getTargetCollection(
+            collectionName,
+        )
         return collection.has_index(index_name=indexName, timeout=timeout)
 
-    def get_index_build_progress(self, collectionName, indexName, alias=None):
-        tempAlias = alias if alias else self.alias
-        return index_building_progress(collectionName, indexName, tempAlias)
+    def get_index_build_progress(
+        self,
+        collectionName,
+        indexName,
+    ):
+        return index_building_progress(
+            collectionName,
+            indexName,
+        )
 
-    def list_indexes(self, collectionName, alias=None):
-        tempAlias = alias if alias else self.alias
-        target = getTargetCollection(collectionName, tempAlias)
+    def list_indexes(
+        self,
+        collectionName,
+    ):
+        target = getTargetCollection(
+            collectionName,
+        )
         result = target.indexes
-
+        print(result[0].field_name, result[0].index_name, result[0]._index_params)
         rows = list(
             map(
                 lambda x: [
@@ -89,7 +102,7 @@ class MilvusIndex(object):
                     x.index_name,
                     x._index_params["index_type"],
                     x._index_params["metric_type"],
-                    x._index_params["params"],
+                    x._index_params.get("params", {}),
                 ],
                 result,
             )
@@ -102,7 +115,7 @@ class MilvusIndex(object):
         )
 
     def get_vector_index(self, collectionName):
-        target = getTargetCollection(collectionName, self.alias)
+        target = getTargetCollection(collectionName)
         try:
             result = target.index()
         except Exception as e:
@@ -112,7 +125,7 @@ class MilvusIndex(object):
                 "field_name": result.field_name,
                 "index_type": result.params["index_type"],
                 "metric_type": result.params["metric_type"],
-                "params": result.params["params"],
+                "params": result.params.get("params", ""),
             }
 
             return details

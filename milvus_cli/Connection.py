@@ -6,8 +6,7 @@ class MilvusConnection(object):
     uri = "127.0.0.1:19530"
     alias = "default"
 
-    def connect(self, alias="", uri=None, username=None, password=None):
-        self.alias = alias
+    def connect(self, uri=None, username=None, password=None):
         self.uri = uri
         trimUsername = None if username is None else username.strip()
         trimPwd = None if password is None else password.strip()
@@ -20,16 +19,8 @@ class MilvusConnection(object):
         except Exception as e:
             raise ConnectException(f"Connect to Milvus error!{str(e)}")
 
-    def checkConnection(self, alias=None):
-        try:
-            tempAlias = alias if alias else self.alias
-            collections = list_collections(timeout=10.0, using=tempAlias)
-            return collections
-        except Exception as e:
-            raise ConnectException(f"Connect to Milvus error!{str(e)}")
-
-    def showConnection(self, alias=None, showAll=False):
-        tempAlias = alias if alias else self.alias
+    def showConnection(self, showAll=False):
+        tempAlias = self.alias
         try:
             allConnections = connections.list_connections()
 
@@ -46,10 +37,9 @@ class MilvusConnection(object):
         except Exception as e:
             raise Exception(f"Show connection error!{str(e)}")
 
-    def disconnect(self, alias=None):
-        tempAlias = alias if alias else self.alias
+    def disconnect(self):
         try:
-            connections.disconnect(alias=tempAlias)
-            return f"Disconnect from {tempAlias} successfully!"
+            connections.disconnect(alias=self.alias)
+            return f"Disconnect from {self.alias} successfully!"
         except Exception as e:
-            raise Exception(f"Disconnect from {tempAlias} error!{str(e)}")
+            raise Exception(f"Disconnect from {self.alias} error!{str(e)}")

@@ -11,10 +11,11 @@ from tabulate import tabulate
 from Types import DataTypeByNum
 
 
-def getTargetCollection(collectionName, alias=None):
-    tempAlias = alias if alias else "default"
+def getTargetCollection(
+    collectionName,
+):
     try:
-        target = Collection(collectionName, using=tempAlias)
+        target = Collection(collectionName)
     except Exception as e:
         raise Exception(f"Get collection error!{str(e)}")
     else:
@@ -22,8 +23,6 @@ def getTargetCollection(collectionName, alias=None):
 
 
 class MilvusCollection(object):
-    alias = "default"
-
     def create_collection(
         self,
         collectionName,
@@ -34,7 +33,6 @@ class MilvusCollection(object):
         isDynamic=None,
         consistencyLevel="Bounded",
         shardsNum=1,
-        alias=None,
     ):
         fieldList = []
         for field in fields:
@@ -76,77 +74,69 @@ class MilvusCollection(object):
             schema=schema,
             consistency_level=consistencyLevel,
             shards_num=shardsNum,
-            using=alias if alias else self.alias,
         )
         return self.get_collection_details(collection=collection)
 
-    def list_collections(self, alias=None):
-        tempAlias = alias if alias else self.alias
-
+    def list_collections(
+        self,
+    ):
         try:
-            res = list_collections(using=tempAlias)
+            res = list_collections()
         except Exception as e:
             raise Exception(f"List collection error!{str(e)}")
         else:
             return res
 
-    def drop_collection(self, alias=None, collectionName=None):
+    def drop_collection(self, collectionName=None):
         try:
-            tempAlias = alias if alias else self.alias
-            target = getTargetCollection(collectionName=collectionName, alias=tempAlias)
+            target = getTargetCollection(collectionName=collectionName)
             target.drop()
         except Exception as e:
             raise Exception(f"Delete collection error!{str(e)}")
         else:
             return f"Drop collection {collectionName} successfully!"
 
-    def has_collection(self, alias=None, collectionName=None):
+    def has_collection(self, collectionName=None):
         try:
-            res = has_collection(
-                collection_name=collectionName, using=alias if alias else self.alias
-            )
+            res = has_collection(collection_name=collectionName)
         except Exception as e:
             raise Exception(f"Has collection error!{str(e)}")
         else:
             return res
 
-    def load_collection(self, alias=None, collectionName=None):
+    def load_collection(self, collectionName=None):
         try:
-            tempAlias = alias if alias else self.alias
-            target = getTargetCollection(collectionName=collectionName, alias=tempAlias)
+            target = getTargetCollection(collectionName=collectionName)
             target.load()
         except Exception as e:
             raise Exception(f"Load collection error!{str(e)}")
         else:
             return f"Load collection {collectionName} successfully!"
 
-    def release_collection(self, alias=None, collectionName=None):
+    def release_collection(self, collectionName=None):
         try:
-            tempAlias = alias if alias else self.alias
-            target = getTargetCollection(collectionName=collectionName, alias=tempAlias)
+            target = getTargetCollection(collectionName=collectionName)
             target.release()
         except Exception as e:
             raise Exception(f"Release collection error!{str(e)}")
         else:
             return f"Release collection {collectionName} successfully!"
 
-    def rename_collection(self, alias=None, collectionName=None, newName=None):
+    def rename_collection(self, collectionName=None, newName=None):
         try:
             utility.rename_collection(
                 old_collection_name=collectionName,
                 new_collection_name=newName,
-                using=alias if alias else self.alias,
             )
         except Exception as e:
             raise Exception(f"Rename collection error!{str(e)}")
         else:
             return f"Rename collection {collectionName} to {newName} successfully!"
 
-    def get_collection_details(self, collectionName="", alias=None, collection=None):
+    def get_collection_details(self, collectionName="", collection=None):
         try:
-            tempAlias = alias if alias else self.alias
             target = collection or getTargetCollection(
-                collectionName=collectionName, alias=tempAlias
+                collectionName=collectionName,
             )
         except Exception as e:
             raise Exception(f"Get collection detail error!{str(e)}")
@@ -178,26 +168,27 @@ class MilvusCollection(object):
         rows.append(["Indexes", indexesDetails])
         return tabulate(rows, tablefmt="grid")
 
-    def get_entities_count(self, collectionName, alias=None):
-        tempAlias = alias if alias else self.alias
-        col = getTargetCollection(collectionName, tempAlias)
+    def get_entities_count(self, collectionName):
+        col = getTargetCollection(collectionName)
         return col.num_entities
 
     def show_loading_progress(
         self,
         collectionName=None,
-        alias=None,
     ):
         try:
-            tempAlias = alias if alias else self.alias
-            self.get_entities_count(collectionName, tempAlias)
-            return utility.loading_progress(collectionName, None, tempAlias)
+            self.get_entities_count(
+                collectionName,
+            )
+            return utility.loading_progress(
+                collectionName,
+                None,
+            )
         except Exception as e:
             raise Exception(f"Show loading progress error!{str(e)}")
 
-    def list_field_names(self, collectionName, alias=None):
-        tempAlias = alias if alias else self.alias
-        target = getTargetCollection(collectionName, tempAlias)
+    def list_field_names(self, collectionName):
+        target = getTargetCollection(collectionName)
         result = target.schema.fields
 
         return [i.name for i in result]
