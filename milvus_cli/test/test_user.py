@@ -9,7 +9,6 @@ from Connection import MilvusConnection
 from User import MilvusUser
 
 uri = "http://localhost:19530"
-tempAlias = "zilliz2"
 username = "test_user"
 pwd = "123456"
 
@@ -21,20 +20,20 @@ user = MilvusUser()
 class TestUser(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        milvusConnection.connect(uri=uri, alias=tempAlias)
+        milvusConnection.connect(uri=uri)
 
     @classmethod
     def tearDownClass(cls):
-        milvusConnection.disconnect(alias=tempAlias)
+        milvusConnection.disconnect()
 
     def test_create_user(self):
-        user.create_user(username=username, password=pwd, alias=tempAlias)
-        res = user.list_users(alias=tempAlias)
+        user.create_user(username=username, password=pwd)
+        res = user.list_users()
         self.assertIn(username, res)
 
     def test_delete_user(self):
-        user.delete_user(username=username, alias=tempAlias)
-        res = user.list_users(alias=tempAlias)
+        user.delete_user(username=username)
+        res = user.list_users()
         self.assertNotIn(username, res)
 
 

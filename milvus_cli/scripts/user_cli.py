@@ -5,15 +5,8 @@ import click
 @create.command("user")
 @click.option("-u", "--username", "username", help="The username of milvus user.")
 @click.option("-p", "--password", "password", help="The password of milvus user.")
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="The connection alias name.",
-    type=str,
-)
 @click.pass_obj
-def create_user(obj, username, password, alias=None):
+def create_user(obj, username, password):
     """
     Create user.
 
@@ -22,40 +15,35 @@ def create_user(obj, username, password, alias=None):
         milvus_cli > create user -u zilliz -p zilliz
     """
     try:
-        click.echo(obj.user.create_user(username, password, alias))
-        click.echo(obj.user.list_users(alias))
+        click.echo(
+            obj.user.create_user(
+                username,
+                password,
+            )
+        )
+        click.echo(obj.user.list_users())
     except Exception as e:
         click.echo(message=e, err=True)
 
 
 @getList.command("users")
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="The connection alias name.",
-    type=str,
-)
 @click.pass_obj
-def list_users(obj, alias=None):
-    """List all users in Milvus"""
+def list_users(obj):
+    """List all users in Milvus
+    Example:
+
+        milvus_cli >list users
+    """
     try:
-        click.echo(obj.user.list_users(alias))
+        click.echo(obj.user.list_users())
     except Exception as e:
         click.echo(message=e, err=True)
 
 
 @delete.command("user")
 @click.option("-u", "--username", "username", help="The username of milvus user.")
-@click.option(
-    "-a",
-    "--alias",
-    "alias",
-    help="The connection alias name.",
-    type=str,
-)
 @click.pass_obj
-def deleteUser(obj, username, alias):
+def deleteUser(obj, username):
     """
     Drop user in milvus by username
 
@@ -69,8 +57,10 @@ def deleteUser(obj, username, alias):
     if not click.confirm("Do you want to continue?"):
         return
     try:
-        result = obj.user.delete_user(username, alias)
+        result = obj.user.delete_user(
+            username,
+        )
         click.echo(result)
-        click.echo(obj.user.list_users(alias))
+        click.echo(obj.user.list_users())
     except Exception as e:
         click.echo(message=e, err=True)
