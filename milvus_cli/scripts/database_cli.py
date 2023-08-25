@@ -1,6 +1,5 @@
 from tabulate import tabulate
-from helper_cli import create, getList, delete, use
-from init_cli import cli
+from .helper_cli import create, getList, delete, use
 import click
 
 

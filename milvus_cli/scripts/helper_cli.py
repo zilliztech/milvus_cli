@@ -1,6 +1,4 @@
-from init_cli import cli
-from Types import ConnectException, ParameterException
-from utils import WELCOME_MSG, EXIT_MSG, Completer, getPackageVersion
+from .init_cli import cli
 import sys
 import os
 import click
@@ -8,6 +6,9 @@ import click
 current_dir = os.path.dirname(os.path.realpath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
+
+from utils import WELCOME_MSG, EXIT_MSG, Completer, getPackageVersion
+from Types import ConnectException, ParameterException
 
 
 def print_help_msg(command):

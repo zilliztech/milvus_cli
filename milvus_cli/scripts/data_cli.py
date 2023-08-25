@@ -1,5 +1,5 @@
-from helper_cli import delete, insert
-from init_cli import cli
+from .helper_cli import delete, insert
+from .init_cli import cli
 
 import click
 import os
