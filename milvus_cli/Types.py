@@ -41,13 +41,10 @@ IndexTypes = [
     "IVF_PQ",
     "RNSG",
     "HNSW",
-    # "NSG",
     "ANNOY",
-    # "RHNSW_FLAT",
-    # "RHNSW_PQ",
-    # "RHNSW_SQ",
-    # "BIN_FLAT",
-    # "BIN_IVF_FLAT"
+    "AUTOINDEX",
+    "DISKANN",
+    "",
 ]
 
 IndexParams = [
@@ -94,6 +91,14 @@ IndexTypesMap = {
         "index_building_parameters": ["n_trees"],
         "search_parameters": ["search_k"],
     },
+    "AUTOINDEX": {
+        "index_building_parameters": [],
+        "search_parameters": [],
+    },
+    "DISKANN": {
+        "index_building_parameters": [],
+        "search_parameters": [],
+    },
 }
 
 DupSearchParams = reduce(
@@ -101,7 +106,13 @@ DupSearchParams = reduce(
 )
 SearchParams = list(dict.fromkeys(DupSearchParams))
 
-MetricTypes = ["L2", "IP", "HAMMING", "TANIMOTO"]
+MetricTypes = [
+    "L2",
+    "IP",
+    "HAMMING",
+    "TANIMOTO",
+    "",
+]
 
 DataTypeByNum = {
     0: "NONE",
