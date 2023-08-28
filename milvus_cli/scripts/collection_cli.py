@@ -24,7 +24,7 @@ from Types import ParameterException
     "-p", "--schema-primary-field", "primaryField", help="Primary field name."
 )
 @click.option(
-    "-A",
+    "-a",
     "--schema-auto-id",
     "autoId",
     help="[Optional, Flag] - Enable auto id.",
@@ -204,7 +204,7 @@ def describe_collection(obj, collectionName):
 
     Example:
 
-        milvus_cli > describe collection -c test_collection_insert
+        milvus_cli > show collection -c test_collection_insert
     """
     try:
         click.echo(obj.collection.get_collection_details(collectionName))
