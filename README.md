@@ -26,9 +26,7 @@
 
 
 #### Prerequisites
-
 Python >= 3.8.5
-Pymilvus >= 2.2.15
 
 #### Install from PyPI (Recommended)
 
