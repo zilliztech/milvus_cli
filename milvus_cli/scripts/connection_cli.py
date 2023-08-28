@@ -48,7 +48,7 @@ def connect(obj, uri, token):
 @getList.command("connections")
 @click.pass_obj
 def connection(obj):
-    """Show current/all connection details"""
+    """List connections"""
     try:
         allConnections = obj.connection.showConnection(showAll=True)
         click.echo(

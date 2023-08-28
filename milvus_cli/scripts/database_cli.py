@@ -64,7 +64,7 @@ def drop_database(obj, db_name=None):
 
     Example:
 
-        milvus_cli > drop database -db testdb
+        milvus_cli > delete database -db testdb
     """
     try:
         res = obj.database.drop_database(
