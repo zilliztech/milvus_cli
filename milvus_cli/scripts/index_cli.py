@@ -27,7 +27,7 @@ def createIndex(obj):
 
         Index type (FLAT, IVF_FLAT, IVF_SQ8, IVF_PQ, RNSG, HNSW, ANNOY,AUTOINDEX): IVF_FLAT
 
-        Index metric type (L2, IP, HAMMING, TANIMOTO): L2
+        Index metric type (L2, IP, HAMMING, TANIMOTO, COSINE): L2
 
         Index params nlist: 2
 
