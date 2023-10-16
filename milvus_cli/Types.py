@@ -111,6 +111,7 @@ MetricTypes = [
     "IP",
     "HAMMING",
     "TANIMOTO",
+    "COSINE",
     "",
 ]
 
