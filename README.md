@@ -24,14 +24,14 @@
 
 ### 🔝Install in a Python environment
 
-
 #### Prerequisites
+
 Python >= 3.8.5
 
 #### Install from PyPI (Recommended)
 
-Run `pip install pymilvus==2.2.15`
-Run `pip install milvus-cli==0.4.0`
+Run `pip install pymilvus==2.3.4`
+Run `pip install milvus-cli==0.4.1`
 
 #### Install from a tarball
 

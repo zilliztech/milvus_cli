@@ -1,5 +1,4 @@
 from tabulate import tabulate
-from .helper_cli import create, getList, delete, rename, show, load, release
 import click
 import os
 import sys
@@ -8,6 +7,7 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
+from .helper_cli import create, getList, delete, rename, show, load, release
 from Validation import validateCollectionParameter
 from Types import ParameterException
 
@@ -24,7 +24,7 @@ from Types import ParameterException
     "-p", "--schema-primary-field", "primaryField", help="Primary field name."
 )
 @click.option(
-    "-a",
+    "-A",
     "--schema-auto-id",
     "autoId",
     help="[Optional, Flag] - Enable auto id.",

@@ -23,7 +23,7 @@ milvusIndex = MilvusIndex()
 class TestIndex(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        milvusConnection.connect(uri=uri, alias=tempAlias)
+        milvusConnection.connect(uri=uri)
         fields = [
             "id:VARCHAR:128",
             "title:VARCHAR:512",
@@ -33,7 +33,6 @@ class TestIndex(unittest.TestCase):
         collection.create_collection(
             collectionName=collectionName,
             fields=fields,
-            alias=tempAlias,
             autoId=False,
             description="this is a test collection",
             primaryField="id",
