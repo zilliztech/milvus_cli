@@ -94,7 +94,6 @@ class MilvusIndex(object):
             collectionName,
         )
         result = target.indexes
-        print(result[0].field_name, result[0].index_name, result[0]._index_params)
         rows = list(
             map(
                 lambda x: [

@@ -37,14 +37,14 @@ def clear():
 @cli.group("show", no_args_is_help=False)
 @click.pass_obj
 def show(obj):
-    """Show connection, database,collection, loading_progress and index_progress."""
+    """Show connection, database,collection, loading_progress or index_progress."""
     pass
 
 
 @cli.group("list", no_args_is_help=False)
 @click.pass_obj
 def getList(obj):
-    """List collections,databases, partitions,users and indexes."""
+    """List collections,databases, partitions,users or indexes."""
     pass
 
 
@@ -58,7 +58,7 @@ def rename(obj):
 @cli.group("create", no_args_is_help=False)
 @click.pass_obj
 def create(obj):
-    """Create collection, database, partition,user and index."""
+    """Create collection, database, partition,user or index."""
     pass
 
 
@@ -79,7 +79,7 @@ def release(obj):
 @cli.group("delete", no_args_is_help=False)
 @click.pass_obj
 def delete(obj):
-    """Delete collection, database, partition,alias,user and index."""
+    """Delete collection, database, partition,alias,user or index."""
     pass
 
 
