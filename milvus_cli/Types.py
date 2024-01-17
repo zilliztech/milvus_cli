@@ -45,6 +45,11 @@ IndexTypes = [
     "ANNOY",
     "AUTOINDEX",
     "DISKANN",
+    "GPU_IVF_FLAT",
+    "GPU_IVF_PQ",
+    "SCANN",
+    "STL_SORT",
+    "Trie",
     "",
 ]
 
@@ -99,6 +104,18 @@ IndexTypesMap = {
     "DISKANN": {
         "index_building_parameters": [],
         "search_parameters": [],
+    },
+    "GPU_IVF_FLAT": {
+        "index_building_parameters": ["nlist"],
+        "search_parameters": ["nprobe"],
+    },
+    "GPU_IVF_PQ": {
+        "index_building_parameters": ["nlist", "m", "nbits"],
+        "search_parameters": ["nprobe"],
+    },
+    "SCANN": {
+        "index_building_parameters": ["nlist", "with_raw_data"],
+        "search_parameters": ["nprobe", "reorder_k"],
     },
 }
 
