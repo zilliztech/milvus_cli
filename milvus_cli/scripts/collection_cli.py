@@ -85,7 +85,7 @@ def create_collection(
 
     Example:
 
-      create collection -c car -f id:INT64:primary_field -f vector:FLOAT_VECTOR:128 -f color:INT64:color -f brand:INT64:brand -p id -A -d 'car_collection'
+      create collection -c array -f id:INT64:primary_field -f vector:FLOAT_VECTOR:128 -f color:INT64:color -f brand:ARRAY:64:VARCHAR:128 -p id -A -d 'car_collection'
     """
     try:
         validateCollectionParameter(

@@ -36,14 +36,14 @@ class MilvusCollection(object):
     ):
         fieldList = []
         for field in fields:
-            [fieldName, fieldType, fieldData] = field.split(":")
+            [fieldName, fieldType, *restData] = field.split(":")
             upperFieldType = fieldType.upper()
             if upperFieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
                 fieldList.append(
                     FieldSchema(
                         name=fieldName,
                         dtype=DataType[upperFieldType],
-                        dim=int(fieldData),
+                        dim=int(restData[0]),
                     )
                 )
             elif upperFieldType == "VARCHAR":
@@ -51,15 +51,29 @@ class MilvusCollection(object):
                     FieldSchema(
                         name=fieldName,
                         dtype=DataType[upperFieldType],
-                        max_length=fieldData,
+                        max_length=restData[0],
                     )
                 )
+            elif upperFieldType == "ARRAY":
+                upperElementType = restData[1].upper()
+                max_capacity = restData[0]
+                maxLength = restData[2] if len(restData) == 3 else None
+                fieldList.append(
+                    FieldSchema(
+                        name=fieldName,
+                        dtype=DataType[upperFieldType],
+                        element_type=DataType[upperElementType],
+                        max_capacity=max_capacity,
+                        max_length=maxLength,
+                    )
+                )
+
             else:
                 fieldList.append(
                     FieldSchema(
                         name=fieldName,
                         dtype=DataType[upperFieldType],
-                        description=fieldData,
+                        description=restData[0],
                     )
                 )
         schema = CollectionSchema(
@@ -147,11 +161,21 @@ class MilvusCollection(object):
         fieldSchemaDetails = ""
         for fieldSchema in schema.fields:
             _name = f"{'*' if fieldSchema.is_primary else ''}{fieldSchema.name}"
+
             _type = DataTypeByNum[fieldSchema.dtype]
             _desc = fieldSchema.description
             _params = fieldSchema.params
             _dim = _params.get("dim")
             _params_desc = f"dim: {_dim}" if _dim else ""
+            if fieldSchema.dtype == DataType.ARRAY:
+                _max_length = _params.get("max_length")
+                _element_type = fieldSchema.element_type
+                _max_capacity = _params.get("max_capacity")
+                _params_desc = (
+                    f"max_capacity: {_max_capacity},element_type: {_element_type}"
+                )
+                _params_desc += f",max_length: {_max_length}" if _max_length else ""
+
             fieldSchemaDetails += f"\n - {_name} {_type} {_params_desc} {_desc}"
         schemaDetails = """Description: {}\n\nAuto ID: {}\n\nFields(* is the primary field):{}""".format(
             schema.description, schema.auto_id, fieldSchemaDetails
