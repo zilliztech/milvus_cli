@@ -56,7 +56,7 @@ from Types import ParameterException
     "-f",
     "--schema-field",
     "fields",
-    help='[Multiple] - FieldSchema. Usage is "<Name>:<DataType>:<Dim(if vector) or Description>"',
+    help='[Multiple] - FieldSchema. Usage is "<Name>:<DataType>:<Dim(if vector) or Description>", Array Type is <Name>:<DataType>:<MaxCapacity>:<ElementDataType>(:<MaxLength>if Varchar)',
     default=None,
     multiple=True,
 )
@@ -85,7 +85,7 @@ def create_collection(
 
     Example:
 
-      create collection -c array -f id:INT64:primary_field -f vector:FLOAT_VECTOR:128 -f color:INT64:color -f brand:ARRAY:64:VARCHAR:128 -p id -A -d 'car_collection'
+      create collection -c car -f id:INT64:primary_field -f vector:FLOAT_VECTOR:128 -f color:INT64:color -f brand:ARRAY:64:VARCHAR:128 -p id -A -d 'car_collection'
     """
     try:
         validateCollectionParameter(
