@@ -33,6 +33,7 @@ FiledDataTypes = [
     "BINARY_VECTOR",
     "FLOAT_VECTOR",
     "JSON",
+    "ARRAY",
 ]
 
 IndexTypes = [
@@ -144,6 +145,7 @@ DataTypeByNum = {
     11: "DOUBLE",
     20: "STRING",
     21: "VARCHAR",
+    22: "ARRAY",
     23: "JSON",
     100: "BINARY_VECTOR",
     101: "FLOAT_VECTOR",

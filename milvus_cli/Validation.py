@@ -27,11 +27,11 @@ def validateCollectionParameter(collectionName, primaryField, fields):
     fieldNames = []
     for field in fields:
         fieldList = field.split(":")
-        if not (len(fieldList) == 3):
+        if len(fieldList) < 3:
             raise ParameterException(
-                'Field should contain three parameters concatenated by ":".'
+                'Field should contain three parameters(array field need more) concatenated by ":".'
             )
-        [fieldName, fieldType, fieldData] = fieldList
+        [fieldName, fieldType, *restData] = fieldList
         upperFieldType = fieldType.upper()
         fieldNames.append(fieldName)
         if upperFieldType not in FiledDataTypes:
@@ -42,7 +42,7 @@ def validateCollectionParameter(collectionName, primaryField, fields):
             )
         if upperFieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
             try:
-                int(fieldData)
+                int(restData[0])
             except ValueError as e:
                 raise ParameterException("""Vector's dim should be int.""")
     # Dedup field name.
