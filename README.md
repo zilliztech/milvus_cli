@@ -79,7 +79,7 @@ Run `milvus_cli` (in a Python environment) or double click `milvus_cli-<version>
 
 ### Document
 
-https://github.com/zilliztech/milvus_cli/tree/main/doc
+https://milvus.io/docs/cli_commands.md
 
 ## Community
 
