@@ -20,7 +20,6 @@ class MilvusConnection(object):
         tempAlias = self.alias
         try:
             allConnections = connections.list_connections()
-
             if showAll:
                 return allConnections
 

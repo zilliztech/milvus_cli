@@ -38,7 +38,12 @@ class MilvusCollection(object):
         for field in fields:
             [fieldName, fieldType, *restData] = field.split(":")
             upperFieldType = fieldType.upper()
-            if upperFieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
+            if upperFieldType in [
+                "BINARY_VECTOR",
+                "FLOAT_VECTOR",
+                "BFLOAT16_VECTOR",
+                "FLOAT16_VECTOR",
+            ]:
                 fieldList.append(
                     FieldSchema(
                         name=fieldName,

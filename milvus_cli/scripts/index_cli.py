@@ -51,7 +51,7 @@ def createIndex(obj):
         )
         params = []
 
-        ignoreIndexType = ["", "AUTOINDEX", "Trie", "STL_SORT"]
+        ignoreIndexType = ["", "AUTOINDEX", "Trie", "STL_SORT", "INVERTED"]
         if indexType not in ignoreIndexType:
             index_building_parameters = IndexTypesMap[indexType][
                 "index_building_parameters"

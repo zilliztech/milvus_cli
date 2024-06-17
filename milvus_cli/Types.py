@@ -32,6 +32,9 @@ FiledDataTypes = [
     "VARCHAR",
     "BINARY_VECTOR",
     "FLOAT_VECTOR",
+    "FLOAT16_VECTOR",
+    "BFLOAT16_VECTOR",
+    "SPARSE_FLOAT_VECTOR",
     "JSON",
     "ARRAY",
 ]
@@ -48,9 +51,12 @@ IndexTypes = [
     "DISKANN",
     "GPU_IVF_FLAT",
     "GPU_IVF_PQ",
+    "SPARSE_INVERTED_INDEX",
+    "SPARSE_WAND",
     "SCANN",
     "STL_SORT",
     "Trie",
+    "INVERTED",
     "",
 ]
 
@@ -118,6 +124,14 @@ IndexTypesMap = {
         "index_building_parameters": ["nlist", "with_raw_data"],
         "search_parameters": ["nprobe", "reorder_k"],
     },
+    "SPARSE_INVERTED_INDEX": {
+        "index_building_parameters": ["drop_ratio_build"],
+        "search_parameters": ["drop_ratio_search"],
+    },
+    "SPARSE_WAND": {
+        "index_building_parameters": ["drop_ratio_build"],
+        "search_parameters": ["drop_ratio_search"],
+    },
 }
 
 DupSearchParams = reduce(
@@ -149,6 +163,9 @@ DataTypeByNum = {
     23: "JSON",
     100: "BINARY_VECTOR",
     101: "FLOAT_VECTOR",
+    102: "FLOAT16_VECTOR",
+    103: "BFLOAT16_VECTOR",
+    104: "SPARSE_FLOAT_VECTOR",
     999: "UNKNOWN",
 }
 

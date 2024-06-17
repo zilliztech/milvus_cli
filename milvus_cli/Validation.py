@@ -40,11 +40,18 @@ def validateCollectionParameter(collectionName, primaryField, fields):
                     str(FiledDataTypes)
                 )
             )
-        if upperFieldType in ["BINARY_VECTOR", "FLOAT_VECTOR"]:
+        if upperFieldType in [
+            "BINARY_VECTOR",
+            "FLOAT_VECTOR",
+            "FLOAT16_VECTOR",
+            "BFLOAT16_VECTOR",
+        ]:
             try:
                 int(restData[0])
             except ValueError as e:
-                raise ParameterException("""Vector's dim should be int.""")
+                raise ParameterException(
+                    """{} Vector's dim should be int.""".format(upperFieldType)
+                )
     # Dedup field name.
     newNames = list(set(fieldNames))
     if not (len(newNames) == len(fieldNames)):
