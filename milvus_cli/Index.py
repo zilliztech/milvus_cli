@@ -50,14 +50,17 @@ class MilvusIndex(object):
         index = collection.index(index_name=indexName)
         if not index:
             return "No index!"
+
         rows = []
         rows.append(["Corresponding Collection", index.collection_name])
         rows.append(["Corresponding Field", index.field_name])
         rows.append(["Index Name", index.index_name])
+
         rows.append(["Index Type", index.params["index_type"]])
         rows.append(["Metric Type", index.params["metric_type"]])
-        params = index.params["params"]
+        params = index.params.get("params", {})
         paramsDetails = "\n- ".join(map(lambda k: f"{k[0]}: {k[1]}", params.items()))
+
         rows.append(["Params", paramsDetails])
         return tabulate(rows, tablefmt="grid")
 
