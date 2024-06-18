@@ -138,6 +138,7 @@ DupSearchParams = reduce(
     lambda x, y: x + IndexTypesMap[y]["search_parameters"], IndexTypesMap.keys(), []
 )
 SearchParams = list(dict.fromkeys(DupSearchParams))
+SearchParams.append("group_by_field")
 
 MetricTypes = [
     "L2",

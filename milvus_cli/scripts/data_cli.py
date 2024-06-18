@@ -210,8 +210,6 @@ def search(obj):
 
         The vector field used to search of collection (vector): vector
 
-        Metric type: L2
-
         Search parameter nprobe's value: 10
 
         The max number of returned record, also known as topk: 2
@@ -221,7 +219,6 @@ def search(obj):
     Example-2(collection has index):
 
         Collection name (car, test_collection): car
-
         \b
         The vectors of search data (the length of data is number of query (nq),
         the dim of every vector in data must be equal to vector field’s of
@@ -241,9 +238,9 @@ def search(obj):
 
         The vector field used to search of collection (vector): vector
 
-        Metric type: L2
-
         Search parameter nprobe's value: 10
+
+        Groups search results by a specified field to ensure diversity and avoid returning multiple results from the same group.: color
 
         The specified number of decimal places of returned distance [-1]: 5
 
@@ -264,12 +261,16 @@ def search(obj):
         "The vector field used to search of collection",
         type=click.Choice(obj.collection.list_field_names(collectionName)),
     )
-    indexDetails = obj.index.get_vector_index(collectionName)
+    indexes = obj.index.list_indexes(collectionName, onlyData=True)
+    for index in indexes:
+        if index.field_name == annsField:
+            indexDetails = index
+            break
     hasIndex = not not indexDetails
     if indexDetails:
-        index_type = indexDetails["index_type"]
+        index_type = indexDetails._index_params["index_type"]
         search_parameters = IndexTypesMap[index_type]["search_parameters"]
-        metric_type = indexDetails["metric_type"]
+        metric_type = indexDetails._index_params["metric_type"]
         click.echo(f"Metric type: {metric_type}")
         metricType = metric_type
         params = []
@@ -279,6 +280,14 @@ def search(obj):
     else:
         metricType = ""
         params = []
+
+    groupByField = click.prompt(
+        "Groups search results by a specified field to ensure diversity and avoid returning multiple results from the same group.",
+        default=None,
+        type=str,
+    )
+    if groupByField != None:
+        params += [f"group_by_field:{groupByField}"]
     roundDecimal = click.prompt(
         "The specified number of decimal places of returned distance",
         default=-1,
@@ -319,6 +328,7 @@ def search(obj):
             hasIndex=hasIndex,
             guarantee_timestamp=guarantee_timestamp,
         )
+
     except ParameterException as pe:
         click.echo("Error!\n{}".format(str(pe)))
 

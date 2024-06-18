@@ -159,7 +159,8 @@ def validateSearchParams(
                     )
                 )
             try:
-                paramDict[paramName] = int(paramValue)
+                if paramName != "group_by_field":
+                    paramDict[paramName] = int(paramValue)
             except ValueError as e:
                 raise ParameterException("""Search parameter's value should be int.""")
         result["param"] = {"metric_type": metricType}
