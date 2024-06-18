@@ -86,14 +86,14 @@ class MilvusIndex(object):
             indexName,
         )
 
-    def list_indexes(
-        self,
-        collectionName,
-    ):
+    def list_indexes(self, collectionName, onlyData=False):
         target = getTargetCollection(
             collectionName,
         )
         result = target.indexes
+
+        if onlyData:
+            return result
         rows = list(
             map(
                 lambda x: [

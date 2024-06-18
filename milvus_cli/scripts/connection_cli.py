@@ -36,10 +36,10 @@ def connect(obj, uri, token):
         click.echo(message=e, err=True)
     else:
         click.echo("Connect Milvus successfully.")
-        address, username = obj.connection.showConnection()
+        connectionInfo = obj.connection.showConnection()
         click.echo(
             tabulate(
-                [["Address", address], ["User", username], ["Alias", "default"]],
+                [["Address", list(connectionInfo)[0]], ["Alias", "default"]],
                 tablefmt="pretty",
             )
         )
