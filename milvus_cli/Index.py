@@ -56,8 +56,8 @@ class MilvusIndex(object):
         rows.append(["Corresponding Field", index.field_name])
         rows.append(["Index Name", index.index_name])
 
-        rows.append(["Index Type", index.params["index_type"]])
-        rows.append(["Metric Type", index.params["metric_type"]])
+        rows.append(["Index Type", index.params.get("index_type", "")])
+        rows.append(["Metric Type", index.params.get("metric_type", "")])
         params = index.params.get("params", {})
         paramsDetails = "\n- ".join(map(lambda k: f"{k[0]}: {k[1]}", params.items()))
 

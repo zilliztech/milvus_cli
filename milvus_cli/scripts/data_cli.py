@@ -262,17 +262,19 @@ def search(obj):
         type=click.Choice(obj.collection.list_field_names(collectionName)),
     )
     indexes = obj.index.list_indexes(collectionName, onlyData=True)
+    indexDetails = None
     for index in indexes:
         if index.field_name == annsField:
             indexDetails = index
             break
+
     hasIndex = not not indexDetails
     if indexDetails:
-        index_type = indexDetails._index_params["index_type"]
-        search_parameters = IndexTypesMap[index_type]["search_parameters"]
-        metric_type = indexDetails._index_params["metric_type"]
+        index_type = indexDetails._index_params.get("index_type", "AUTOINDEX")
+        metric_type = indexDetails._index_params.get("metric_type", "")
         click.echo(f"Metric type: {metric_type}")
         metricType = metric_type
+        search_parameters = IndexTypesMap[index_type]["search_parameters"]
         params = []
         for parameter in search_parameters:
             paramInput = click.prompt(f"Search parameter {parameter}'s value")
@@ -282,11 +284,11 @@ def search(obj):
         params = []
 
     groupByField = click.prompt(
-        "Groups search results by a specified field to ensure diversity and avoid returning multiple results from the same group.",
-        default=None,
+        "Groups search by Field",
+        default="",
         type=str,
     )
-    if groupByField != None:
+    if groupByField != "":
         params += [f"group_by_field:{groupByField}"]
     roundDecimal = click.prompt(
         "The specified number of decimal places of returned distance",
