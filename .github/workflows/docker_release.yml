@@ -24,6 +24,9 @@ jobs:
       - name: Docker Build
         run: docker build -f docker/Dockerfile -t zilliz/milvus_cli:${GITHUB_REF#refs/tags/} --build-arg VERSION=${GITHUB_REF#refs/tags/} .
 
+      - name: Docker push tag
+        run: docker push zilliz/milvus_cli:${GITHUB_REF#refs/tags/}
+
       - name: Docker tag
         run: docker tag zilliz/milvus_cli:${GITHUB_REF#refs/tags/} zilliz/milvus_cli:latest
 
