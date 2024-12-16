@@ -56,13 +56,13 @@ class MilvusCollection(object):
                     FieldSchema(
                         name=fieldName,
                         dtype=DataType[upperFieldType],
-                        max_length=restData[0],
+                        max_length=int(restData[0]),
                     )
                 )
             elif upperFieldType == "ARRAY":
                 upperElementType = restData[1].upper()
-                max_capacity = restData[0]
-                maxLength = restData[2] if len(restData) == 3 else None
+                max_capacity = int(restData[0])
+                maxLength = int(restData[2]) if len(restData) == 3 else None
                 fieldList.append(
                     FieldSchema(
                         name=fieldName,

@@ -10,7 +10,6 @@ from Collection import MilvusCollection
 from Index import MilvusIndex
 
 uri = "http://localhost:19530"
-tempAlias = "zilliz2"
 collectionName = "test_collection"
 vectorName = "title_vector"
 indexName = "vec_index"
@@ -42,8 +41,8 @@ class TestIndex(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        collection.drop_collection(tempAlias, collectionName)
-        milvusConnection.disconnect(alias=tempAlias)
+        collection.drop_collection(collectionName)
+        milvusConnection.disconnect()
 
     def test_create_index(self):
         params = [f"nlist:128"]
@@ -54,23 +53,20 @@ class TestIndex(unittest.TestCase):
             metricType="IP",
             indexType="IVF_SQ8",
             params=params,
-            alias=tempAlias,
         )
         self.assertEqual(res.code, 0)
-        print(milvusIndex.list_indexes(collectionName, tempAlias))
+        print(milvusIndex.list_indexes(collectionName))
 
     def test_describe_index(self):
-        indexDetail = milvusIndex.get_index_details(
-            collectionName, indexName, tempAlias
-        )
+        indexDetail = milvusIndex.get_index_details(collectionName, indexName)
         self.assertIn(indexName, indexDetail)
 
     def test_has_index(self):
-        res = milvusIndex.has_index(collectionName, indexName, tempAlias)
+        res = milvusIndex.has_index(collectionName, indexName)
         self.assertTrue(res)
 
     def test_drop_index(self):
-        res = milvusIndex.drop_index(collectionName, vectorName, tempAlias)
+        res = milvusIndex.drop_index(collectionName, vectorName)
         self.assertIsInstance(res, str)
 
 

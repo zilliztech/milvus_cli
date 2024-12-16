@@ -1,5 +1,4 @@
 from Collection import getTargetCollection
-from tabulate import tabulate
 
 
 class MilvusPartition(object):
