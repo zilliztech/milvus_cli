@@ -3,10 +3,17 @@ import re
 import os
 from string import Template
 from pymilvus import __version__
+from Types import ParameterException
 
 
 def getPackageVersion():
-    return __version__
+    import pkg_resources
+
+    try:
+        version = pkg_resources.require("milvus_cli")[0].version
+    except Exception as e:
+        raise ParameterException(e)
+    return version
 
 
 class Completer(object):
