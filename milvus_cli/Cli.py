@@ -6,6 +6,7 @@ from Data import MilvusData
 from User import MilvusUser
 from Alias import MilvusAlias
 from Partition import MilvusPartition
+from Role import MilvusRole
 from pymilvus import __version__
 
 
@@ -16,5 +17,6 @@ class MilvusCli(object):
     index = MilvusIndex()
     data = MilvusData()
     user = MilvusUser()
+    role = MilvusRole()
     alias = MilvusAlias()
     partition = MilvusPartition()
