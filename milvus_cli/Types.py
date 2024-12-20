@@ -21,7 +21,7 @@ class ConnectException(Exception):
         return str(self.msg)
 
 
-FiledDataTypes = [
+FieldDataTypes = [
     "BOOL",
     "INT8",
     "INT16",

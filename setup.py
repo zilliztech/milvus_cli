@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="milvus_cli",
-    version="v1.0.1",
+    version="v1.0.2",
     author="Milvus Team",
     author_email="milvus-team@zilliz.com",
     url="https://github.com/zilliztech/milvus_cli",
@@ -17,7 +17,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "Click==8.0.1",
-        "pymilvus>=2.4.3",
+        "pymilvus>=2.5.0",
         "tabulate==0.8.9",
         "requests==2.31.0",
     ],

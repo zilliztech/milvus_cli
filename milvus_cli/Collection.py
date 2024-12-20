@@ -34,55 +34,8 @@ class MilvusCollection(object):
         consistencyLevel="Bounded",
         shardsNum=1,
     ):
-        fieldList = []
-        for field in fields:
-            [fieldName, fieldType, *restData] = field.split(":")
-            upperFieldType = fieldType.upper()
-            if upperFieldType in [
-                "BINARY_VECTOR",
-                "FLOAT_VECTOR",
-                "BFLOAT16_VECTOR",
-                "FLOAT16_VECTOR",
-            ]:
-                fieldList.append(
-                    FieldSchema(
-                        name=fieldName,
-                        dtype=DataType[upperFieldType],
-                        dim=int(restData[0]),
-                    )
-                )
-            elif upperFieldType == "VARCHAR":
-                fieldList.append(
-                    FieldSchema(
-                        name=fieldName,
-                        dtype=DataType[upperFieldType],
-                        max_length=int(restData[0]),
-                    )
-                )
-            elif upperFieldType == "ARRAY":
-                upperElementType = restData[1].upper()
-                max_capacity = int(restData[0])
-                maxLength = int(restData[2]) if len(restData) == 3 else None
-                fieldList.append(
-                    FieldSchema(
-                        name=fieldName,
-                        dtype=DataType[upperFieldType],
-                        element_type=DataType[upperElementType],
-                        max_capacity=max_capacity,
-                        max_length=maxLength,
-                    )
-                )
-
-            else:
-                fieldList.append(
-                    FieldSchema(
-                        name=fieldName,
-                        dtype=DataType[upperFieldType],
-                        description=restData[0],
-                    )
-                )
         schema = CollectionSchema(
-            fields=fieldList,
+            fields=fields,
             primary_field=primaryField,
             auto_id=autoId,
             description=description,

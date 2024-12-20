@@ -7,6 +7,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 from Connection import MilvusConnection
 from Collection import MilvusCollection
+from pymilvus import FieldSchema, DataType
 
 uri = "http://localhost:19530"
 collectionName = "test_collection"
@@ -21,9 +22,9 @@ class TestCollection(unittest.TestCase):
     def setUpClass(cls):
         milvusConnection.connect(uri=uri)
         fields = [
-            "id:VARCHAR:128",
-            "title:VARCHAR:512",
-            "title_vector:FLOAT_VECTOR:768",
+            FieldSchema(name="id", dtype=DataType.VARCHAR, max_length=128),
+            FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=512),
+            FieldSchema(name="title_vector", dtype=DataType.FLOAT_VECTOR, dim=768),
         ]
         result = collection.create_collection(
             collectionName=collectionName,

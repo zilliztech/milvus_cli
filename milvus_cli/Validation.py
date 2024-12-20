@@ -1,6 +1,6 @@
 from Types import ParameterException
 from Types import (
-    FiledDataTypes,
+    FieldDataTypes,
     IndexTypes,
     IndexTypesMap,
     SearchParams,
@@ -34,10 +34,10 @@ def validateCollectionParameter(collectionName, primaryField, fields):
         [fieldName, fieldType, *restData] = fieldList
         upperFieldType = fieldType.upper()
         fieldNames.append(fieldName)
-        if upperFieldType not in FiledDataTypes:
+        if upperFieldType not in FieldDataTypes:
             raise ParameterException(
                 "Invalid field data type, should be one of {}".format(
-                    str(FiledDataTypes)
+                    str(FieldDataTypes)
                 )
             )
         if upperFieldType in [

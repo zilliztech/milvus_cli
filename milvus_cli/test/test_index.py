@@ -8,6 +8,7 @@ sys.path.append(parent_dir)
 from Connection import MilvusConnection
 from Collection import MilvusCollection
 from Index import MilvusIndex
+from pymilvus import FieldSchema, DataType
 
 uri = "http://localhost:19530"
 collectionName = "test_collection"
@@ -23,12 +24,12 @@ class TestIndex(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         milvusConnection.connect(uri=uri)
-        fields = [
-            "id:VARCHAR:128",
-            "title:VARCHAR:512",
-        ]
-        fields.append(f"{vectorName}:FLOAT_VECTOR:768")
 
+        fields = [
+            FieldSchema(name="id", dtype=DataType.VARCHAR, max_length=128),
+            FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=512),
+            FieldSchema(name="title_vector", dtype=DataType.FLOAT_VECTOR, dim=768),
+        ]
         collection.create_collection(
             collectionName=collectionName,
             fields=fields,
