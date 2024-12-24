@@ -8,8 +8,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from .helper_cli import create, getList, delete, rename, show, load, release
-from Validation import validateCollectionParameter
-from Types import ParameterException, FieldDataTypes
+from Types import FieldDataTypes, BUILT_IN_ANALYZERS
 from pymilvus import FieldSchema, DataType
 
 
@@ -25,14 +24,22 @@ def create_collection(obj):
     collectionName = click.prompt("Please input collection name", type=str)
     autoId = click.prompt("Please input auto id", default=False, type=bool)
     description = click.prompt("Please input description", default="")
-    isDynamic = click.prompt("Is support dynamic", default=None, type=bool)
+    isDynamic = click.prompt("Is support dynamic field", default=False, type=bool)
     consistencyLevel = click.prompt(
-        "Please input consistency level(Strong(0),Bounded (1), Session (2), and Eventually (3))",
+        "Please input consistency level(Strong(0),Bounded(1), Session(2), and Eventually(3))",
         default="1",
         type=int,
     )
     shardsNum = click.prompt("Please input shards number", default=1)
     fields = []
+    primaryField = None
+
+    def handle_primary_field(fieldName, primaryField):
+        if primaryField is None:
+            isPrimary = click.confirm(f"Is {fieldName} the primary key?", default=False)
+            return isPrimary
+        return False
+
     while True:
         fieldName = click.prompt(
             "Field name",
@@ -58,11 +65,29 @@ def create_collection(obj):
             )
         elif upperFieldType == "VARCHAR":
             maxLength = click.prompt("Max length", default=65535, type=int)
+            isPrimary = handle_primary_field(fieldName, primaryField)
+            if isPrimary:
+                primaryField = fieldName
+
+            enableAnalyzer = click.prompt("Enable analyzer?", default=False, type=bool)
+            enableMatch = click.prompt("Enable match?", default=False, type=bool)
+            analyzerBuiltInType = click.prompt(
+                "Analyzer built-in type",
+                default="",
+                type=click.Choice(BUILT_IN_ANALYZERS),
+            )
+
+            analyzer_params = (
+                None if analyzerBuiltInType == "" else {"type": analyzerBuiltInType}
+            )
             fields.append(
                 FieldSchema(
                     name=fieldName,
                     dtype=DataType[upperFieldType],
                     max_length=int(maxLength),
+                    enable_analyzer=enableAnalyzer,
+                    enable_match=enableMatch,
+                    analyzer_params=analyzer_params,
                 )
             )
         elif upperFieldType == "ARRAY":
@@ -83,6 +108,11 @@ def create_collection(obj):
                 )
             )
         else:
+            if upperFieldType == "INT64":
+                isPrimary = handle_primary_field(fieldName, primaryField)
+                if isPrimary:
+                    primaryField = fieldName
+
             fields.append(
                 FieldSchema(
                     name=fieldName,
@@ -91,11 +121,11 @@ def create_collection(obj):
                 )
             )
         if not click.confirm(
-            "Ensure you have already created vector and primary fields. Do you want to add more fields?"
+            "Ensure you have already created vector and primary fields. Do you want to add more fields?",
+            default=True,
         ):
             break
 
-    primaryField = click.prompt("Please input primary field", type=str)
     click.echo(
         obj.collection.create_collection(
             collectionName,

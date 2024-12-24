@@ -12,6 +12,8 @@ sys.path.append(parent_dir)
 from Validation import validateQueryParams, validateSearchParams
 from Types import ParameterException, IndexTypesMap
 from Fs import readCsvFile
+import json
+from tabulate import tabulate
 
 
 @delete.command("entities")
@@ -106,10 +108,17 @@ def query(obj):
     except ParameterException as pe:
         click.echo("Error!\n{}".format(str(pe)))
     else:
-        click.echo(obj.data.query(collectionName, queryParameters))
+        results = obj.data.query(collectionName, queryParameters)
+        if results:
+            headers = results[0].keys()
+            rows = [result.values() for result in results]
+            table = tabulate(rows, headers, tablefmt="grid")
+            click.echo(table)
+        else:
+            click.echo("No results found.")
 
 
-@cli.command("insert")
+@insert.command("file")
 @click.option(
     "-c",
     "--collection-name",
@@ -194,69 +203,75 @@ def insert_data(obj, collectionName, partitionName, timeout, path):
         click.echo(result)
 
 
+@insert.command("row")
+@click.pass_obj
+def insert_row(obj):
+    """
+    Insert a row of data into a collection.
+
+    Example:
+        milvus_cli > insert row
+    """
+    try:
+        collectionName = click.prompt(
+            "Collection name", type=click.Choice(obj.collection.list_collections())
+        )
+        partitionName = click.prompt(
+            "Partition name",
+            default="_default",
+        )
+        fields = obj.collection.list_field_names_and_types(collectionName)
+        data = {}
+        for field in fields:
+            fieldType = field["type"]
+            value = click.prompt(f"Enter value for {field['name']} ({fieldType})")
+            if fieldType in ["INT8", "INT16", "INT32", "INT64"]:
+                value = int(value)
+            elif fieldType in ["FLOAT", "DOUBLE"]:
+                value = float(value)
+            elif fieldType in ["BOOL"]:
+                value = bool(value)
+            elif fieldType in [
+                "BINARY_VECTOR",
+                "FLOAT_VECTOR",
+                "FLOAT16_VECTOR",
+                "BFLOAT16_VECTOR",
+                "SPARSE_FLOAT_VECTOR",
+                "ARRAY",  #  may not working, because of array support different element types
+            ]:
+                value = [float(x) for x in value.strip("[]").split(",")]
+            elif fieldType in ["JSON"]:
+                value = json.loads(value)
+
+            data[field["name"]] = value
+        result = obj.data.insert(collectionName, data, partitionName)
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+    else:
+        click.echo(f"\nInserted successfully.\n")
+        click.echo(result)
+
+
 @cli.command("search")
 @click.pass_obj
 def search(obj):
     """
     Conducts a vector similarity search with an optional boolean expression as filter.
 
-    Example-1(import a CSV file):
-
-        Collection name (car, test_collection): car
-
-        The vectors of search data (the length of data is number of query (nq),
-        the dim of every vector in data must be equal to vector field’s of
-        collection. You can also import a CSV file without headers): examples/import_csv/search_vectors.csv
-
-        The vector field used to search of collection (vector): vector
-
-        Search parameter nprobe's value: 10
-
-        The max number of returned record, also known as topk: 2
-
-        The boolean expression used to filter attribute []: id > 0
-
-    Example-2(collection has index):
-
-        Collection name (car, test_collection): car
-        \b
-        The vectors of search data (the length of data is number of query (nq),
-        the dim of every vector in data must be equal to vector field’s of
-        collection. You can also import a CSV file without headers):
-            [[0.71, 0.76, 0.17, 0.13, 0.42, 0.07, 0.15, 0.67, 0.58, 0.02, 0.39,
-            0.47, 0.58, 0.88, 0.73, 0.31, 0.23, 0.57, 0.33, 0.2, 0.03, 0.43,
-            0.78, 0.49, 0.17, 0.56, 0.76, 0.54, 0.45, 0.46, 0.05, 0.1, 0.43,
-            0.63, 0.29, 0.44, 0.65, 0.01, 0.35, 0.46, 0.66, 0.7, 0.88, 0.07,
-            0.49, 0.92, 0.57, 0.5, 0.16, 0.77, 0.98, 0.1, 0.44, 0.88, 0.82,
-            0.16, 0.67, 0.63, 0.57, 0.55, 0.95, 0.13, 0.64, 0.43, 0.71, 0.81,
-            0.43, 0.65, 0.76, 0.7, 0.05, 0.24, 0.03, 0.9, 0.46, 0.28, 0.92,
-            0.25, 0.97, 0.79, 0.73, 0.97, 0.49, 0.28, 0.64, 0.19, 0.23, 0.51,
-            0.09, 0.1, 0.53, 0.03, 0.23, 0.94, 0.87, 0.14, 0.42, 0.82, 0.91,
-            0.11, 0.91, 0.37, 0.26, 0.6, 0.89, 0.6, 0.32, 0.11, 0.98, 0.67,
-            0.12, 0.66, 0.47, 0.02, 0.15, 0.6, 0.64, 0.57, 0.14, 0.81, 0.75,
-            0.11, 0.49, 0.78, 0.16, 0.63, 0.57, 0.18]]
-
-        The vector field used to search of collection (vector): vector
-
-        Search parameter nprobe's value: 10
-
-        Groups search results by a specified field to ensure diversity and avoid returning multiple results from the same group.: color
-
-        The specified number of decimal places of returned distance [-1]: 5
-
-        The max number of returned record, also known as topk: 2
-
-        The boolean expression used to filter attribute []: id > 0
-
-        timeout []:
-
+    Example:
+        milvus_cli > search
     """
     collectionName = click.prompt(
         "Collection name", type=click.Choice(obj.collection.list_collections())
     )
-    data = click.prompt(
-        "The vectors of search data (the length of data is number of query (nq), the dim of every vector in data must be equal to vector field’s of collection. You can also import a CSV file without headers)"
+
+    vector = click.prompt(
+        "The vectors of search data (input as a list, e.g., [1,2,3]). The length should match your dimension.",
     )
+    # format vector from string to list
+    vector = [float(x) for x in vector.strip("[]").split(",")]
+    data = [vector]
+
     annsField = click.prompt(
         "The vector field used to search of collection",
         type=click.Choice(obj.collection.list_field_names(collectionName)),
@@ -299,34 +314,26 @@ def search(obj):
         "The max number of returned record, also known as topk", default=None, type=int
     )
     expr = click.prompt("The boolean expression used to filter attribute", default="")
-    # partitionNames = click.prompt(
-    #     f'The names of partitions to search (split by "," if multiple) {obj._list_partition_names(collectionName)}',
-    #     default="",
-    # )
-    timeout = click.prompt("Timeout", default="")
+    outputFields = click.prompt(
+        f'Fields to return(split by "," if multiple) {obj.collection.list_field_names(collectionName)}',
+        default="",
+    )
     guarantee_timestamp = click.prompt(
-        "Guarantee Timestamp(It instructs Milvus to see all operations performed before a provided timestamp. If no such timestamp is provided, then Milvus will search all operations performed to date)",
+        "Guarantee timestamp. This instructs Milvus to see all operations performed before a provided timestamp. If no such timestamp is provided, then Milvus will search all operations performed to date.",
         default=0,
         type=int,
     )
 
-    export, exportPath = False, ""
-    # if click.confirm('Would you like to export results as a CSV file?'):
-    #     export = True
-    #     exportPath = click.prompt('Directory path to csv file')
-    # export = click.prompt('Would you like to export results as a CSV file?', default='n', type=click.Choice(['Y', 'n']))
-    # if export:
-    #     exportPath = click.prompt('Directory path to csv file')
     try:
         searchParameters = validateSearchParams(
-            data,
-            annsField,
-            metricType,
-            params,
-            limit,
-            expr,
-            timeout,
-            roundDecimal,
+            data=data,
+            annsField=annsField,
+            metricType=metricType,
+            params=params,
+            limit=limit,
+            expr=expr,
+            outputFields=outputFields,
+            roundDecimal=roundDecimal,
             hasIndex=hasIndex,
             guarantee_timestamp=guarantee_timestamp,
         )
@@ -335,12 +342,9 @@ def search(obj):
         click.echo("Error!\n{}".format(str(pe)))
 
     else:
-        if export:
-            results = obj.data.search(
-                collectionName, searchParameters, prettierFormat=False
-            )
-        else:
-            results = obj.data.search(collectionName, searchParameters)
-            click.echo(f"Search results:\n")
-            click.echo(results)
-            # click.echo(obj.search(collectionName, searchParameters))
+        results = obj.data.search(
+            collectionName,
+            searchParameters,
+        )
+        click.echo(f"Search result: \n")
+        click.echo(results)

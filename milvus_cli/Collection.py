@@ -41,6 +41,7 @@ class MilvusCollection(object):
             description=description,
             _enable_dynamic_field=isDynamic,
         )
+
         collection = Collection(
             name=collectionName,
             schema=schema,
@@ -125,14 +126,25 @@ class MilvusCollection(object):
             _params = fieldSchema.params
             _dim = _params.get("dim")
             _params_desc = f"dim: {_dim}" if _dim else ""
-            if fieldSchema.dtype == DataType.ARRAY:
-                _max_length = _params.get("max_length")
-                _element_type = fieldSchema.element_type
-                _max_capacity = _params.get("max_capacity")
-                _params_desc = (
-                    f"max_capacity: {_max_capacity},element_type: {_element_type}"
-                )
-                _params_desc += f",max_length: {_max_length}" if _max_length else ""
+
+            _element_type = fieldSchema.element_type
+            _max_length = _params.get("max_length")
+            _max_capacity = _params.get("max_capacity")
+            _enable_match = _params.get("enable_match")
+            _enable_analyzer = _params.get("enable_analyzer")
+            _analyzer_params = _params.get("analyzer_params")
+            _params_desc = ""
+
+            _params_desc += f", max_capacity: {_max_capacity}" if _max_capacity else ""
+            _params_desc += f", element_type: {_element_type}" if _element_type else ""
+            _params_desc += f", max_length: {_max_length}" if _max_length else ""
+            _params_desc += f", enable_match: {_enable_match}" if _enable_match else ""
+            _params_desc += (
+                f", enable_analyzer: {_enable_analyzer}" if _enable_analyzer else ""
+            )
+            _params_desc += (
+                f", analyzer_params: {_analyzer_params}" if _analyzer_params else ""
+            )
 
             fieldSchemaDetails += f"\n - {_name} {_type} {_params_desc} {_desc}"
         schemaDetails = """Description: {}\n\nAuto ID: {}\n\nFields(* is the primary field):{}""".format(
@@ -172,5 +184,9 @@ class MilvusCollection(object):
     def list_field_names(self, collectionName):
         target = getTargetCollection(collectionName)
         result = target.schema.fields
-
         return [i.name for i in result]
+
+    def list_field_names_and_types(self, collectionName):
+        target = getTargetCollection(collectionName)
+        result = target.schema.fields
+        return [{"name": i.name, "type": DataTypeByNum[i.dtype]} for i in result]

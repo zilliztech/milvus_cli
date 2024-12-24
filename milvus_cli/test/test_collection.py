@@ -9,7 +9,7 @@ from Connection import MilvusConnection
 from Collection import MilvusCollection
 from pymilvus import FieldSchema, DataType
 
-uri = "http://localhost:19530"
+uri = "http://127.0.0.1:19530"
 collectionName = "test_collection"
 newCollectionName = "test_collection2"
 

@@ -106,7 +106,7 @@ def validateSearchParams(
     params,
     limit,
     expr,
-    timeout,
+    outputFields,
     roundDecimal,
     hasIndex=True,
     guarantee_timestamp=None,
@@ -120,7 +120,7 @@ def validateSearchParams(
             csvData = readCsvFile(data, withCol=False)
             result["data"] = csvData["data"][0]
         else:
-            result["data"] = json.loads(data.replace("'", "").replace('"', ""))
+            result["data"] = data
     except Exception as e:
         raise ParameterException(
             'Format(list[list[float]]) "Data" error! {}'.format(str(e))
@@ -164,6 +164,7 @@ def validateSearchParams(
             except ValueError as e:
                 raise ParameterException("""Search parameter's value should be int.""")
         result["param"] = {"metric_type": metricType}
+
         if paramDict.keys():
             result["param"]["params"] = paramDict
     else:
@@ -175,9 +176,6 @@ def validateSearchParams(
         raise ParameterException('Format(int) "limit" error! {}'.format(str(e)))
     # Validate expr
     result["expr"] = expr if expr else None
-    # Validate timeout
-    if timeout:
-        result["timeout"] = float(timeout)
     if roundDecimal:
         result["round_decimal"] = int(roundDecimal)
     #  Validate guarantee_timestamp and travel_timestamp
@@ -188,6 +186,11 @@ def validateSearchParams(
             raise ParameterException(
                 'Format(int) "guarantee_timestamp" error! {}'.format(str(e))
             )
+    if not outputFields:
+        result["output_fields"] = None
+    else:
+        nameList = outputFields.replace(" ", "").split(",")
+        result["output_fields"] = nameList
     return result
 
 
