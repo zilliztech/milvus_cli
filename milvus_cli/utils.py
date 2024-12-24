@@ -47,7 +47,7 @@ class Completer(object):
         "describe": ["collection", "partition", "index"],
         "exit": [],
         "help": [],
-        "insert": [],
+        "insert": ["file", "row"],
         "list": [
             "connections",
             "collections",

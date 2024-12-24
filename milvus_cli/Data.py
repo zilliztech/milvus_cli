@@ -38,23 +38,12 @@ class MilvusData:
             collectionName,
         )
         res = collection.search(**searchParameters)
-        if not prettierFormat:
-            return res
+        # only support search by single vector
         hits = res[0]
         results = []
-        for hits in res:
-            results += [
-                tabulate(
-                    map(lambda x: [x.id, x.distance, x.score], hits),
-                    headers=["Index", "ID", "Distance", "Score"],
-                    tablefmt="grid",
-                    showindex=True,
-                )
-            ]
-        return tabulate(
-            map(lambda x: [x.id, x.distance], hits),
-            headers=["Index", "ID", "Distance"],
+        results = tabulate(
+            [[hit.id, hit.distance, str(hit.entity)] for hit in hits],
+            headers=["ID", "Distance", "Entity"],
             tablefmt="grid",
-            showindex=True,
         )
-        # return res
+        return results

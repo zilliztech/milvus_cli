@@ -21,7 +21,7 @@ class ConnectException(Exception):
         return str(self.msg)
 
 
-FiledDataTypes = [
+FieldDataTypes = [
     "BOOL",
     "INT8",
     "INT16",
@@ -170,7 +170,7 @@ DataTypeByNum = {
     999: "UNKNOWN",
 }
 
-Operators = ["<", "<=", ">", ">=", "==", "!=", "in"]
+Operators = ["<", "<=", ">", ">=", "==", "!=", "in", "TEXT_MATCH"]
 
 Privileges = [
     "CreateIndex",
@@ -223,3 +223,5 @@ Privileges = [
     "SelectUser",
     "*",
 ]
+
+BUILT_IN_ANALYZERS = ["standard", "english", "chinese", ""]

@@ -9,6 +9,7 @@ from Connection import MilvusConnection
 from Collection import MilvusCollection
 from Data import MilvusData
 from Index import MilvusIndex
+from pymilvus import FieldSchema, DataType
 
 uri = "http://localhost:19530"
 collectionName = "test_collection"
@@ -25,12 +26,12 @@ class TestIndex(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         milvusConnection.connect(uri=uri)
-        fields = [
-            "name:VARCHAR:128",
-            "title:VARCHAR:512",
-        ]
-        fields.append(f"{vectorName}:FLOAT_VECTOR:4")
 
+        fields = [
+            FieldSchema(name="name", dtype=DataType.VARCHAR, max_length=128),
+            FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=512),
+            FieldSchema(name=vectorName, dtype=DataType.FLOAT_VECTOR, dim=4),
+        ]
         collection.create_collection(
             collectionName=collectionName,
             fields=fields,
