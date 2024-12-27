@@ -224,8 +224,15 @@ def insert_row(obj):
         data = {}
         for field in fields:
             fieldType = field["type"]
-            value = click.prompt(f"Enter value for {field['name']} ({fieldType})")
-            if fieldType in ["INT8", "INT16", "INT32", "INT64"]:
+            autoId = field["autoId"]
+            if autoId:
+                continue
+            value = click.prompt(
+                f"Enter value for {field['name']} ({fieldType})", default=""
+            )
+            if value == "":
+                value = None
+            elif fieldType in ["INT8", "INT16", "INT32", "INT64"]:
                 value = int(value)
             elif fieldType in ["FLOAT", "DOUBLE"]:
                 value = float(value)

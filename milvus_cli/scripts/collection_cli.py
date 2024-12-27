@@ -11,6 +11,8 @@ from .helper_cli import create, getList, delete, rename, show, load, release
 from Types import FieldDataTypes, BUILT_IN_ANALYZERS
 from pymilvus import FieldSchema, DataType
 
+NOT_SET = "Not set"
+
 
 @create.command("collection")
 @click.pass_obj
@@ -39,6 +41,17 @@ def create_collection(obj):
             isPrimary = click.confirm(f"Is {fieldName} the primary key?", default=False)
             return isPrimary
         return False
+
+    def handleNullableAndDefaultValue(isPrimary, fieldType):
+        if isPrimary:
+            return None, NOT_SET
+        else:
+            nullable = click.prompt("Nullable", default=False, type=bool)
+            defaultValue = click.prompt(
+                f"Default value (type: {fieldType}):", default=NOT_SET
+            )
+
+            return nullable, defaultValue
 
     while True:
         fieldName = click.prompt(
@@ -69,6 +82,9 @@ def create_collection(obj):
             if isPrimary:
                 primaryField = fieldName
 
+            nullable, defaultValue = handleNullableAndDefaultValue(
+                isPrimary, fieldType=upperFieldType
+            )
             enableAnalyzer = click.prompt("Enable analyzer?", default=False, type=bool)
             enableMatch = click.prompt("Enable match?", default=False, type=bool)
             analyzerBuiltInType = click.prompt(
@@ -80,16 +96,21 @@ def create_collection(obj):
             analyzer_params = (
                 None if analyzerBuiltInType == "" else {"type": analyzerBuiltInType}
             )
-            fields.append(
-                FieldSchema(
-                    name=fieldName,
-                    dtype=DataType[upperFieldType],
-                    max_length=int(maxLength),
-                    enable_analyzer=enableAnalyzer,
-                    enable_match=enableMatch,
-                    analyzer_params=analyzer_params,
-                )
-            )
+
+            field_schema_params = {
+                "name": fieldName,
+                "dtype": DataType[upperFieldType],
+                "max_length": int(maxLength),
+                "enable_analyzer": enableAnalyzer,
+                "enable_match": enableMatch,
+                "analyzer_params": analyzer_params,
+                "nullable": nullable,
+                "description": fieldDesc,
+            }
+            if defaultValue is not NOT_SET:
+                field_schema_params["default_value"] = defaultValue
+
+            fields.append(FieldSchema(**field_schema_params))
         elif upperFieldType == "ARRAY":
             maxCapacity = click.prompt("Max capacity", type=int)
             elementType = click.prompt(
@@ -98,28 +119,43 @@ def create_collection(obj):
             maxLength = None
             if elementType.upper() == "VARCHAR":
                 maxLength = click.prompt("Max length", type=int)
-            fields.append(
-                FieldSchema(
-                    name=fieldName,
-                    dtype=DataType[upperFieldType],
-                    element_type=DataType[elementType.upper()],
-                    max_capacity=int(maxCapacity),
-                    max_length=int(maxLength),
-                )
+            nullable, defaultValue = handleNullableAndDefaultValue(
+                False, fieldType=upperFieldType
             )
+
+            field_schema_params = {
+                "name": fieldName,
+                "dtype": DataType[upperFieldType],
+                "element_type": DataType[elementType.upper()],
+                "max_capacity": int(maxCapacity),
+                "max_length": int(maxLength) if maxLength else None,
+                "nullable": nullable,
+                "description": fieldDesc,
+            }
+            if defaultValue is not NOT_SET:
+                field_schema_params["default_value"] = defaultValue
+
+            fields.append(FieldSchema(**field_schema_params))
         else:
+            isPrimary = False
             if upperFieldType == "INT64":
                 isPrimary = handle_primary_field(fieldName, primaryField)
                 if isPrimary:
                     primaryField = fieldName
-
-            fields.append(
-                FieldSchema(
-                    name=fieldName,
-                    dtype=DataType[upperFieldType],
-                    description=fieldDesc,
-                )
+            nullable, defaultValue = handleNullableAndDefaultValue(
+                isPrimary, fieldType=upperFieldType
             )
+
+            field_schema_params = {
+                "name": fieldName,
+                "dtype": DataType[upperFieldType],
+                "description": fieldDesc,
+                "nullable": nullable,
+            }
+            if defaultValue is not NOT_SET:
+                field_schema_params["default_value"] = defaultValue
+
+            fields.append(FieldSchema(**field_schema_params))
         if not click.confirm(
             "Ensure you have already created vector and primary fields. Do you want to add more fields?",
             default=True,
