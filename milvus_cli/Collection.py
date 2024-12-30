@@ -189,4 +189,7 @@ class MilvusCollection(object):
     def list_field_names_and_types(self, collectionName):
         target = getTargetCollection(collectionName)
         result = target.schema.fields
-        return [{"name": i.name, "type": DataTypeByNum[i.dtype]} for i in result]
+        return [
+            {"name": i.name, "type": DataTypeByNum[i.dtype], "autoId": i.auto_id}
+            for i in result
+        ]
