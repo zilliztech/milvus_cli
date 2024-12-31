@@ -225,31 +225,6 @@ def validateQueryParams(
     return result
 
 
-def validateCalcParams(
-    leftVectorMeta, rightVectorMeta, metric_type, sqrt, dim, timeout
-):
-    result = {"params": {}}
-    vectors_left = validateVectorMeta(leftVectorMeta)
-    result["vectors_left"] = vectors_left
-    vectors_right = validateVectorMeta(rightVectorMeta)
-    result["vectors_right"] = vectors_right
-    params = result["params"]
-    params["metric_type"] = metric_type
-    if metric_type not in MetricTypes:
-        raise ParameterException(
-            "metric_type should be one of {}".format(str(MetricTypes))
-        )
-    if metric_type == "L2":
-        params["sqrt"] = sqrt
-    elif metric_type in ["HAMMING", "TANIMOTO"]:
-        params["dim"] = dim
-    if timeout:
-        result["timeout"] = float(timeout)
-    else:
-        result["timeout"] = None
-    return result
-
-
 def validateVectorMeta(vectorMeta):
     import json
 

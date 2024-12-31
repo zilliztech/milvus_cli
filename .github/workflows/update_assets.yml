@@ -1,132 +1,132 @@
-# This is a basic workflow to help you get started with Actions
+# # This is a basic workflow to help you get started with Actions
 
-name: Update the release's assets after it published
+# name: Update the release's assets after it published
 
-# Controls when the workflow will run
-on:
-  release:
-    types: [published]
+# # Controls when the workflow will run
+# on:
+#   release:
+#     types: [published]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+# # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# jobs:
+#   # This workflow contains a single job called "build"
+#   build:
+#     # The type of runner that the job will run on
+#     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
-          architecture: "x64"
-      - name: Install pypa/build
-        run: >-
-          python -m
-          pip install
-          build
-          --user
-      - name: Clean dist/
-        run: |
-          sudo rm -fr dist/*
-      - name: Build a binary wheel and a source tarball
-        run: >-
-          python -m
-          build
-          --sdist
-          --wheel
-          --outdir dist/
-          .
-      - name: Update assets
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: ./dist/*
-      - name: Publish distribution 📦 to Test PyPI
-        if: contains(github.ref, 'beta') && startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
-          packages_dir: dist/
-          verify_metadata: false
-  build_windows_exe:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
-          architecture: "x64"
-      - name: Install requirements
-        run: >-
-          python -m
-          pip install
-          -e
-          .
-      - name: Install protobuf only for pymilvus2.1
-        run:
-          python -m pip install protobuf==3.20.0
+#     # Steps represent a sequence of tasks that will be executed as part of the job
+#     steps:
+#       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+#       - uses: actions/checkout@v2
+#       - uses: actions/setup-python@v2
+#         with:
+#           python-version: "3.8"
+#           architecture: "x64"
+#       - name: Install pypa/build
+#         run: >-
+#           python -m
+#           pip install
+#           build
+#           --user
+#       - name: Clean dist/
+#         run: |
+#           sudo rm -fr dist/*
+#       - name: Build a binary wheel and a source tarball
+#         run: >-
+#           python -m
+#           build
+#           --sdist
+#           --wheel
+#           --outdir dist/
+#           .
+#       - name: Update assets
+#         uses: softprops/action-gh-release@v1
+#         if: startsWith(github.ref, 'refs/tags/')
+#         with:
+#           files: ./dist/*
+#       - name: Publish distribution 📦 to Test PyPI
+#         if: contains(github.ref, 'beta') && startsWith(github.ref, 'refs/tags')
+#         uses: pypa/gh-action-pypi-publish@release/v1
+#         with:
+#           user: __token__
+#           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+#           repository_url: https://test.pypi.org/legacy/
+#           packages_dir: dist/
+#           verify_metadata: false
+#   build_windows_exe:
+#     runs-on: windows-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#       - uses: actions/setup-python@v2
+#         with:
+#           python-version: "3.8"
+#           architecture: "x64"
+#       - name: Install requirements
+#         run: >-
+#           python -m
+#           pip install
+#           -e
+#           .
+#       - name: Install protobuf only for pymilvus2.1
+#         run:
+#           python -m pip install protobuf==3.20.0
 
-      - name: Install pyreadline
-        run: >-
-          python -m
-          pip install
-          pyreadline
-      - name: Install pyinstaller.
-        run: >-
-          python -m
-          pip install
-          pyinstaller
-      - name: build to dist/
-        run: |
-          pyinstaller -F ./milvus_cli/scripts/milvus_cli.py -p ./milvus_cli --clean --hidden-import pyreadline -n milvus_cli.exe
-      - name: Update assets
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: ./dist/*
-  build_linux_exec:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
-          architecture: "x64"
-      - name: Install requirements
-        run: >-
-          python -m
-          pip install
-          -e
-          .
-      - name: Install protobuf only for pymilvus2.1
-        run:
-          python -m pip install protobuf==3.20.0
+#       - name: Install pyreadline
+#         run: >-
+#           python -m
+#           pip install
+#           pyreadline
+#       - name: Install pyinstaller.
+#         run: >-
+#           python -m
+#           pip install
+#           pyinstaller
+#       - name: build to dist/
+#         run: |
+#           pyinstaller -F ./milvus_cli/scripts/milvus_cli.py -p ./milvus_cli --clean --hidden-import pyreadline -n milvus_cli.exe
+#       - name: Update assets
+#         uses: softprops/action-gh-release@v1
+#         if: startsWith(github.ref, 'refs/tags/')
+#         with:
+#           files: ./dist/*
+#   build_linux_exec:
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       matrix:
+#         os: [macos-latest, ubuntu-latest]
+#     steps:
+#       - uses: actions/checkout@v2
+#       - uses: actions/setup-python@v2
+#         with:
+#           python-version: "3.8"
+#           architecture: "x64"
+#       - name: Install requirements
+#         run: >-
+#           python -m
+#           pip install
+#           -e
+#           .
+#       - name: Install protobuf only for pymilvus2.1
+#         run:
+#           python -m pip install protobuf==3.20.0
       
-      - name: Install pyinstaller.
-        run: >-
-          python -m
-          pip install
-          pyinstaller
-      - name: Clean dist/
-        run: |
-          sudo rm -fr dist/*
-      - name: Tag name
-        id: tag_name
-        run: |
-          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
-      - name: build to dist/
-        run: |
-          pyinstaller -F ./milvus_cli/scripts/milvus_cli.py -p ./milvus_cli --clean --hidden-import pyreadline -n milvus_cli-${{ steps.tag_name.outputs.SOURCE_TAG }}-$RUNNER_OS
-      - name: Update assets
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: ./dist/*
+#       - name: Install pyinstaller.
+#         run: >-
+#           python -m
+#           pip install
+#           pyinstaller
+#       - name: Clean dist/
+#         run: |
+#           sudo rm -fr dist/*
+#       - name: Tag name
+#         id: tag_name
+#         run: |
+#           echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+#       - name: build to dist/
+#         run: |
+#           pyinstaller -F ./milvus_cli/scripts/milvus_cli.py -p ./milvus_cli --clean --hidden-import pyreadline -n milvus_cli-${{ steps.tag_name.outputs.SOURCE_TAG }}-$RUNNER_OS
+#       - name: Update assets
+#         uses: softprops/action-gh-release@v1
+#         if: startsWith(github.ref, 'refs/tags/')
+#         with:
+#           files: ./dist/*

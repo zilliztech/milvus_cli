@@ -146,6 +146,7 @@ MetricTypes = [
     "HAMMING",
     "TANIMOTO",
     "COSINE",
+    "BM25",
     "",
 ]
 

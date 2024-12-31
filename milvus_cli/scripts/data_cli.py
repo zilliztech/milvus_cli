@@ -220,7 +220,7 @@ def insert_row(obj):
             "Partition name",
             default="_default",
         )
-        fields = obj.collection.list_field_names_and_types(collectionName)
+        fields = obj.collection.list_fields_info(collectionName)
         data = {}
         for field in fields:
             fieldType = field["type"]
@@ -249,8 +249,8 @@ def insert_row(obj):
                 value = [float(x) for x in value.strip("[]").split(",")]
             elif fieldType in ["JSON"]:
                 value = json.loads(value)
-
-            data[field["name"]] = value
+            if value != None:
+                data[field["name"]] = value
         result = obj.data.insert(collectionName, data, partitionName)
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
@@ -272,17 +272,33 @@ def search(obj):
         "Collection name", type=click.Choice(obj.collection.list_collections())
     )
 
-    vector = click.prompt(
-        "The vectors of search data (input as a list, e.g., [1,2,3]). The length should match your dimension.",
-    )
-    # format vector from string to list
-    vector = [float(x) for x in vector.strip("[]").split(",")]
-    data = [vector]
-
     annsField = click.prompt(
         "The vector field used to search of collection",
         type=click.Choice(obj.collection.list_field_names(collectionName)),
     )
+
+    fields_info = obj.collection.list_fields_info(collectionName)
+    annsField_info = next(
+        (field for field in fields_info if field["name"] == annsField), None
+    )
+    if not annsField_info:
+        click.echo(f"Field {annsField} not found in collection {collectionName}.")
+        return
+    isFunctionOut = annsField_info["isFunctionOut"]
+    data = None
+    if isFunctionOut:
+        text = click.prompt(
+            "Enter the text to search",
+        )
+        data = [text]
+    else:
+        vector = click.prompt(
+            "The vectors of search data (input as a list, e.g., [1,2,3]). The length should match your dimension.",
+        )
+        # format vector from string to list
+        vector = [float(x) for x in vector.strip("[]").split(",")]
+        data = [vector]
+
     indexes = obj.index.list_indexes(collectionName, onlyData=True)
     indexDetails = None
     for index in indexes:
