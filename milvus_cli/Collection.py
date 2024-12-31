@@ -33,6 +33,7 @@ class MilvusCollection(object):
         isDynamic=None,
         consistencyLevel="Bounded",
         shardsNum=1,
+        functions=None,
     ):
         schema = CollectionSchema(
             fields=fields,
@@ -40,6 +41,7 @@ class MilvusCollection(object):
             auto_id=autoId,
             description=description,
             _enable_dynamic_field=isDynamic,
+            functions=functions,
         )
 
         collection = Collection(
@@ -118,14 +120,21 @@ class MilvusCollection(object):
         partitions = target.partitions
         indexes = target.indexes
         fieldSchemaDetails = ""
+
         for fieldSchema in schema.fields:
             _name = f"{'*' if fieldSchema.is_primary else ''}{fieldSchema.name}"
 
             _type = DataTypeByNum[fieldSchema.dtype]
             _desc = fieldSchema.description
             _params = fieldSchema.params
+            _is_function_output = fieldSchema.is_function_output
             _dim = _params.get("dim")
             _params_desc = f"dim: {_dim}" if _dim else ""
+            _params_desc += (
+                f", Is function output: {_is_function_output}"
+                if _is_function_output
+                else ""
+            )
 
             _element_type = fieldSchema.element_type
             _max_length = _params.get("max_length")
@@ -133,7 +142,6 @@ class MilvusCollection(object):
             _enable_match = _params.get("enable_match")
             _enable_analyzer = _params.get("enable_analyzer")
             _analyzer_params = _params.get("analyzer_params")
-            _params_desc = ""
 
             _params_desc += f", max_capacity: {_max_capacity}" if _max_capacity else ""
             _params_desc += f", element_type: {_element_type}" if _element_type else ""
@@ -186,10 +194,15 @@ class MilvusCollection(object):
         result = target.schema.fields
         return [i.name for i in result]
 
-    def list_field_names_and_types(self, collectionName):
+    def list_fields_info(self, collectionName):
         target = getTargetCollection(collectionName)
         result = target.schema.fields
         return [
-            {"name": i.name, "type": DataTypeByNum[i.dtype], "autoId": i.auto_id}
+            {
+                "name": i.name,
+                "type": DataTypeByNum[i.dtype],
+                "autoId": i.auto_id,
+                "isFunctionOut": i.is_function_output,
+            }
             for i in result
         ]
