@@ -22,6 +22,14 @@ import click
     type=str,
 )
 @click.option(
+    "-tls",
+    "--tlsmode",
+    "tlsmode",
+    help="[Optional] - Set TLS mode: 0 (No encryption), 1 (One-way encryption), 2 (Two-way encryption).",
+    default=0,
+    type=int,
+)
+@click.option(
     "-cert",
     "--cert",
     "cert",
@@ -30,7 +38,7 @@ import click
     type=str,
 )
 @click.pass_obj
-def connect(obj, uri, token, cert):
+def connect(obj, uri, token, tlsmode, cert):
     """
     Connect to Milvus.
 
@@ -39,7 +47,7 @@ def connect(obj, uri, token, cert):
         milvus_cli > connect -uri localhost:19530
     """
     try:
-        obj.connection.connect(uri, token, cert)
+        obj.connection.connect(uri, token, tlsmode, cert)
     except Exception as e:
         click.echo(message=e, err=True)
     else:

@@ -1,19 +1,26 @@
-from pymilvus import connections, list_collections
+from pymilvus import connections
 from Types import ConnectException
+
 
 class MilvusConnection(object):
     uri = "127.0.0.1:19530"
     alias = "default"
 
-    def connect(self, uri=None, token=None, cert=None):
+    def connect(self, uri=None, token=None, tlsmode=0, cert=None):
         self.uri = uri
         trimToken = None if token is None else token.strip()
         trimcert = None if cert is None else cert.strip()
+
         try:
-            if cert:
-                res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken, secure=True, server_pem_path=trimcert)
-            else:
+            if tlsmode == 0:
                 res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken)
+            elif tlsmode == 1:
+                if not cert:
+                    res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken, secure=True)
+                else:
+                    res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken, secure=True, server_pem_path=trimcert)
+            elif tlsmode == 2:
+                raise NotImplementedError("two-way encryption (tlsmode == 2) is not implemented yet")
             return res
         except Exception as e:
             raise ConnectException(f"Connect to Milvus error!{str(e)}")
