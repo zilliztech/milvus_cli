@@ -1,17 +1,19 @@
 from pymilvus import connections, list_collections
 from Types import ConnectException
 
-
 class MilvusConnection(object):
     uri = "127.0.0.1:19530"
     alias = "default"
 
-    def connect(self, uri=None, token=None):
+    def connect(self, uri=None, token=None, cert=None):
         self.uri = uri
         trimToken = None if token is None else token.strip()
-
+        trimcert = None if cert is None else cert.strip()
         try:
-            res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken)
+            if cert:
+                res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken, secure=True, server_pem_path=trimcert)
+            else:
+                res = connections.connect(alias=self.alias, uri=self.uri, token=trimToken)
             return res
         except Exception as e:
             raise ConnectException(f"Connect to Milvus error!{str(e)}")

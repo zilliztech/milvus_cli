@@ -21,8 +21,16 @@ import click
     default=None,
     type=str,
 )
+@click.option(
+    "-cert",
+    "--cert",
+    "cert",
+    help="[Optional] - Path to the client certificate file.",
+    default=None,
+    type=str,
+)
 @click.pass_obj
-def connect(obj, uri, token):
+def connect(obj, uri, token, cert):
     """
     Connect to Milvus.
 
@@ -31,7 +39,7 @@ def connect(obj, uri, token):
         milvus_cli > connect -uri localhost:19530
     """
     try:
-        obj.connection.connect(uri, token)
+        obj.connection.connect(uri, token, cert)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
@@ -39,7 +47,7 @@ def connect(obj, uri, token):
         connectionInfo = obj.connection.showConnection()
         click.echo(
             tabulate(
-                [["Address", list(connectionInfo)[0]], ["Alias", "default"]],
+                [["Address", list(connectionInfo)[2]], ["Alias", "default"]],
                 tablefmt="pretty",
             )
         )
