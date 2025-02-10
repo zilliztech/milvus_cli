@@ -30,8 +30,8 @@ Python >= 3.8.5
 
 #### Install from PyPI (Recommended)
 
-Run `pip install pymilvus>=2.4.3`
-Run `pip install milvus-cli==1.0.1`
+Run `pip install pymilvus>=2.5.0`
+Run `pip install milvus-cli==1.0.2`
 
 #### Install from a tarball
 
@@ -44,24 +44,6 @@ Run `pip install milvus-cli==1.0.1`
 2. Run `cd milvus_cli`.
 3. Run `pip install --editable .`
 
-### Install from an executable file
-
-#### Windows .exe file
-
-Download the [latest release](https://github.com/zilliztech/milvus_cli/releases/latest) of `milvus_cli.exe` and run it.
-
-#### Ubuntu executable file
-
-1. Download the [latest release](https://github.com/zilliztech/milvus_cli/releases/latest) of `milvus_cli-<version>-Linux`.
-2. Run `sudo chmod +x milvus_cli-<version>-Linux` to allow executing `milvus_cli-<version>-Linux` as program.
-3. Run `./milvus_cli-<version>-Linux`.
-
-#### MacOS executable file
-
-1. Download the [latest release](https://github.com/zilliztech/milvus_cli/releases/latest) of `milvus_cli-<version>-macOS`.
-2. Run `sudo chmod +x milvus_cli-<version>-macOS` to allow executing `milvus_cli-<version>-macOS` as program.
-3. Run `./milvus_cli-<version>-macOS`.
-
 ### Docker image in docker hub
 
 `docker run -it zilliz/milvus_cli:latest`
@@ -73,9 +55,6 @@ Run `milvus_cli` (in a Python environment) or double click `milvus_cli-<version>
 #### Run Milvus_CLI
 
 - In a Python environment, run `milvus_cli`.
-- In a Windows environment, double click `milvus_cli-<version>.exe`.
-- In an Ubuntu environment, run `./milvus_cli-<version>-Linux`.
-- In a MacOS environment, run `./milvus_cli-<version>-macOS`.
 
 ### Document
 
