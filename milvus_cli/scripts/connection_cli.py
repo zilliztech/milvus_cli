@@ -21,8 +21,24 @@ import click
     default=None,
     type=str,
 )
+@click.option(
+    "-tls",
+    "--tlsmode",
+    "tlsmode",
+    help="[Optional] - Set TLS mode: 0 (No encryption), 1 (One-way encryption), 2 (Two-way encryption).",
+    default=0,
+    type=int,
+)
+@click.option(
+    "-cert",
+    "--cert",
+    "cert",
+    help="[Optional] - Path to the client certificate file.",
+    default=None,
+    type=str,
+)
 @click.pass_obj
-def connect(obj, uri, token):
+def connect(obj, uri, token, tlsmode, cert):
     """
     Connect to Milvus.
 
@@ -31,7 +47,7 @@ def connect(obj, uri, token):
         milvus_cli > connect -uri localhost:19530
     """
     try:
-        obj.connection.connect(uri, token)
+        obj.connection.connect(uri, token, tlsmode, cert)
     except Exception as e:
         click.echo(message=e, err=True)
     else:
@@ -39,7 +55,7 @@ def connect(obj, uri, token):
         connectionInfo = obj.connection.showConnection()
         click.echo(
             tabulate(
-                [["Address", list(connectionInfo)[0]], ["Alias", "default"]],
+                [["Address", list(connectionInfo)[2]], ["Alias", "default"]],
                 tablefmt="pretty",
             )
         )
