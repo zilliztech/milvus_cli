@@ -57,6 +57,7 @@ IndexTypes = [
     "STL_SORT",
     "Trie",
     "INVERTED",
+    "GPU_BRUTE_FORCE",
     "",
 ]
 
@@ -131,6 +132,10 @@ IndexTypesMap = {
     "SPARSE_WAND": {
         "index_building_parameters": ["drop_ratio_build"],
         "search_parameters": ["drop_ratio_search"],
+    },
+    "GPU_BRUTE_FORCE": {
+        "index_building_parameters": [],
+        "search_parameters": [],
     },
 }
 
