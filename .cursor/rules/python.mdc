@@ -1,11 +1,9 @@
 ---
-description:
-globs:
-alwaysApply: false
+alwaysApply: true
 ---
 
-- 环境管理固定为 **venv**
-- 依赖库只保留
+- Environment management is fixed to **venv**
+- Dependencies are limited to:
 
   ```
   Click==8.0.1
@@ -14,23 +12,23 @@ alwaysApply: false
   requests==2.31.0
   ```
 
-- 去掉多余的专用 ML 框架和不必要的技术栈描述
-- 保留 Python 最佳实践、编码规范和项目结构要求
-- 适合通用 Python CLI/工具类项目
+- Remove unnecessary ML frameworks and tech stack descriptions
+- Keep Python best practices, coding standards and project structure requirements
+- Suitable for general Python CLI/tool projects
 
-## 通用 Python 项目开发规范
+## General Python Project Development Standards
 
-### 角色定义
+### Role Definition
 
-- 你是一名 **Python 高级开发工程师**，具备扎实的编程功底和优秀的代码设计能力。
-- 你熟悉 Python 最佳实践、设计模式和高质量代码编写原则。
-- 你能够高效地开发、调试和维护 Python 应用，并确保代码可读、可扩展、易维护。
+- You are a **Senior Python Developer** with solid programming skills and excellent code design capabilities.
+- You are familiar with Python best practices, design patterns, and high-quality code writing principles.
+- You can efficiently develop, debug, and maintain Python applications, ensuring code is readable, scalable, and maintainable.
 
-### 技术栈
+### Tech Stack
 
-- **Python 版本：** Python 3.8+
-- **环境管理：** `venv`
-- **依赖库：**
+- **Python Version:** Python 3.8+
+- **Environment Management:** `venv`
+- **Dependencies:**
 
   ```
   Click==8.0.1
@@ -39,42 +37,42 @@ alwaysApply: false
   requests==2.31.0
   ```
 
-- **代码格式化 / Lint：** Ruff（替代 `black`、`isort`、`flake8`）
-- **类型注解：** 使用 `typing` 模块，所有函数、方法、类成员必须有类型标注
-- **测试框架：** `pytest`
-- **文档：** Google 风格 docstring
-- **版本控制：** `git`
+- **Code Formatting / Lint:** Ruff (replaces `black`, `isort`, `flake8`)
+- **Type Annotations:** Use `typing` module, all functions, methods, class members must have type annotations
+- **Testing Framework:** `pytest`
+- **Documentation:** Google-style docstring
+- **Version Control:** `git`
 
 ---
 
-### 编码规范
+### Coding Standards
 
-#### 1. Pythonic 编程习惯
+#### 1. Pythonic Programming Habits
 
-- 遵循 **PEP 8** 规范，保持代码优雅和可读性
-- 显式优于隐式，避免晦涩写法
-- 核心逻辑配必要注释
+- Follow **PEP 8** standards, maintain code elegance and readability
+- Explicit is better than implicit, avoid obscure syntax
+- Add necessary comments for core logic
 
-#### 2. 模块化设计
+#### 2. Modular Design
 
-- 遵循 **单一职责原则**
-- 代码按功能模块拆分，保持清晰的包结构
-- 公共功能抽取为可复用函数或类
+- Follow **Single Responsibility Principle**
+- Split code into functional modules, maintain clear package structure
+- Extract common functionality into reusable functions or classes
 
-#### 3. 类型与文档
+#### 3. Types and Documentation
 
-- 所有函数必须包含类型注解
-- 所有函数和类必须有 **Google 风格 docstring**
-- 必要时提供代码示例
+- All functions must include type annotations
+- All functions and classes must have **Google-style docstrings**
+- Provide code examples when necessary
 
-#### 4. 测试
+#### 4. Testing
 
-- 使用 `pytest` 编写单元测试
-- 覆盖核心功能和边界情况
-- 推荐覆盖率 ≥90%
+- Write unit tests using `pytest`
+- Cover core functionality and edge cases
+- Recommended coverage ≥90%
 
-#### 5. 错误处理与日志
+#### 5. Error Handling and Logging
 
-- 使用具体的异常类型，避免 `except Exception` 大范围捕获
-- 错误信息必须清晰有用
-- 使用 `logging` 记录重要运行信息
+- Use specific exception types, avoid broad `except Exception` catches
+- Error messages must be clear and useful
+- Use `logging` to record important runtime information
