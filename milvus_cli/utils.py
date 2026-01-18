@@ -7,19 +7,21 @@ from Types import ParameterException
 
 
 def getPackageVersion():
-    import pkg_resources
-
     try:
-        version = pkg_resources.require("milvus_cli")[0].version
+        from importlib.metadata import PackageNotFoundError, version
     except Exception as e:
         raise ParameterException(e)
-    return version
+
+    try:
+        return version("milvus_cli")
+    except PackageNotFoundError:
+        return "dev"
 
 
 class Completer(object):
     # COMMANDS = ['clear', 'connect', 'create', 'delete', 'describe', 'exit',
     #         'list', 'load', 'query', 'release', 'search', 'show', 'version' ]
-    RE_SPACE = re.compile(".*\s+$", re.M)
+    RE_SPACE = re.compile(r".*\s+$", re.M)
     CMDS_DICT = {
         "grant": ["privilege", "role"],
         "revoke": ["privilege", "role"],
@@ -168,7 +170,7 @@ class Completer(object):
 
 
 msgTemp = Template(
-    """
+    r"""
 
 
   __  __ _ _                    ____ _     ___

@@ -61,19 +61,55 @@ def create_alias(
     "-c",
     "--collection-name",
     "collectionName",
-    help="Collection name to be specified alias.",
+    default=None,
+    help="[Optional] Collection name to list aliases for. If not specified, lists all aliases.",
     type=str,
 )
 @click.pass_obj
 def list_aliases(obj, collectionName):
     """
-    List all aliases of a collection.
-    Example:
+    List aliases in the database.
 
-      list aliases -c car
+    Without collection name, lists all aliases in the current database.
+    With collection name, lists aliases for that specific collection.
+
+    Examples:
+      list aliases              - List all aliases in the database
+      list aliases -c car       - List aliases for collection 'car'
     """
     try:
-        click.echo(obj.alias.list_aliases(collectionName))
+        result = obj.alias.list_aliases(collectionName)
+
+        # Format and display results
+        if isinstance(result, dict):
+            # Result is a dictionary with metadata
+            aliases = result.get("aliases", [])
+            collection_name = result.get("collection_name", "")
+        elif isinstance(result, list):
+            # Result is a simple list of aliases
+            aliases = result
+            collection_name = collectionName or ""
+        else:
+            # Fallback for unexpected types
+            aliases = result if result else []
+            collection_name = collectionName or ""
+
+        if not aliases:
+            if collectionName:
+                click.echo(f"No aliases found for collection '{collectionName}'")
+            else:
+                click.echo("No aliases found in the database")
+        else:
+            if collectionName:
+                click.echo(f"Aliases for collection '{collectionName}':")
+            else:
+                click.echo("All aliases in the database:")
+
+            for alias in aliases:
+                if collection_name:
+                    click.echo(f"  {alias} -> {collection_name}")
+                else:
+                    click.echo(f"  {alias}")
     except Exception as e:
         click.echo(message=e, err=True)
 
