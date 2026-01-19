@@ -77,10 +77,10 @@ def query(obj):
         "Collection name", type=click.Choice(obj.collection.list_collections())
     )
     expr = click.prompt("The query expression")
-    # partitionNames = click.prompt(
-    #     f'The names of partitions to search (split by "," if multiple) {obj._list_partition_names(collectionName)}',
-    #     default="",
-    # )
+    partitionNames = click.prompt(
+        'The names of partitions to query (split by "," if multiple, press Enter to skip)',
+        default="",
+    )
     outputFields = click.prompt(
         f'Fields to return(split by "," if multiple) {obj.collection.list_field_names(collectionName)}',
         default="",
@@ -104,6 +104,7 @@ def query(obj):
             timeout,
             guarantee_timestamp,
             graceful_time,
+            partitionNames,
         )
     except ParameterException as pe:
         click.echo("Error!\n{}".format(str(pe)))
@@ -259,6 +260,291 @@ def insert_row(obj):
         click.echo(result)
 
 
+@cli.group("upsert", no_args_is_help=False)
+@click.pass_obj
+def upsert(obj):
+    """Upsert entities (insert or update)"""
+    pass
+
+
+@upsert.command("file")
+@click.option(
+    "-c",
+    "--collection-name",
+    "collectionName",
+    help="The name of collection to be upserted.",
+)
+@click.option(
+    "-p",
+    "--partition",
+    "partitionName",
+    help="[Optional] - The partition name which the data will be upserted to.",
+    default=None,
+)
+@click.option(
+    "-t",
+    "--timeout",
+    "timeout",
+    help="[Optional] - An optional duration of time in seconds to allow for the RPC.",
+    default=None,
+    type=float,
+)
+@click.argument("path")
+@click.pass_obj
+def upsert_data(obj, collectionName, partitionName, timeout, path):
+    """
+    Upsert data from csv file(local or remote) with headers.
+
+    Example:
+
+        milvus_cli > upsert file -c car 'data.csv'
+    """
+    try:
+        result = readCsvFile(path.replace('"', "").replace("'", ""))
+        data = result["data"]
+        result = obj.data.upsert(collectionName, data, partitionName, timeout)
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+    else:
+        click.echo(f"\nUpserted successfully.\n")
+        click.echo(result)
+
+
+@upsert.command("row")
+@click.pass_obj
+def upsert_row(obj):
+    """
+    Upsert a row of data into a collection.
+
+    Example:
+        milvus_cli > upsert row
+    """
+    try:
+        collectionName = click.prompt(
+            "Collection name", type=click.Choice(obj.collection.list_collections())
+        )
+        partitionName = click.prompt(
+            "Partition name",
+            default="_default",
+        )
+        fields = obj.collection.list_fields_info(collectionName)
+        data = {}
+        for field in fields:
+            fieldType = field["type"]
+            autoId = field["autoId"]
+            if autoId:
+                click.echo(f"Skipping auto-ID field: {field['name']}")
+                continue
+            value = click.prompt(
+                f"Enter value for {field['name']} ({fieldType})", default=""
+            )
+            if value == "":
+                value = None
+            elif fieldType in ["INT8", "INT16", "INT32", "INT64"]:
+                value = int(value)
+            elif fieldType in ["FLOAT", "DOUBLE"]:
+                value = float(value)
+            elif fieldType in ["BOOL"]:
+                value = bool(value)
+            elif fieldType in [
+                "BINARY_VECTOR",
+                "FLOAT_VECTOR",
+                "FLOAT16_VECTOR",
+                "BFLOAT16_VECTOR",
+                "SPARSE_FLOAT_VECTOR",
+                "ARRAY",
+            ]:
+                value = [float(x) for x in value.strip("[]").split(",")]
+            elif fieldType in ["JSON"]:
+                value = json.loads(value)
+            if value != None:
+                data[field["name"]] = value
+        result = obj.data.upsert(collectionName, data, partitionName)
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+    else:
+        click.echo(f"\nUpserted successfully.\n")
+        click.echo(result)
+
+
+@cli.command("get")
+@click.pass_obj
+def get_by_ids(obj):
+    """
+    Get entities by IDs.
+
+    Example:
+
+        milvus_cli > get
+
+        Collection name: car
+
+        The IDs (e.g. [1,2,3]): [1,2,3]
+
+        Fields to return(split by "," if multiple) []: id, color, brand
+    """
+    collectionName = click.prompt(
+        "Collection name", type=click.Choice(obj.collection.list_collections())
+    )
+    ids_str = click.prompt('The IDs (e.g. [1,2,3])')
+    ids = json.loads(ids_str)
+    outputFields = click.prompt(
+        f'Fields to return(split by "," if multiple) {obj.collection.list_field_names(collectionName)}',
+        default="",
+    )
+    output_fields_list = [f.strip() for f in outputFields.split(",")] if outputFields else None
+
+    try:
+        results = obj.data.get_by_ids(collectionName, ids, output_fields_list)
+        if results:
+            headers = results[0].keys()
+            rows = [result.values() for result in results]
+            table = tabulate(rows, headers, tablefmt="grid")
+            click.echo(table)
+        else:
+            click.echo("No results found.")
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+
+
+@delete.command("ids")
+@click.option("-c", "--collection-name", "collectionName", help="Collection name.")
+@click.option(
+    "-p",
+    "--partition",
+    "partitionName",
+    help="[Optional] - Name of partition.",
+    default=None,
+)
+@click.pass_obj
+def delete_by_ids(
+    obj,
+    collectionName,
+    partitionName,
+):
+    """
+    Delete entities by IDs.
+
+    Example:
+
+        milvus_cli > delete ids -c test_collection
+    """
+    ids_str = click.prompt('The IDs to delete (e.g. [1,2,3])')
+    ids = json.loads(ids_str)
+
+    click.echo(
+        f"You are trying to delete {len(ids)} entities. This action cannot be undone!\n"
+    )
+    if not click.confirm("Do you want to continue?"):
+        return
+
+    try:
+        result = obj.data.delete_by_ids(collectionName, ids, partitionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+
+
+@cli.command("bulk_insert")
+@click.option(
+    "-c",
+    "--collection-name",
+    "collectionName",
+    help="The name of collection.",
+    required=True,
+)
+@click.option(
+    "-p",
+    "--partition",
+    "partitionName",
+    help="[Optional] - The partition name.",
+    default=None,
+)
+@click.option(
+    "-f",
+    "--files",
+    "files",
+    help="File paths (comma separated, e.g., 's3://bucket/file1.json,s3://bucket/file2.json').",
+    required=True,
+)
+@click.pass_obj
+def bulk_insert(obj, collectionName, partitionName, files):
+    """
+    Bulk insert data from files (S3, MinIO, or local).
+
+    Example:
+
+        milvus_cli > bulk_insert -c car -f 's3://bucket/data.json'
+    """
+    try:
+        file_list = [f.strip() for f in files.split(",")]
+        task_id = obj.data.bulk_insert(collectionName, file_list, partitionName)
+        click.echo(f"Bulk insert task submitted successfully!")
+        click.echo(f"Task ID: {task_id}")
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+
+
+@show.command("bulk_insert_state")
+@click.option(
+    "-id",
+    "--task-id",
+    "taskId",
+    help="The bulk insert task ID.",
+    required=True,
+    type=int,
+)
+@click.pass_obj
+def show_bulk_insert_state(obj, taskId):
+    """
+    Show bulk insert task state.
+
+    Example:
+
+        milvus_cli > show bulk_insert_state -id 123
+    """
+    try:
+        state = obj.data.get_bulk_insert_state(taskId)
+        click.echo(f"Task state: {state}")
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+
+
+@getList.command("bulk_insert_tasks")
+@click.option(
+    "-l",
+    "--limit",
+    "limit",
+    help="[Optional] - Maximum number of tasks to return.",
+    default=None,
+    type=int,
+)
+@click.option(
+    "-c",
+    "--collection-name",
+    "collectionName",
+    help="[Optional] - Filter by collection name.",
+    default=None,
+)
+@click.pass_obj
+def list_bulk_insert_tasks(obj, limit, collectionName):
+    """
+    List bulk insert tasks.
+
+    Example:
+
+        milvus_cli > list bulk_insert_tasks
+    """
+    try:
+        tasks = obj.data.list_bulk_insert_tasks(limit, collectionName)
+        if tasks:
+            click.echo(tasks)
+        else:
+            click.echo("No bulk insert tasks found.")
+    except Exception as e:
+        click.echo("Error!\n{}".format(str(e)))
+
+
 @cli.command("search")
 @click.pass_obj
 def search(obj):
@@ -337,6 +623,10 @@ def search(obj):
         "The max number of returned record, also known as topk", default=None, type=int
     )
     expr = click.prompt("The boolean expression used to filter attribute", default="")
+    partitionNames = click.prompt(
+        'The names of partitions to search (split by "," if multiple, press Enter to skip)',
+        default="",
+    )
     outputFields = click.prompt(
         f'Fields to return(split by "," if multiple) {obj.collection.list_field_names(collectionName)}',
         default="",
@@ -359,6 +649,7 @@ def search(obj):
             roundDecimal=roundDecimal,
             hasIndex=hasIndex,
             guarantee_timestamp=guarantee_timestamp,
+            partitionNames=partitionNames,
         )
 
     except ParameterException as pe:

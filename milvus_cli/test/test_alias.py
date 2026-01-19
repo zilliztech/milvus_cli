@@ -14,6 +14,7 @@ uri = "http://localhost:19530"
 collectionName = "test_collection"
 collectionName2 = "test_collection2"
 colAlias = "collection_alias"
+colAlias2 = "collection_alias2"
 
 milvusConnection = MilvusConnection()
 collection = MilvusCollection()
@@ -75,3 +76,47 @@ class TestAlias(unittest.TestCase):
         )
         aliasList = alias.list_aliases(collectionName)
         self.assertNotIn(colAlias, aliasList)
+
+    def test_list_aliases_for_collection(self):
+        """Test listing aliases for a specific collection"""
+        # Create multiple aliases for the same collection
+        alias.create_alias(
+            collectionName=collectionName,
+            aliasName=colAlias,
+        )
+        alias.create_alias(
+            collectionName=collectionName,
+            aliasName=colAlias2,
+        )
+
+        # List aliases for the collection
+        aliasList = alias.list_aliases(collectionName)
+        print(f"Aliases for {collectionName}: {aliasList}")
+        self.assertIn(colAlias, aliasList)
+        self.assertIn(colAlias2, aliasList)
+
+        # Clean up
+        alias.drop_alias(aliasName=colAlias)
+        alias.drop_alias(aliasName=colAlias2)
+
+    def test_list_all_aliases(self):
+        """Test listing all aliases without specifying collection"""
+        # Create aliases for different collections
+        alias.create_alias(
+            collectionName=collectionName,
+            aliasName=colAlias,
+        )
+        alias.create_alias(
+            collectionName=collectionName2,
+            aliasName=colAlias2,
+        )
+
+        # List all aliases (no collection name specified)
+        allAliases = alias.list_aliases()
+        print(f"All aliases: {allAliases}")
+        self.assertIn(colAlias, allAliases)
+        self.assertIn(colAlias2, allAliases)
+
+        # Clean up
+        alias.drop_alias(aliasName=colAlias)
+        alias.drop_alias(aliasName=colAlias2)
