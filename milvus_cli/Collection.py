@@ -206,3 +206,81 @@ class MilvusCollection(object):
             }
             for i in result
         ]
+
+    def flush(self, collectionName, timeout=None):
+        try:
+            target = getTargetCollection(collectionName)
+            target.flush(timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Flush collection error!{str(e)}")
+        else:
+            return f"Flush collection {collectionName} successfully!"
+
+    def compact(self, collectionName, timeout=None):
+        try:
+            target = getTargetCollection(collectionName)
+            compaction_id = target.compact(timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Compact collection error!{str(e)}")
+        else:
+            return {"message": f"Compact collection {collectionName} successfully!", "compaction_id": compaction_id}
+
+    def get_compaction_state(self, collectionName, compactionId, timeout=None):
+        try:
+            target = getTargetCollection(collectionName)
+            state = target.get_compaction_state(compactionId, timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Get compaction state error!{str(e)}")
+        else:
+            return state
+
+    def wait_for_compaction_completed(self, collectionName, compactionId, timeout=None):
+        try:
+            target = getTargetCollection(collectionName)
+            target.wait_for_compaction_completed(compactionId, timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Wait for compaction completed error!{str(e)}")
+        else:
+            return f"Compaction {compactionId} completed!"
+
+    def get_compaction_plans(self, collectionName, compactionId, timeout=None):
+        try:
+            target = getTargetCollection(collectionName)
+            plans = target.get_compaction_plans(compactionId, timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Get compaction plans error!{str(e)}")
+        else:
+            return plans
+
+    def get_replicas(self, collectionName, timeout=None):
+        try:
+            target = getTargetCollection(collectionName)
+            replicas = target.get_replicas(timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Get replicas error!{str(e)}")
+        else:
+            return replicas
+
+    def truncate(self, collectionName, timeout=None):
+        try:
+            utility.truncate_collection(collectionName, timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Truncate collection error!{str(e)}")
+        else:
+            return f"Truncate collection {collectionName} successfully!"
+
+    def load_state(self, collectionName, partitionName=None):
+        try:
+            state = utility.load_state(collectionName, partitionName)
+        except Exception as e:
+            raise Exception(f"Get load state error!{str(e)}")
+        else:
+            return state
+
+    def wait_for_loading_complete(self, collectionName, partitionNames=None, timeout=None):
+        try:
+            utility.wait_for_loading_complete(collectionName, partitionNames, timeout=timeout)
+        except Exception as e:
+            raise Exception(f"Wait for loading complete error!{str(e)}")
+        else:
+            return f"Loading {collectionName} completed!"

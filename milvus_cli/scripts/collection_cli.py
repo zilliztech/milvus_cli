@@ -387,3 +387,239 @@ def show_loading_progress(obj, collectionName):
         click.echo(obj.collection.show_loading_progress(collectionName))
     except Exception as e:
         click.echo(message=e, err=True)
+
+
+@cli.command("flush")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.option(
+    "-t",
+    "--timeout",
+    "timeout",
+    help="[Optional] - Timeout in seconds.",
+    default=None,
+    type=float,
+)
+@click.pass_obj
+def flush_collection(obj, collectionName, timeout):
+    """
+    Flush collection data to storage.
+
+    Example:
+
+        milvus_cli > flush -c test_collection
+    """
+    try:
+        result = obj.collection.flush(collectionName, timeout)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("compact")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.option(
+    "-t",
+    "--timeout",
+    "timeout",
+    help="[Optional] - Timeout in seconds.",
+    default=None,
+    type=float,
+)
+@click.pass_obj
+def compact_collection(obj, collectionName, timeout):
+    """
+    Compact collection to merge small segments and remove deleted data.
+
+    Example:
+
+        milvus_cli > compact -c test_collection
+    """
+    try:
+        result = obj.collection.compact(collectionName, timeout)
+        click.echo(result["message"])
+        click.echo(f"Compaction ID: {result['compaction_id']}")
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("compaction_state")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.option(
+    "-id", "--compaction-id", "compactionId", help="The compaction ID.", required=True, type=int
+)
+@click.pass_obj
+def show_compaction_state(obj, collectionName, compactionId):
+    """
+    Show compaction state.
+
+    Example:
+
+        milvus_cli > show compaction_state -c test_collection -id 123
+    """
+    try:
+        state = obj.collection.get_compaction_state(collectionName, compactionId)
+        click.echo(f"Compaction state: {state}")
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("compaction_plans")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.option(
+    "-id", "--compaction-id", "compactionId", help="The compaction ID.", required=True, type=int
+)
+@click.pass_obj
+def show_compaction_plans(obj, collectionName, compactionId):
+    """
+    Show compaction plans.
+
+    Example:
+
+        milvus_cli > show compaction_plans -c test_collection -id 123
+    """
+    try:
+        plans = obj.collection.get_compaction_plans(collectionName, compactionId)
+        click.echo(plans)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("replicas")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.pass_obj
+def show_replicas(obj, collectionName):
+    """
+    Show replicas information.
+
+    Example:
+
+        milvus_cli > show replicas -c test_collection
+    """
+    try:
+        replicas = obj.collection.get_replicas(collectionName)
+        click.echo(replicas)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("load_state")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.option(
+    "-p",
+    "--partition",
+    "partitionName",
+    help="[Optional] - The name of partition.",
+    default=None,
+)
+@click.pass_obj
+def show_load_state(obj, collectionName, partitionName):
+    """
+    Show load state of collection or partition.
+
+    Example:
+
+        milvus_cli > show load_state -c test_collection
+    """
+    try:
+        state = obj.collection.load_state(collectionName, partitionName)
+        click.echo(f"Load state: {state}")
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("wait_for_loading")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.option(
+    "-p",
+    "--partitions",
+    "partitionNames",
+    help="[Optional] - Partition names (comma separated).",
+    default=None,
+)
+@click.option(
+    "-t",
+    "--timeout",
+    "timeout",
+    help="[Optional] - Timeout in seconds.",
+    default=None,
+    type=float,
+)
+@click.pass_obj
+def wait_for_loading(obj, collectionName, partitionNames, timeout):
+    """
+    Wait for collection loading to complete.
+
+    Example:
+
+        milvus_cli > wait_for_loading -c test_collection
+    """
+    try:
+        partition_list = [p.strip() for p in partitionNames.split(",")] if partitionNames else None
+        result = obj.collection.wait_for_loading_complete(collectionName, partition_list, timeout)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("truncate")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.pass_obj
+def truncate_collection(obj, collectionName):
+    """
+    Truncate (delete all data from) collection.
+
+    Example:
+
+        milvus_cli > truncate -c test_collection
+    """
+    click.echo(
+        "Warning!\nYou are trying to truncate the collection. This will delete all data! This action cannot be undone!\n"
+    )
+    if not click.confirm("Do you want to continue?"):
+        return
+
+    try:
+        result = obj.collection.truncate(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("query_segment_info")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.pass_obj
+def show_query_segment_info(obj, collectionName):
+    """
+    Show query segment information.
+
+    Example:
+
+        milvus_cli > show query_segment_info -c test_collection
+    """
+    try:
+        from pymilvus import utility
+        info = utility.get_query_segment_info(collectionName)
+        if info:
+            click.echo(info)
+        else:
+            click.echo("No segment info available.")
+    except Exception as e:
+        click.echo(message=e, err=True)
