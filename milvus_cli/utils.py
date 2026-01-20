@@ -9,20 +9,35 @@ from Types import ParameterException
 def getPackageVersion():
     try:
         from importlib.metadata import PackageNotFoundError, version
-    except Exception as e:
-        raise ParameterException(e)
-
-    try:
         return version("milvus_cli")
-    except PackageNotFoundError:
+    except Exception:
+        # Fallback: Read version from setup.py when package is not installed
+        try:
+            setup_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "setup.py")
+            with open(setup_path, "r") as f:
+                content = f.read()
+                match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+                if match:
+                    return match.group(1)
+        except Exception:
+            pass
         return "dev"
 
 
 class Completer(object):
-    # COMMANDS = ['clear', 'connect', 'create', 'delete', 'describe', 'exit',
-    #         'list', 'load', 'query', 'release', 'search', 'show', 'version' ]
+    """
+    Auto-completion handler with dynamic completion support.
+
+    Features:
+    - Auto-generates command dict from Click CLI
+    - Supports dynamic collection/database name completion
+    - Falls back to filesystem path completion
+    """
+
     RE_SPACE = re.compile(r".*\s+$", re.M)
-    CMDS_DICT = {
+
+    # Static fallback dict (used if CLI not available)
+    STATIC_CMDS_DICT = {
         "grant": ["privilege", "role"],
         "revoke": ["privilege", "role"],
         "clear": [],
@@ -38,20 +53,24 @@ class Completer(object):
         ],
         "delete": [
             "alias",
+            "connection_history",
             "database",
             "collection",
             "entities",
+            "ids",
             "partition",
             "index",
             "user",
             "role",
         ],
-        "describe": ["collection", "partition", "index"],
         "exit": [],
         "help": [],
+        "history": ["clear"],
         "insert": ["file", "row"],
+        "upsert": ["file", "row"],
         "list": [
             "connections",
+            "connection_history",
             "collections",
             "databases",
             "partitions",
@@ -60,30 +79,104 @@ class Completer(object):
             "aliases",
             "roles",
             "grants",
+            "bulk_insert_tasks",
         ],
         "load": ["collection", "partition"],
         "query": [],
+        "get": [],
         "release": ["collection", "partition"],
         "search": [],
         "show": [
             "index_progress",
             "loading_progress",
-            "query_segment",
+            "query_segment_info",
             "compaction_state",
             "compaction_plans",
             "collection",
             "partition",
             "index",
+            "output",
+            "bulk_insert_state",
+            "replicas",
+            "load_state",
         ],
         "rename": ["collection"],
         "use": ["database"],
+        "set": ["output"],
         "version": [],
+        "server_version": [],
+        "flush": [],
+        "compact": [],
+        "truncate": [],
+        "wait_for_loading": [],
+        "bulk_insert": [],
     }
 
-    def __init__(self) -> None:
+    # Argument completions for specific commands
+    ARGUMENT_COMPLETIONS = {
+        "set": {
+            "output": ["table", "json", "csv"],
+        },
+    }
+
+    def __init__(self, cli_instance=None, milvus_cli_obj=None) -> None:
         super().__init__()
+        self.milvus_cli_obj = milvus_cli_obj
+        self.CMDS_DICT = self._generate_cmds_dict(cli_instance)
         self.COMMANDS = list(self.CMDS_DICT.keys())
         self.createCompleteFuncs(self.CMDS_DICT)
+
+    def _generate_cmds_dict(self, cli_instance):
+        """
+        Generate command dictionary from Click CLI instance.
+        Falls back to static dict if CLI not available.
+        """
+        if cli_instance is None:
+            return self.STATIC_CMDS_DICT.copy()
+
+        try:
+            cmds = {}
+            for name, cmd in cli_instance.commands.items():
+                if hasattr(cmd, 'commands'):
+                    # It's a group - get subcommands
+                    cmds[name] = list(cmd.commands.keys())
+                else:
+                    # It's a standalone command
+                    cmds[name] = []
+            return cmds
+        except Exception:
+            return self.STATIC_CMDS_DICT.copy()
+
+    def set_milvus_cli_obj(self, obj):
+        """Set the MilvusCli object for dynamic completions."""
+        self.milvus_cli_obj = obj
+
+    def _get_collections(self):
+        """Get list of collections for dynamic completion."""
+        if self.milvus_cli_obj is None:
+            return []
+        try:
+            return self.milvus_cli_obj.collection.list_collections()
+        except Exception:
+            return []
+
+    def _get_databases(self):
+        """Get list of databases for dynamic completion."""
+        if self.milvus_cli_obj is None:
+            return []
+        try:
+            return self.milvus_cli_obj.database.list_databases()
+        except Exception:
+            return []
+
+    def _get_partitions(self, collection_name):
+        """Get list of partitions for a collection."""
+        if self.milvus_cli_obj is None:
+            return []
+        try:
+            return self.milvus_cli_obj.partition.list_partitions(collection_name)
+        except Exception:
+            return []
 
     def createCompleteFuncs(self, cmdDict):
         for cmd in cmdDict:
@@ -96,8 +189,51 @@ class Completer(object):
             f"Completions for the {cmd} command."
             if not args:
                 return self._complete_path(".")
-            if len(args) <= 1 and not cmd == "import":
-                return self._complete_2nd_level(sub_cmds, args[-1])
+
+            # Dynamic completion based on command context
+            if len(args) == 1:
+                current_arg = args[0]
+
+                # Check for option flags that need collection name
+                if current_arg in ["-c", "--collection", "--collection-name"]:
+                    return self._get_collections()
+
+                # Check for option flags that need database name
+                if current_arg in ["-db", "--db_name"]:
+                    return self._get_databases()
+
+                # Complete subcommands
+                if cmd not in ["import", "query", "search", "get"]:
+                    return self._complete_2nd_level(sub_cmds, current_arg)
+
+            # After subcommand, check for argument completions or option values
+            if len(args) >= 2:
+                subcommand = args[0]
+                current_arg = args[-1]
+                prev_arg = args[-2] if len(args) >= 2 else ""
+
+                # Check for argument completions (e.g., "set output table/json/csv")
+                if cmd in self.ARGUMENT_COMPLETIONS:
+                    if subcommand in self.ARGUMENT_COMPLETIONS[cmd]:
+                        arg_values = self.ARGUMENT_COMPLETIONS[cmd][subcommand]
+                        if current_arg:
+                            return [v + " " for v in arg_values if v.startswith(current_arg)]
+                        return [v + " " for v in arg_values]
+
+                # Collection name completion
+                if prev_arg in ["-c", "--collection", "--collection-name"]:
+                    collections = self._get_collections()
+                    if current_arg:
+                        return [c for c in collections if c.startswith(current_arg)]
+                    return collections
+
+                # Database name completion
+                if prev_arg in ["-db", "--db_name"]:
+                    databases = self._get_databases()
+                    if current_arg:
+                        return [d for d in databases if d.startswith(current_arg)]
+                    return databases
+
             return self._complete_path(args[-1])
 
         return f_complete

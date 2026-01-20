@@ -14,23 +14,46 @@ from Types import IndexTypes, MetricTypes, IndexTypesMap
 @click.pass_obj
 def createIndex(obj):
     """
-    Create index.
+    Create an index on a vector field.
 
-    Example:
-
+    USAGE:
         milvus_cli > create index
 
-        Collection name (car, car2): car2
+    INTERACTIVE PROMPTS:
+        Collection name    Target collection
+        Field name         Vector field to index
+        Index name         Unique name for the index
+        Index type         Algorithm type (see below)
+        Metric type        Distance metric (L2, IP, COSINE, etc.)
+        Index params       Algorithm-specific parameters
 
-        The name of the field to create an index for (vector): vector
+    INDEX TYPES:
+        FLAT         Brute-force search (100% recall)
+        IVF_FLAT     Inverted file with flat storage
+        IVF_SQ8      IVF with scalar quantization
+        IVF_PQ       IVF with product quantization
+        HNSW         Hierarchical navigable small world graph
+        DISKANN      Disk-based approximate nearest neighbor
+        AUTOINDEX    Automatically select best index type
 
-        Index type (FLAT, IVF_FLAT, IVF_SQ8, IVF_PQ, RNSG, HNSW, ANNOY,AUTOINDEX): IVF_FLAT
+    INDEX PARAMS BY TYPE:
+        IVF_*:       nlist (number of clusters, e.g., 1024)
+        HNSW:        M (max connections), efConstruction (build quality)
+        DISKANN:     (automatic configuration)
 
-        Index metric type (L2, IP, HAMMING, TANIMOTO, COSINE,BM25, ''): L2
+    EXAMPLES:
+        milvus_cli > create index
 
-        Index params nlist: 2
+        Collection: products
+        Field: embedding
+        Index name: embedding_idx
+        Index type: HNSW
+        Metric type: COSINE
+        M: 16
+        efConstruction: 256
 
-        Timeout []:
+    SEE ALSO:
+        list indexes, show index, delete index, show index_progress
     """
     try:
         collectionName = click.prompt(
@@ -87,12 +110,19 @@ def createIndex(obj):
 @click.pass_obj
 def list_indexes(obj, collectionName):
     """
-    List all indexes.
+    List all indexes for a collection.
 
-    Example:
+    USAGE:
+        milvus_cli > list indexes -c <collection_name>
 
+    OPTIONS:
+        -c, --collection    Collection name to list indexes for
+
+    EXAMPLES:
         milvus_cli > list indexes -c test_collection
 
+    SEE ALSO:
+        create index, show index, delete index
     """
     try:
         click.echo(obj.index.list_indexes(collectionName))

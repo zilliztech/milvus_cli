@@ -7,6 +7,7 @@ from UserClient import MilvusClientUser
 from AliasClient import MilvusClientAlias
 from PartitionClient import MilvusClientPartition
 from RoleClient import MilvusClientRole
+from OutputFormatter import OutputFormatter
 from pymilvus import __version__
 
 
@@ -38,6 +39,7 @@ class MilvusClientCli(object):
         self.role = MilvusClientRole(self.connection)
         self.alias = MilvusClientAlias(self.connection)
         self.partition = MilvusClientPartition(self.connection)
+        self.formatter = OutputFormatter()
 
     def connect(self, uri=None, token=None, tlsmode=0, cert=None):
         """

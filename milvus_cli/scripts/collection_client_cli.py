@@ -18,10 +18,48 @@ NOT_SET = "Not set"
 @click.pass_obj
 def create_collection(obj):
     """
-    Create collection.
-    Example:
+    Create a new collection with schema definition.
 
+    USAGE:
         milvus_cli > create collection
+
+    INTERACTIVE PROMPTS:
+        Collection name      Unique identifier for the collection
+        Auto ID              Auto-generate primary key values (true/false)
+        Description          Optional collection description
+        Dynamic field        Allow undefined fields (true/false)
+        Consistency level    0=Strong, 1=Bounded, 2=Session, 3=Eventually
+        Shards number        Number of data shards (default: 1)
+        Embedding function   Optional BM25 function for text search
+        Fields               Define schema fields interactively
+
+    FIELD TYPES:
+        Scalar:    INT8, INT16, INT32, INT64, FLOAT, DOUBLE, BOOL, VARCHAR
+        Vector:    BINARY_VECTOR, FLOAT_VECTOR, BFLOAT16_VECTOR, FLOAT16_VECTOR
+        Sparse:    SPARSE_FLOAT_VECTOR
+        Complex:   JSON, ARRAY
+
+    EXAMPLES:
+        milvus_cli > create collection
+
+        Collection name: products
+        Auto ID: true
+        Description: Product catalog
+        Dynamic field: false
+        Consistency level: 1
+        Shards: 2
+
+        Field name: embedding
+        Field type: FLOAT_VECTOR
+        Dimension: 768
+
+    NOTES:
+        - Collection names must be unique within a database
+        - Primary key field is required (INT64 or VARCHAR)
+        - Vector fields require dimension specification
+
+    SEE ALSO:
+        list collections, show collection, delete collection, create index
     """
     collectionName = click.prompt("Please input collection name", type=str)
     autoId = click.prompt("Please input auto id", default=False, type=bool)
@@ -232,14 +270,27 @@ def create_collection(obj):
 @click.pass_obj
 def list_collections(obj):
     """
-    List all collections.
-    Example:
+    List all collections in the current database.
 
+    USAGE:
         milvus_cli > list collections
 
+    OUTPUT:
+        Lists collection names in current output format (table/json/csv).
+
+    EXAMPLES:
+        milvus_cli > list collections
+
+        # With JSON output
+        milvus_cli > set output json
+        milvus_cli > list collections
+
+    SEE ALSO:
+        show collection, create collection, use database
     """
     try:
-        click.echo(obj.collection.list_collections())
+        res = obj.collection.list_collections()
+        click.echo(obj.formatter.format_list(res, header="Collection"))
     except Exception as e:
         click.echo(message=e, err=True)
 
