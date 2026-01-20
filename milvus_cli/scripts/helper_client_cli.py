@@ -46,8 +46,11 @@ def server_version(obj):
         milvus_cli > server_version
     """
     try:
-        from pymilvus import utility
-        version = utility.get_server_version()
+        client = obj.connection.get_client()
+        if client is None:
+            click.echo("No connection. Use 'connect' first.", err=True)
+            return
+        version = client.get_server_version()
         click.echo(f"Milvus server version: {version}")
     except Exception as e:
         click.echo(message=e, err=True)

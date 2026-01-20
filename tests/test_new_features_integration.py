@@ -49,8 +49,8 @@ class TestOutputFormatter:
         result = formatter.format_list(items, header="Collections")
 
         # Should have header and items
-        lines = result.strip().split('\n')
-        assert lines[0] == "Collections"
+        lines = result.strip().splitlines()
+        assert lines[0].strip() == "Collections"
         assert len(lines) == 4  # header + 3 items
 
     def test_format_list_table(self, formatter):
@@ -234,14 +234,14 @@ class TestHelpDocumentation:
 
     def test_help_sections_exist(self):
         """Test that commands have standardized help sections."""
-        # Import command modules
-        from milvus_cli.scripts import data_cli, collection_cli, connection_cli
+        # Import command modules (using new *_client_cli naming)
+        from milvus_cli.scripts import data_client_cli, collection_client_cli, connection_client_cli
 
         # Get command functions
         commands_to_check = [
-            (data_cli, 'query'),
-            (collection_cli, 'create_collection'),
-            (connection_cli, 'connect')
+            (data_client_cli, 'query'),
+            (collection_client_cli, 'create_collection'),
+            (connection_client_cli, 'connect')
         ]
 
         for module, cmd_name in commands_to_check:
@@ -252,10 +252,10 @@ class TestHelpDocumentation:
 
     def test_help_documentation_keywords(self):
         """Test that help documentation includes key sections."""
-        from milvus_cli.scripts import data_cli
+        from milvus_cli.scripts import data_client_cli
 
-        if hasattr(data_cli, 'query'):
-            docstring = data_cli.query.__doc__
+        if hasattr(data_client_cli, 'query'):
+            docstring = data_client_cli.query.__doc__
             if docstring:
                 # Should have standard sections
                 doc_lower = docstring.lower()
@@ -324,8 +324,8 @@ class TestIntegrationWorkflow:
         output = formatter.format_list(collections, header="Collection")
 
         # Step 3: Verify CSV format
-        lines = output.strip().split('\n')
-        assert lines[0] == "Collection"
+        lines = output.strip().splitlines()
+        assert lines[0].strip() == "Collection"
         assert len(lines) == 4  # header + 3 items
 
     def test_complete_workflow_table_interactive(self):
