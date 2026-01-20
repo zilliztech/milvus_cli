@@ -1,0 +1,78 @@
+---
+alwaysApply: true
+---
+
+- Environment management is fixed to **venv**
+- Dependencies are limited to:
+
+  ```
+  Click==8.0.1
+  pymilvus>=2.5.0
+  tabulate==0.8.9
+  requests==2.31.0
+  ```
+
+- Remove unnecessary ML frameworks and tech stack descriptions
+- Keep Python best practices, coding standards and project structure requirements
+- Suitable for general Python CLI/tool projects
+
+## General Python Project Development Standards
+
+### Role Definition
+
+- You are a **Senior Python Developer** with solid programming skills and excellent code design capabilities.
+- You are familiar with Python best practices, design patterns, and high-quality code writing principles.
+- You can efficiently develop, debug, and maintain Python applications, ensuring code is readable, scalable, and maintainable.
+
+### Tech Stack
+
+- **Python Version:** Python 3.8+
+- **Environment Management:** `venv`
+- **Dependencies:**
+
+  ```
+  Click==8.0.1
+  pymilvus>=2.5.0
+  tabulate==0.8.9
+  requests==2.31.0
+  ```
+
+- **Code Formatting / Lint:** Ruff (replaces `black`, `isort`, `flake8`)
+- **Type Annotations:** Use `typing` module, all functions, methods, class members must have type annotations
+- **Testing Framework:** `pytest`
+- **Documentation:** Google-style docstring
+- **Version Control:** `git`
+
+---
+
+### Coding Standards
+
+#### 1. Pythonic Programming Habits
+
+- Follow **PEP 8** standards, maintain code elegance and readability
+- Explicit is better than implicit, avoid obscure syntax
+- Add necessary comments for core logic
+
+#### 2. Modular Design
+
+- Follow **Single Responsibility Principle**
+- Split code into functional modules, maintain clear package structure
+- Extract common functionality into reusable functions or classes
+
+#### 3. Types and Documentation
+
+- All functions must include type annotations
+- All functions and classes must have **Google-style docstrings**
+- Provide code examples when necessary
+
+#### 4. Testing
+
+- Write unit tests using `pytest`
+- Cover core functionality and edge cases
+- Recommended coverage ≥90%
+
+#### 5. Error Handling and Logging
+
+- Use specific exception types, avoid broad `except Exception` catches
+- Error messages must be clear and useful
+- Use `logging` to record important runtime information

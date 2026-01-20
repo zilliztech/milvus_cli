@@ -1,0 +1,79 @@
+---
+alwaysApply: true
+---
+
+## Project Structure
+
+```
+milvus_cli/
+├── Core Modules (MilvusClient API)
+│   ├── main.py              # Main entry point
+│   ├── CliClient.py         # CLI command interface
+│   ├── ConnectionClient.py  # Milvus connection management
+│   ├── CollectionClient.py  # Collection operations
+│   ├── DatabaseClient.py    # Database management
+│   ├── IndexClient.py       # Index management
+│   ├── PartitionClient.py   # Partition management
+│   ├── DataClient.py        # Data import/export
+│   ├── RoleClient.py        # Role management
+│   ├── UserClient.py        # User management
+│   ├── AliasClient.py       # Alias management
+│   ├── Fs.py                # File system operations
+│   ├── Types.py             # Data type definitions
+│   ├── utils.py             # Utility functions
+│   └── Validation.py        # Input validation
+├── scripts/                 # CLI command implementations (Client API)
+│   ├── milvus_client_cli.py      # Main CLI script
+│   ├── connection_client_cli.py  # Connection-related commands
+│   ├── collection_client_cli.py  # Collection-related commands
+│   ├── database_client_cli.py    # Database-related commands
+│   ├── index_client_cli.py       # Index-related commands
+│   ├── partition_client_cli.py   # Partition-related commands
+│   ├── data_client_cli.py        # Data-related commands
+│   ├── role_client_cli.py        # Role-related commands
+│   ├── user_client_cli.py        # User-related commands
+│   ├── alias_client_cli.py       # Alias-related commands
+│   ├── helper_client_cli.py      # Helper commands
+│   └── init_client_cli.py        # Initialization commands
+└── test/                    # Unit tests (Client API)
+    ├── test_connection_client.py
+    ├── test_collection_client.py
+    ├── test_database_client.py
+    ├── test_index_client.py
+    ├── test_partition_client.py
+    ├── test_data_client.py
+    ├── test_role_client.py
+    ├── test_user_client.py
+    ├── test_alias_client.py
+    ├── test_cli_client.py
+    ├── test_config.py
+    └── test.env             # Test environment configuration
+```
+
+### Core Components
+
+- **Core Modules**: Implement the main functionality logic of Milvus CLI, each module handles specific Milvus feature domains
+- **scripts/**: Contains all CLI command implementations, providing user interaction interfaces
+- **test/**: Complete unit test suite ensuring code quality and functionality correctness
+
+All comments should be in English
+No need to add documentation for each class
+
+MilvusClient API: Documentation available at https://github.com/milvus-io/web-content/tree/master/API_Reference/pymilvus/v2.6.x/MilvusClient for all files
+
+Test command: python -m unittest {{test file path}}
+Test config: refer to test_collection_client.py test file
+
+Dev:
+
+1. Add new cmd by referring to https://milvus.io/blog/Implement-Milvus-CLI-by-Python-Click.md
+2. milvus_cli/utils.py has all the core functions that we can use milvus.
+3. milvus_cli/scripts/milvus_cli.py is how we talk to cmd.
+4. Check setup.py, is pymilvus version correct.
+5. python3 -m venv venv (prepare clean env)
+6. source venv/bin/activate (go into it)
+7. pip3 install .
+8. python3 -m milvus_cli.scripts.milvus_cli you can test it with cli by this command.
+9. Add new pymilvus operations in milvus_cli/utils class PyOrm
+10. Add auto-complete config in milvus_cli/utils class Completer
+11. Exit venv `deactivate` when you finished development

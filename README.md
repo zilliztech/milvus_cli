@@ -20,6 +20,56 @@
 
 - Support auto completion
 
+## Project Structure
+
+```
+milvus_cli/
+├── Core Modules
+│   ├── main.py          # Main entry point
+│   ├── Cli.py           # CLI command interface
+│   ├── Connection.py    # Milvus connection management
+│   ├── Collection.py    # Collection operations
+│   ├── Database.py      # Database management
+│   ├── Index.py         # Index management
+│   ├── Partition.py     # Partition management
+│   ├── Data.py          # Data import/export
+│   ├── Role.py          # Role management
+│   ├── User.py          # User management
+│   ├── Alias.py         # Alias management
+│   ├── Fs.py            # File system operations
+│   ├── Types.py         # Data type definitions
+│   ├── utils.py         # Utility functions
+│   └── Validation.py    # Input validation
+├── scripts/             # CLI command implementations
+│   ├── milvus_cli.py    # Main CLI script
+│   ├── connection_cli.py # Connection-related commands
+│   ├── collection_cli.py # Collection-related commands
+│   ├── database_cli.py  # Database-related commands
+│   ├── index_cli.py     # Index-related commands
+│   ├── partition_cli.py # Partition-related commands
+│   ├── data_cli.py      # Data-related commands
+│   ├── role_cli.py      # Role-related commands
+│   ├── user_cli.py      # User-related commands
+│   ├── alias_cli.py     # Alias-related commands
+│   └── helper_cli.py    # Helper commands
+└── test/                # Unit tests
+    ├── test_connection.py
+    ├── test_collection.py
+    ├── test_database.py
+    ├── test_index.py
+    ├── test_partition.py
+    ├── test_data.py
+    ├── test_role.py
+    ├── test_user.py
+    └── test_alias.py
+```
+
+### Core Components
+
+- **Core Modules**: Implement the main functionality logic of Milvus CLI, each module handles specific Milvus feature domains
+- **scripts/**: Contains all CLI command implementations, providing user interaction interfaces
+- **test/**: Complete unit test suite ensuring code quality and functionality correctness
+
 ## Installation methods
 
 ### 🔝Install in a Python environment
