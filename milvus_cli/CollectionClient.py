@@ -471,14 +471,140 @@ Fields(* is the primary field):{field_details}"""
             
             result = []
             for field in fields:
+                # Convert numeric type to string name
+                field_type = field.get("type", 0)
+                if isinstance(field_type, int):
+                    field_type = DataTypeByNum.get(field_type, "UNKNOWN")
                 field_info = {
                     "name": field.get("name", ""),
-                    "type": field.get("type", ""),
+                    "type": field_type,
                     "autoId": field.get("auto_id", False),
                     "isFunctionOut": field.get("is_function_output", False),
                 }
+                # Add element_type for array fields
+                if field.get("element_type"):
+                    field_info["element_type"] = field.get("element_type")
                 result.append(field_info)
             
             return result
         except Exception as e:
             raise Exception(f"List fields info error!{str(e)}")
+
+    def flush(self, collectionName, timeout=None):
+        """
+        Flush collection data to storage
+
+        Args:
+            collectionName: Collection name
+            timeout: Timeout value
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.flush(collection_name=collectionName, timeout=timeout)
+            return f"Flush collection {collectionName} successfully!"
+        except Exception as e:
+            raise Exception(f"Flush collection error!{str(e)}")
+
+    def compact(self, collectionName, timeout=None):
+        """
+        Compact collection to merge small segments and remove deleted data
+
+        Args:
+            collectionName: Collection name
+            timeout: Timeout value
+
+        Returns:
+            dict with message and compaction_id
+        """
+        try:
+            client = self._get_client()
+            compaction_id = client.compact(collection_name=collectionName, timeout=timeout)
+            
+            return {
+                "message": f"Compact collection {collectionName} successfully!",
+                "compaction_id": compaction_id
+            }
+        except Exception as e:
+            raise Exception(f"Compact collection error!{str(e)}")
+
+    def get_compaction_state(self, compactionId, timeout=None):
+        """
+        Get compaction state
+
+        Args:
+            compactionId: Compaction ID
+            timeout: Timeout value
+
+        Returns:
+            Compaction state
+        """
+        try:
+            client = self._get_client()
+            state = client.get_compaction_state(job_id=compactionId, timeout=timeout)
+            return state
+        except Exception as e:
+            raise Exception(f"Get compaction state error!{str(e)}")
+
+    def get_compaction_plans(self, collectionName, compactionId, timeout=None):
+        """
+        Get compaction plans
+
+        Args:
+            collectionName: Collection name
+            compactionId: Compaction ID
+            timeout: Timeout value
+
+        Returns:
+            Compaction plans
+        """
+        try:
+            client = self._get_client()
+            plans = client.get_compaction_plans(job_id=compactionId, timeout=timeout)
+            return plans
+        except Exception as e:
+            raise Exception(f"Get compaction plans error!{str(e)}")
+
+    def get_replicas(self, collectionName, timeout=None):
+        """
+        Get replicas information
+
+        Args:
+            collectionName: Collection name
+            timeout: Timeout value
+
+        Returns:
+            Replicas information
+        """
+        try:
+            client = self._get_client()
+            replicas = client.describe_replica(
+                collection_name=collectionName,
+                timeout=timeout
+            )
+            return replicas
+        except Exception as e:
+            raise Exception(f"Get replicas error!{str(e)}")
+
+    def load_state(self, collectionName, partitionName=None):
+        """
+        Get load state of collection or partition
+
+        Args:
+            collectionName: Collection name
+            partitionName: Partition name (optional)
+
+        Returns:
+            Load state
+        """
+        try:
+            client = self._get_client()
+            state = client.get_load_state(
+                collection_name=collectionName,
+                partition_name=partitionName
+            )
+            return state
+        except Exception as e:
+            raise Exception(f"Get load state error!{str(e)}")

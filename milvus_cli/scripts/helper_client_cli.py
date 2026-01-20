@@ -31,6 +31,24 @@ def version():
     click.echo(f"Milvus_CLI v{getPackageVersion()}")
 
 
+@cli.command("server_version")
+@click.pass_obj
+def server_version(obj):
+    """
+    Get Milvus server version.
+
+    Example:
+
+        milvus_cli > server_version
+    """
+    try:
+        from pymilvus import utility
+        version = utility.get_server_version()
+        click.echo(f"Milvus server version: {version}")
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
 @cli.command()
 def clear():
     """Clear screen."""

@@ -65,30 +65,35 @@ class MilvusClientAlias(object):
         except Exception as e:
             raise Exception(f"Create alias error!{str(e)}")
 
-    def list_aliases(self, collectionName):
+    def list_aliases(self, collectionName=None):
         """
-        List aliases for a collection
-        
+        List aliases for a collection or all aliases in the database
+
         Args:
-            collectionName: Name of the collection
-            
+            collectionName: Name of the collection (optional)
+                           If not provided, returns all aliases
+
         Returns:
             List of aliases
         """
         try:
             client = self._get_client()
-            
-            # List aliases using MilvusClient API
-            aliases = client.list_aliases(collection_name=collectionName)
-            
-            # Extract alias names from the response
-            if isinstance(aliases, dict) and 'aliases' in aliases:
-                return aliases['aliases']
-            elif isinstance(aliases, list):
-                return aliases
+
+            if collectionName:
+                # List aliases for specific collection
+                aliases = client.list_aliases(collection_name=collectionName)
+
+                # Extract alias names from the response
+                if isinstance(aliases, dict) and 'aliases' in aliases:
+                    return aliases['aliases']
+                elif isinstance(aliases, list):
+                    return aliases
+                else:
+                    return aliases if aliases else []
             else:
-                return aliases if aliases else []
-            
+                # List all aliases in the database
+                return self.list_all_aliases()
+
         except Exception as e:
             raise Exception(f"List alias error!{str(e)}")
 

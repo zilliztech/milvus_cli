@@ -110,6 +110,7 @@ def validateSearchParams(
     roundDecimal,
     hasIndex=True,
     guarantee_timestamp=None,
+    partitionNames=None,
 ):
     import json
 
@@ -191,6 +192,11 @@ def validateSearchParams(
     else:
         nameList = outputFields.replace(" ", "").split(",")
         result["output_fields"] = nameList
+    if not partitionNames:
+        result["partition_names"] = None
+    else:
+        nameList = partitionNames.replace(" ", "").split(",")
+        result["partition_names"] = nameList
     return result
 
 

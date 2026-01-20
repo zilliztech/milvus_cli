@@ -53,7 +53,10 @@ class MilvusClientData:
             client = self._get_client()
             
             # Handle different data formats
-            if data and isinstance(data[0], list):
+            if isinstance(data, dict):
+                # Single row as dict, convert to list of dicts
+                data = [data]
+            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
                 # Convert list of lists to list of dicts format
                 # This requires field schema information
                 collection_info = client.describe_collection(collection_name=collectionName)
@@ -283,8 +286,11 @@ class MilvusClientData:
         try:
             client = self._get_client()
             
-            # Handle different data formats (similar to insert)
-            if data and isinstance(data[0], list):
+            # Handle different data formats
+            if isinstance(data, dict):
+                # Single row as dict, convert to list of dicts
+                data = [data]
+            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
                 # Convert list of lists to list of dicts format
                 collection_info = client.describe_collection(collection_name=collectionName)
                 fields = collection_info.get("fields", [])
@@ -309,6 +315,113 @@ class MilvusClientData:
             )
             
             return result
-            
+
         except Exception as e:
             raise Exception(f"Upsert data error!{str(e)}")
+
+    def get_by_ids(self, collectionName, ids, output_fields=None):
+        """
+        Get entities by IDs
+
+        Args:
+            collectionName: Collection name
+            ids: List of entity IDs
+            output_fields: Fields to return
+
+        Returns:
+            Query results
+        """
+        try:
+            client = self._get_client()
+            result = client.get(
+                collection_name=collectionName,
+                ids=ids,
+                output_fields=output_fields
+            )
+            return result
+        except Exception as e:
+            raise Exception(f"Get by IDs error!{str(e)}")
+
+    def delete_by_ids(self, collectionName, ids, partition_name=None):
+        """
+        Delete entities by IDs
+
+        Args:
+            collectionName: Collection name
+            ids: List of entity IDs
+            partition_name: Partition name
+
+        Returns:
+            Delete result
+        """
+        try:
+            client = self._get_client()
+            result = client.delete(
+                collection_name=collectionName,
+                ids=ids,
+                partition_name=partition_name
+            )
+            return result
+        except Exception as e:
+            raise Exception(f"Delete by IDs error!{str(e)}")
+
+    def bulk_insert(self, collectionName, files, partition_name=None):
+        """
+        Bulk insert data from files
+
+        Args:
+            collectionName: Collection name
+            files: List of file paths
+            partition_name: Partition name
+
+        Returns:
+            Task ID
+        """
+        try:
+            from pymilvus import utility
+            task_id = utility.do_bulk_insert(
+                collection_name=collectionName,
+                partition_name=partition_name,
+                files=files
+            )
+            return task_id
+        except Exception as e:
+            raise Exception(f"Bulk insert error!{str(e)}")
+
+    def get_bulk_insert_state(self, task_id):
+        """
+        Get bulk insert task state
+
+        Args:
+            task_id: Task ID
+
+        Returns:
+            Task state
+        """
+        try:
+            from pymilvus import utility
+            state = utility.get_bulk_insert_state(task_id)
+            return state
+        except Exception as e:
+            raise Exception(f"Get bulk insert state error!{str(e)}")
+
+    def list_bulk_insert_tasks(self, limit=None, collectionName=None):
+        """
+        List bulk insert tasks
+
+        Args:
+            limit: Maximum number of tasks to return
+            collectionName: Filter by collection name
+
+        Returns:
+            List of tasks
+        """
+        try:
+            from pymilvus import utility
+            tasks = utility.list_bulk_insert_tasks(
+                limit=limit,
+                collection_name=collectionName
+            )
+            return tasks
+        except Exception as e:
+            raise Exception(f"List bulk insert tasks error!{str(e)}")
