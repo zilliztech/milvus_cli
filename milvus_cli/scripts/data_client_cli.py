@@ -32,11 +32,34 @@ def delete_entities(
     partitionName,
 ):
     """
-    Delete entities from collection.
+    Delete entities using filter expression.
 
-    Example:
+    USAGE:
+        milvus_cli > delete entities -c <collection> [-p <partition>]
 
-        milvus_cli > delete entities -c test_collection
+    OPTIONS:
+        -c, --collection-name    Target collection (required)
+        -p, --partition          Limit deletion to partition (optional)
+
+    INTERACTIVE PROMPTS:
+        Expression    Filter to select entities for deletion
+                     Example: "id in [1, 2, 3]"
+                     Example: "category == 'obsolete'"
+
+    WARNING:
+        This action is irreversible! Deleted entities cannot be recovered.
+
+    EXAMPLES:
+        # Delete by ID
+        milvus_cli > delete entities -c products
+        Expression: id in [100, 101, 102]
+
+        # Delete by condition
+        milvus_cli > delete entities -c products
+        Expression: status == "deleted" and updated_at < 1704067200
+
+    SEE ALSO:
+        delete ids, query
     """
     expr = click.prompt(
         '''The expression to specify entities to be deleted, such as "film_id in [ 0, 1 ]"'''
@@ -54,24 +77,39 @@ def delete_entities(
 @click.pass_obj
 def query(obj):
     """
-    Query with a set of criteria, and results in a list of records that match the query exactly.
+    Query entities with filter expressions.
 
-    Example:
-
+    USAGE:
         milvus_cli > query
 
-        Collection name: car
+    INTERACTIVE PROMPTS:
+        Collection name      Select from available collections
+        Query expression     Filter condition (e.g., "id > 100")
+        Partition names      Optional, comma-separated
+        Output fields        Fields to return, comma-separated
+        Timeout              Request timeout in seconds
+        Guarantee timestamp  Consistency snapshot point
+        Graceful time        Bounded consistency window (default: 5s)
 
-        The query expression: color in [2000,2002]
+    EXPRESSION SYNTAX:
+        Comparison:    id > 100, price <= 50.0
+        In/Not In:     color in ["red", "blue"]
+        Logical:       id > 10 and price < 100
+        String match:  name like "test%"
 
-        A list of fields to return(split by "," if multiple) []: id, color, brand
+    EXAMPLES:
+        milvus_cli > query
 
-        timeout []:
+        Collection name: products
+        The query expression: category == "electronics"
+        Fields to return: id, name, price
 
-        Guarantee timestamp. This instructs Milvus to see all operations performed before a provided timestamp. If no such timestamp is provided, then Milvus will search all operations performed to date. [0]:
+    OUTPUT:
+        Results displayed in current format (table/json/csv).
+        Use 'set output json' for JSON output.
 
-        Graceful time. Only used in bounded consistency level. If graceful_time is set, PyMilvus will use current timestamp minus the graceful_time as the guarantee_timestamp. This option is 5s by default if not set. [5]:
-
+    SEE ALSO:
+        search, get, set output
     """
     collectionName = click.prompt(
         "Collection name", type=click.Choice(obj.collection.list_collections())
@@ -111,10 +149,7 @@ def query(obj):
     else:
         results = obj.data.query(collectionName, queryParameters)
         if results:
-            headers = results[0].keys()
-            rows = [result.values() for result in results]
-            table = tabulate(rows, headers, tablefmt="grid")
-            click.echo(table)
+            click.echo(obj.formatter.format_output(results))
         else:
             click.echo("No results found.")
 
@@ -145,53 +180,42 @@ def query(obj):
 @click.pass_obj
 def insert_data(obj, collectionName, partitionName, timeout, path):
     """
-    Import data from csv file(local or remote) with headers and insert into target collection.
+    Import data from CSV file into a collection.
 
-    Example-1:
+    USAGE:
+        milvus_cli > insert file -c <collection> [options] <path>
 
-        milvus_cli > insert -c car 'examples/import_csv/vectors.csv'
+    ARGUMENTS:
+        path    Path to CSV file (local path or URL)
 
-        Reading file from local path.
+    OPTIONS:
+        -c, --collection-name    Target collection (required)
+        -p, --partition          Target partition (default: _default)
+        -t, --timeout            Request timeout in seconds
 
-        Reading csv file...  [####################################]  100%
+    CSV FORMAT:
+        - First row must be headers matching field names
+        - Vector fields: comma-separated values in brackets
+          Example: "[1.0, 2.0, 3.0]"
+        - JSON fields: valid JSON strings
 
-        Column names are ['vector', 'color', 'brand']
+    EXAMPLES:
+        # Insert from local file
+        milvus_cli > insert file -c products ./data/products.csv
 
-        Processed 50001 lines.
+        # Insert from URL
+        milvus_cli > insert file -c products https://example.com/data.csv
 
-        Inserting ...
+        # Insert to specific partition
+        milvus_cli > insert file -c products -p 2024_data ./products.csv
 
-        Insert successfully.
+    ERRORS:
+        - Schema mismatch: CSV headers must match collection field names
+        - Dimension error: Vector dimensions must match schema
+        - Type error: Values must be convertible to field types
 
-        \b
-    --------------------------  ------------------
-    Total insert entities:                   50000
-    Total collection entities:              150000
-    Milvus timestamp:           428849214449254403
-    --------------------------  ------------------
-
-    Example-2:
-
-        milvus_cli > import -c car 'https://raw.githubusercontent.com/zilliztech/milvus_cli/main/examples/import_csv/vectors.csv'
-
-        Reading file from remote URL.
-
-        Reading csv file...  [####################################]  100%
-
-        Column names are ['vector', 'color', 'brand']
-
-        Processed 50001 lines.
-
-        Inserting ...
-
-        Insert successfully.
-
-        \b
-    --------------------------  ------------------
-    Total insert entities:                   50000
-    Total collection entities:              150000
-    Milvus timestamp:           428849214449254403
-    --------------------------  ------------------
+    SEE ALSO:
+        insert row, upsert file, create collection
     """
     try:
         result = readCsvFile(path.replace('"', "").replace("'", ""))
@@ -438,10 +462,7 @@ def get_by_ids(obj):
     try:
         results = obj.data.get_by_ids(collectionName, ids, output_fields_list)
         if results:
-            headers = results[0].keys()
-            rows = [result.values() for result in results]
-            table = tabulate(rows, headers, tablefmt="grid")
-            click.echo(table)
+            click.echo(obj.formatter.format_output(results))
         else:
             click.echo("No results found.")
     except Exception as e:
@@ -511,11 +532,39 @@ def delete_by_ids(
 @click.pass_obj
 def bulk_insert(obj, collectionName, partitionName, files):
     """
-    Bulk insert data from files (S3, MinIO, or local).
+    Bulk insert data from remote storage (S3, MinIO, etc.).
 
-    Example:
+    USAGE:
+        milvus_cli > bulk_insert -c <collection> -f <files>
 
-        milvus_cli > bulk_insert -c car -f 's3://bucket/data.json'
+    OPTIONS:
+        -c, --collection-name    Target collection (required)
+        -p, --partition          Target partition (optional)
+        -f, --files              Comma-separated file paths (required)
+
+    SUPPORTED SOURCES:
+        - S3: s3://bucket/path/file.json
+        - MinIO: minio://bucket/path/file.json
+        - Local: /path/to/file.json (if configured)
+
+    FILE FORMATS:
+        - JSON: Array of objects or JSON Lines
+        - Parquet: Apache Parquet format
+
+    EXAMPLES:
+        # Single file
+        milvus_cli > bulk_insert -c products -f 's3://mybucket/data.json'
+
+        # Multiple files
+        milvus_cli > bulk_insert -c products -f 's3://bucket/part1.json,s3://bucket/part2.json'
+
+    NOTES:
+        - Returns a task ID for tracking progress
+        - Use 'show bulk_insert_state -id <task_id>' to check status
+        - Use 'list bulk_insert_tasks' to see all tasks
+
+    SEE ALSO:
+        show bulk_insert_state, list bulk_insert_tasks, insert file
     """
     try:
         file_list = [f.strip() for f in files.split(",")]
@@ -590,10 +639,44 @@ def list_bulk_insert_tasks(obj, limit, collectionName):
 @click.pass_obj
 def search(obj):
     """
-    Conducts a vector similarity search with an optional boolean expression as filter.
+    Perform vector similarity search.
 
-    Example:
+    USAGE:
         milvus_cli > search
+
+    INTERACTIVE PROMPTS:
+        Collection name     Target collection
+        Vector field        Field containing vectors
+        Search vectors      Query vector (manual or from file)
+        Metric type         Distance metric (auto-detected from index)
+        Search params       Index-specific parameters
+        Top K               Number of results to return
+        Filter expression   Optional pre-filter
+        Partition names     Optional partition filter
+        Output fields       Fields to return
+
+    METRIC TYPES:
+        L2       Euclidean distance (smaller = more similar)
+        IP       Inner product (larger = more similar)
+        COSINE   Cosine similarity (larger = more similar)
+
+    SEARCH PARAMS BY INDEX:
+        IVF_FLAT:     nprobe (e.g., 10)
+        IVF_SQ8:      nprobe (e.g., 10)
+        HNSW:         ef (e.g., 64)
+        DISKANN:      search_list (e.g., 20)
+        AUTOINDEX:    (no params needed)
+
+    EXAMPLES:
+        milvus_cli > search
+
+        Collection name: products
+        Vector field: embedding
+        Search vectors: [0.1, 0.2, 0.3, ...]
+        Top K: 10
+
+    SEE ALSO:
+        query, create index, show index
     """
     collectionName = click.prompt(
         "Collection name", type=click.Choice(obj.collection.list_collections())

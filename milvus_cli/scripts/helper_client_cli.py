@@ -7,6 +7,10 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from utils import WELCOME_MSG, EXIT_MSG, Completer, getPackageVersion
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
+from prompt_style import MilvusLexer, MilvusCompleter, milvus_style
+from pathlib import Path
 from Types import ConnectException, ParameterException
 
 
@@ -42,8 +46,11 @@ def server_version(obj):
         milvus_cli > server_version
     """
     try:
-        from pymilvus import utility
-        version = utility.get_server_version()
+        client = obj.connection.get_client()
+        if client is None:
+            click.echo("No connection. Use 'connect' first.", err=True)
+            return
+        version = client.get_server_version()
         click.echo(f"Milvus server version: {version}")
     except Exception as e:
         click.echo(message=e, err=True)
@@ -55,11 +62,110 @@ def clear():
     click.clear()
 
 
+@cli.command("history")
+@click.argument("action", required=False, default=None)
+def history_cmd(action):
+    """
+    Show or manage command history.
+
+    USAGE:
+        milvus_cli > history          Show last 100 commands
+        milvus_cli > history clear    Clear command history
+
+    EXAMPLES:
+        milvus_cli > history
+        milvus_cli > history clear
+    """
+    history_path = Path.home() / ".milvus_cli_history"
+
+    if action == "clear":
+        try:
+            if history_path.exists():
+                history_path.unlink()
+            click.echo("Command history cleared.")
+        except IOError as e:
+            click.echo(f"Error clearing history: {e}", err=True)
+        return
+
+    if action is not None:
+        click.echo(f"Unknown action: {action}. Use 'history' or 'history clear'.", err=True)
+        return
+
+    # Show history
+    if not history_path.exists():
+        click.echo("No command history found.")
+        return
+
+    try:
+        with open(history_path, "r") as f:
+            lines = f.readlines()
+        # Show last 100 commands
+        recent = lines[-100:] if len(lines) > 100 else lines
+        for i, line in enumerate(recent, 1):
+            click.echo(f"{i:4d}  {line.rstrip()}")
+    except IOError as e:
+        click.echo(f"Error reading history: {e}", err=True)
+
+
 @cli.group("show", no_args_is_help=False)
 @click.pass_obj
 def show(obj):
     """Show connection, database, collection, loading_progress or index_progress."""
     pass
+
+
+@show.command("output")
+@click.pass_obj
+def show_output_format(obj):
+    """
+    Show current output format setting.
+
+    USAGE:
+        milvus_cli > show output
+
+    EXAMPLES:
+        milvus_cli > show output
+        Current output format: table
+    """
+    click.echo(f"Current output format: {obj.formatter.format}")
+
+
+@cli.group("set", no_args_is_help=False)
+@click.pass_obj
+def set_config(obj):
+    """Set CLI configuration options."""
+    pass
+
+
+@set_config.command("output")
+@click.argument("format", type=click.Choice(["table", "json", "csv"]))
+@click.pass_obj
+def set_output_format(obj, format):
+    """
+    Set the global output format for CLI results.
+
+    USAGE:
+        milvus_cli > set output <format>
+
+    ARGUMENTS:
+        format    Output format: table, json, or csv
+
+    FORMATS:
+        table    Display results in formatted ASCII tables (default)
+        json     Display results as JSON for scripting/parsing
+        csv      Display results as CSV for spreadsheet import
+
+    EXAMPLES:
+        milvus_cli > set output json
+        milvus_cli > set output table
+        milvus_cli > set output csv
+
+    NOTES:
+        - Setting persists for the current session only
+        - Default format is 'table'
+    """
+    obj.formatter.format = format
+    click.echo(f"Output format set to: {format}")
 
 
 @cli.group("list", no_args_is_help=False)
@@ -154,24 +260,47 @@ def quit_app():
 
 
 quit_app = False  # global flag
-comp = Completer()
+comp = None  # Initialize later with CLI instance
 
 
 def runCliPrompt():
     """Run CLI prompt loop"""
+    global comp, quit_app
     args = sys.argv
     if args and (args[-1] == "--version"):
         print(f"Milvus_CLI v{getPackageVersion()}")
         return
     try:
         print(WELCOME_MSG)
-        while not quit_app:
-            import readline
 
-            readline.set_completer_delims(" \t\n;")
-            readline.parse_and_bind("tab: complete")
-            readline.set_completer(comp.complete)
-            astr = input("milvus_cli > ")
+        # Get the shared MilvusClientCli instance
+        from .init_client_cli import get_milvus_cli_obj
+        milvus_obj = get_milvus_cli_obj()
+
+        # Initialize completer with CLI instance and MilvusCli object
+        comp = Completer(cli_instance=cli, milvus_cli_obj=milvus_obj)
+
+        # Setup prompt_toolkit session with history and completion
+        history_path = Path.home() / ".milvus_cli_history"
+        session = PromptSession(
+            history=FileHistory(str(history_path)),
+            lexer=MilvusLexer(),
+            completer=MilvusCompleter(comp),
+            style=milvus_style,
+            complete_while_typing=False,
+        )
+
+        while not quit_app:
+            try:
+                astr = session.prompt("milvus_cli > ")
+            except KeyboardInterrupt:
+                continue
+            except EOFError:
+                break
+
+            if not astr.strip():
+                continue
+
             try:
                 cli(astr.split())
             except SystemExit:

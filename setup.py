@@ -20,6 +20,7 @@ setup(
         "pymilvus>=2.5.0",
         "tabulate==0.8.9",
         "requests==2.31.0",
+        "prompt_toolkit>=3.0.0",
     ],
     entry_points={
         "console_scripts": [
