@@ -5,18 +5,18 @@ import pytest
 class TestConnection:
     """Test connection-related commands."""
 
-    def test_connect_success(self, run_cmd):
+    def test_connect_success(self, run_cmd, milvus_uri):
         """Test successful connection to Milvus."""
-        output, code = run_cmd("connect -uri http://localhost:19530")
+        output, code = run_cmd(f"connect -uri {milvus_uri}")
         # If Milvus is not running, the connection will fail - skip the test
         if code != 0 and ("refused" in output.lower() or "failed" in output.lower() or "error" in output.lower()):
             pytest.skip("Cannot connect to Milvus server")
         assert code == 0
         assert "success" in output.lower() or "connect" in output.lower()
 
-    def test_connect_with_alias(self, run_cmd):
+    def test_connect_with_alias(self, run_cmd, milvus_uri):
         """Test connection with alias."""
-        output, code = run_cmd("connect -uri http://localhost:19530")
+        output, code = run_cmd(f"connect -uri {milvus_uri}")
         # If Milvus is not running, the connection will fail - skip the test
         if code != 0 and ("refused" in output.lower() or "failed" in output.lower() or "error" in output.lower()):
             pytest.skip("Cannot connect to Milvus server")
@@ -30,10 +30,10 @@ class TestConnection:
         assert code == 0
         assert "version" in output.lower()
 
-    def test_disconnect(self, run_cmd):
+    def test_disconnect(self, run_cmd, milvus_uri):
         """Test disconnect command."""
         # First connect
-        output, code = run_cmd("connect -uri http://localhost:19530")
+        output, code = run_cmd(f"connect -uri {milvus_uri}")
         # If Milvus is not running, skip the test
         if code != 0:
             pytest.skip("Cannot connect to Milvus server")
