@@ -25,12 +25,11 @@ class ConnectionHistory:
 
     def _save(self):
         """Save connections to JSON file."""
-        import click
         try:
             with open(self.path, "w") as f:
                 json.dump(self._connections, f, indent=2)
         except IOError as e:
-            click.echo(f"Warning: Could not save connection history: {e}", err=True)
+            print(f"Warning: Could not save connection history: {e}")
 
     def save_connection(self, uri, token=None, tlsmode=0, cert=None, alias=None):
         """

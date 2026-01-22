@@ -1,0 +1,6 @@
+{
+  "fields": [
+    {"name": "id", "type": "Int64", "is_primary": true, "auto_id": true},
+    {"name": "name", "type": "VarChar", "max_length": 256}
+  ]
+}

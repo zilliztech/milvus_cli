@@ -8,8 +8,9 @@ COMMANDS = {
     "connect", "exit", "help", "clear", "version", "server_version",
     "show", "set", "list", "create", "delete", "rename", "load", "release",
     "use", "search", "query", "insert", "upsert", "grant", "revoke",
-    "flush", "compact", "truncate", "bulk_insert", "history", "get",
-    "describe", "import", "wait_for_loading",
+    "flush", "flush_all", "compact", "truncate", "bulk_insert", "history",
+    "get", "describe", "import", "wait_for_loading", "wait_for_index",
+    "alter", "update", "transfer", "disconnect", "hybrid_search", "query_iterator",
 }
 
 SUBCOMMANDS = {
@@ -17,14 +18,20 @@ SUBCOMMANDS = {
     "connections", "collections", "databases", "partitions", "indexes",
     "users", "roles", "grants", "aliases", "output", "file", "row",
     "connection_history", "bulk_insert_tasks", "bulk_insert_state",
-    "loading_progress", "index_progress", "query_segment_info",
-    "compaction_state", "compaction_plans", "replicas", "load_state",
+    "resource_group", "resource_groups", "privilege_group", "privilege_groups",
+    "loading_progress", "index_progress", "load_state", "flush_state",
+    "collection_stats", "query_segment_info", "compaction_state", "compaction_plans",
+    "replicas", "collection_properties", "collection_field", "password", "replica",
+    "ids", "entities", "privilege",
 }
 
 OPTIONS = {
     "-uri", "--uri", "-t", "--token", "-tls", "--tlsmode", "-cert", "--cert",
     "-c", "--collection", "-p", "--partition", "-db", "--db_name",
     "-f", "--fields", "-q", "--query", "-o", "--output", "--save-as",
+    "-a", "--alias", "-u", "--username", "-r", "--role", "-n", "--name",
+    "-in", "--index_name", "-old", "-new", "-k", "-id", "-l", "--limit",
+    "-A", "--alter",
 }
 
 

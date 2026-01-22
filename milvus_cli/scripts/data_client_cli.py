@@ -12,6 +12,7 @@ from Validation import validateQueryParams, validateSearchParams
 from Types import ParameterException, IndexTypesMap, DataTypeByNum
 from Fs import readCsvFile
 import json
+import ast
 from tabulate import tabulate
 from pymilvus import DataType
 
@@ -457,7 +458,16 @@ def get_by_ids(obj):
         f'Fields to return(split by "," if multiple) {obj.collection.list_field_names(collectionName)}',
         default="",
     )
-    output_fields_list = [f.strip() for f in outputFields.split(",")] if outputFields else None
+    # Clean up field names - strip brackets, quotes, and whitespace
+    if outputFields:
+        output_fields_list = []
+        for f in outputFields.split(","):
+            f = f.strip().strip("[]'\"")
+            if f:
+                output_fields_list.append(f)
+        output_fields_list = output_fields_list if output_fields_list else None
+    else:
+        output_fields_list = None
 
     try:
         results = obj.data.get_by_ids(collectionName, ids, output_fields_list)
@@ -635,6 +645,183 @@ def list_bulk_insert_tasks(obj, limit, collectionName):
         click.echo("Error!\n{}".format(str(e)))
 
 
+@cli.command("hybrid_search")
+@click.pass_obj
+def hybrid_search(obj):
+    """
+    Perform hybrid search (multi-vector search) with reranking.
+
+    USAGE:
+        milvus_cli > hybrid_search
+
+    INTERACTIVE PROMPTS:
+        1. Collection name
+        2. Add search requests (Vector field, Vector data, TopK, Params)
+        3. Rerank strategy (Weighted / RRF)
+        4. Output fields
+
+    EXAMPLES:
+        milvus_cli > hybrid_search
+        # Follow prompts to add multiple requests and choose ranker.
+    """
+    try:
+        from pymilvus import AnnSearchRequest, WeightedRanker, RRFRanker
+
+        collectionName = click.prompt(
+            "Collection name", type=click.Choice(obj.collection.list_collections())
+        )
+
+        requests = []
+        req_count = 1
+
+        # Get field info for type detection
+        fields_info = obj.collection.list_fields_info(collectionName)
+
+        while True:
+            click.echo(f"\n--- Adding Search Request #{req_count} ---")
+            annsField = click.prompt(
+                "Vector field name",
+                type=click.Choice(obj.collection.list_field_names(collectionName)),
+            )
+
+            # Get field type to provide appropriate input hint
+            field_info = next((f for f in fields_info if f["name"] == annsField), None)
+            field_type = field_info.get("type") if field_info else None
+
+            # Determine if this is a sparse vector field
+            is_sparse = False
+            if field_type:
+                # Handle both DataType enum and string representation
+                field_type_str = str(field_type).upper()
+                if "SPARSE" in field_type_str:
+                    is_sparse = True
+
+            # Loop for vector input until valid
+            data = None
+            while data is None:
+                if is_sparse:
+                    vector_str = click.prompt(
+                        "Sparse vector data (e.g. {0: 0.5, 10: 0.8, 25: 0.3})",
+                        type=str
+                    )
+                else:
+                    vector_str = click.prompt(
+                        "Vector data (e.g. [0.1, 0.2, 0.3, ...])",
+                        type=str
+                    )
+
+                try:
+                    # Try to parse the vector
+                    vector_str = vector_str.strip()
+                    parsed = json.loads(vector_str)
+
+                    # AnnSearchRequest expects list of vectors
+                    if isinstance(parsed, dict):
+                        # Sparse vector format: {index: value, ...}
+                        data = [parsed]
+                    elif isinstance(parsed, list):
+                        # Dense vector format: [0.1, 0.2, ...]
+                        data = [parsed]
+                    else:
+                        click.echo("Invalid vector format. Expected list or dict.")
+                        continue
+
+                except json.JSONDecodeError as e:
+                    # For sparse vectors, try Python dict syntax as fallback
+                    if is_sparse:
+                        try:
+                            parsed = ast.literal_eval(vector_str)
+                            if isinstance(parsed, dict):
+                                data = [parsed]
+                                continue
+                        except (ValueError, SyntaxError):
+                            pass
+                    click.echo(f"Invalid format: {e}")
+                    click.echo("Tips:")
+                    if is_sparse:
+                        click.echo("  - Sparse vector: {0: 0.5, 10: 0.8, 25: 0.3}")
+                    else:
+                        click.echo("  - Dense vector: [0.1, 0.2, 0.3]")
+
+            limit = click.prompt("TopK for this request", type=int, default=10)
+            expr = click.prompt("Filter expression (press Enter to skip)", default="", type=str)
+
+            # Simple param input
+            params = {}
+            # Auto-detect metric type if possible or ask user
+            # For simplicity, we ask for metric type and basic params
+            if is_sparse:
+                metric_type = click.prompt("Metric type", default="IP", type=click.Choice(["IP"]))
+            else:
+                metric_type = click.prompt("Metric type", default="COSINE", type=click.Choice(["L2", "IP", "COSINE"]))
+            params["metric_type"] = metric_type
+
+            # Ask for other params (nprobe, ef, etc) generically
+            extra_params = click.prompt("Search params (JSON format, e.g. {\"nprobe\": 10}, press Enter to skip)", default="{}", type=str)
+            try:
+                extra_params_dict = json.loads(extra_params)
+                params.update(extra_params_dict)
+            except json.JSONDecodeError:
+                click.echo("Invalid JSON params. Using defaults.")
+
+            req = AnnSearchRequest(data=data, anns_field=annsField, param=params, limit=limit, expr=expr if expr else None)
+            requests.append(req)
+            req_count += 1
+
+            if not click.confirm("Add another search request?", default=True):
+                break
+
+        if not requests:
+            click.echo("No requests added. Exiting.")
+            return
+
+        click.echo("\n--- Rerank Strategy ---")
+        ranker_type = click.prompt("Select ranker", type=click.Choice(["Weighted", "RRF"]), default="Weighted")
+        
+        rerank = None
+        if ranker_type == "Weighted":
+            weights_str = click.prompt(f"Weights (list of {len(requests)} floats, e.g. [0.8, 0.2])", type=str)
+            try:
+                weights = json.loads(weights_str)
+                if len(weights) != len(requests):
+                    click.echo(f"Error: Number of weights ({len(weights)}) must match number of requests ({len(requests)}).")
+                    return
+                rerank = WeightedRanker(*weights)
+            except json.JSONDecodeError:
+                click.echo("Invalid weights format.")
+                return
+        else:
+            k = click.prompt("k factor for RRF", type=int, default=60)
+            rerank = RRFRanker(k=k)
+
+        final_limit = click.prompt("Final TopK limit", type=int, default=10)
+        outputFields = click.prompt(
+            f'Output fields (split by "," if multiple) {obj.collection.list_field_names(collectionName)}',
+            default="",
+        )
+        # Clean up field names - strip brackets, quotes, and whitespace
+        if outputFields:
+            output_fields_list = []
+            for f in outputFields.split(","):
+                f = f.strip().strip("[]'\"")
+                if f:
+                    output_fields_list.append(f)
+            output_fields_list = output_fields_list if output_fields_list else None
+        else:
+            output_fields_list = None
+
+        click.echo("\nExecuting hybrid search...")
+        # Use Data.py's wrapper if available, or call collection directly
+        # obj.data.hybrid_search signature: (collectionName, requests, rerank, limit, output_fields)
+        results = obj.data.hybrid_search(collectionName, requests, rerank, final_limit, output_fields_list)
+        
+        click.echo(f"Hybrid Search Result:\n")
+        click.echo(results)
+
+    except Exception as e:
+        click.echo(f"Error executing hybrid search: {str(e)}", err=True)
+
+
 @cli.command("search")
 @click.pass_obj
 def search(obj):
@@ -695,31 +882,75 @@ def search(obj):
         click.echo(f"Field {annsField} not found in collection {collectionName}.")
         return
     isFunctionOut = annsField_info["isFunctionOut"]
+
+    # Check if this is a sparse vector field
+    field_type = annsField_info.get("type")
+    field_type_str = str(field_type).upper() if field_type else ""
+    is_sparse = "SPARSE" in field_type_str
+
     data = None
     if isFunctionOut:
         text = click.prompt(
             "Enter the text to search",
         )
         data = [text]
+    elif is_sparse:
+        # Sparse vector input
+        while data is None:
+            vector_str = click.prompt(
+                "Sparse vector data (e.g. {0: 0.5, 10: 0.8, 25: 0.3})",
+            )
+            try:
+                vector = json.loads(vector_str.strip())
+                if isinstance(vector, dict):
+                    data = [vector]
+                else:
+                    click.echo("Sparse vector should be a dict format: {index: value, ...}")
+            except json.JSONDecodeError as e:
+                # Try Python dict syntax as fallback for sparse vectors
+                try:
+                    vector = ast.literal_eval(vector_str.strip())
+                    if isinstance(vector, dict):
+                        data = [vector]
+                        continue
+                except (ValueError, SyntaxError):
+                    pass
+                click.echo(f"Invalid format: {e}")
+                click.echo("Example: {0: 0.5, 10: 0.8, 25: 0.3}")
     else:
-        vector = click.prompt(
-            "The vectors of search data (input as a list, e.g., [1,2,3]). The length should match your dimension.",
-        )
-        # format vector from string to list
-        vector = [float(x) for x in vector.strip("[]").split(",")]
-        data = [vector]
+        # Dense vector input
+        while data is None:
+            vector_str = click.prompt(
+                "Vector data (e.g. [0.1, 0.2, 0.3, ...])",
+            )
+            try:
+                vector_str = vector_str.strip()
+                # Try JSON parsing first
+                vector = json.loads(vector_str)
+                if isinstance(vector, list):
+                    data = [vector]
+                else:
+                    click.echo("Dense vector should be a list format: [0.1, 0.2, ...]")
+            except json.JSONDecodeError:
+                # Fallback to simple parsing for backward compatibility
+                try:
+                    vector = [float(x) for x in vector_str.strip("[]").split(",")]
+                    data = [vector]
+                except ValueError as e:
+                    click.echo(f"Invalid vector format: {e}")
+                    click.echo("Example: [0.1, 0.2, 0.3]")
 
     indexes = obj.index.list_indexes(collectionName, onlyData=True)
     indexDetails = None
     for index in indexes:
-        if index.field_name == annsField:
+        if index.get("field_name") == annsField:
             indexDetails = index
             break
 
     hasIndex = not not indexDetails
     if indexDetails:
-        index_type = indexDetails._index_params.get("index_type", "AUTOINDEX")
-        metric_type = indexDetails._index_params.get("metric_type", "")
+        index_type = indexDetails.get("index_type", "AUTOINDEX")
+        metric_type = indexDetails.get("metric_type", "")
         click.echo(f"Metric type: {metric_type}")
         metricType = metric_type
         search_parameters = IndexTypesMap[index_type]["search_parameters"]

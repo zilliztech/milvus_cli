@@ -208,3 +208,75 @@ def show_index_progress(obj, collectionName, indexName):
         click.echo(obj.index.get_index_build_progress(collectionName, indexName))
     except Exception as e:
         click.echo(message=e, err=True)
+
+
+@cli.command("wait_for_index")
+@click.option(
+    "-c",
+    "--collection",
+    "collectionName",
+    help="The collection name.",
+    type=str,
+    required=True,
+)
+@click.option("-in", "--index-name", "indexName", help="Index name", default="")
+@click.option(
+    "-t",
+    "--timeout",
+    "timeout",
+    help="[Optional] - Timeout in seconds.",
+    default=None,
+    type=float,
+)
+@click.pass_obj
+def wait_for_index(obj, collectionName, indexName, timeout):
+    """
+    Wait for index building to complete.
+
+    USAGE:
+        milvus_cli > wait_for_index -c <collection> [-in <index_name>] [-t <timeout>]
+
+    EXAMPLES:
+        milvus_cli > wait_for_index -c products
+        milvus_cli > wait_for_index -c products -in embedding_index
+    """
+    try:
+        import time
+        client = obj.connection.get_client()
+        click.echo(f"Waiting for index building complete for collection '{collectionName}'...")
+
+        start_time = time.time()
+        while True:
+            # Check if timeout exceeded
+            if timeout and (time.time() - start_time) > timeout:
+                click.echo("Wait for index building timed out.")
+                return
+
+            # Get index info to check build status
+            try:
+                indexes = client.list_indexes(collection_name=collectionName)
+                if not indexes:
+                    click.echo("No indexes found.")
+                    return
+
+                target_index = indexName if indexName else indexes[0]
+                index_info = client.describe_index(
+                    collection_name=collectionName,
+                    index_name=target_index
+                )
+
+                # Check if index is ready (indexed_rows equals total_rows or state is Finished)
+                state = index_info.get("state", "")
+                if state == "Finished" or index_info.get("pending_index_rows", 1) == 0:
+                    click.echo(f"Index building completed for collection '{collectionName}'!")
+                    return
+
+                click.echo(f"Index building in progress... (state: {state})")
+                time.sleep(1)
+
+            except Exception as poll_error:
+                click.echo(f"Checking index status... ({poll_error})")
+                time.sleep(1)
+
+    except Exception as e:
+        click.echo(message=f"Error waiting for index: {str(e)}", err=True)

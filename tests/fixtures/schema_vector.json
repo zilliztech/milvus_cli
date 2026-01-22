@@ -1,0 +1,9 @@
+{
+  "collection_name": "PLACEHOLDER_COLLECTION_NAME",
+  "auto_id": true,
+  "fields": [
+    {"name": "id", "type": "INT64", "is_primary": true},
+    {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 128}
+  ],
+  "enable_dynamic_field": true
+}

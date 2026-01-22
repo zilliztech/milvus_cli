@@ -14,6 +14,7 @@ class MilvusClientConnection(object):
         self.alias = "default"
         self.connection_params = {}
         self._is_connected = False
+        self._current_database = "default"
 
     def connect(self, uri=None, token=None, tlsmode=0, cert=None):
         """
@@ -61,7 +62,7 @@ class MilvusClientConnection(object):
             self.client = MilvusClient(**connection_params)
             self.connection_params = connection_params
             self._is_connected = True
-            
+
             return self.client
             
         except Exception as e:
@@ -106,20 +107,20 @@ class MilvusClientConnection(object):
     def disconnect(self):
         """
         Disconnect from Milvus
-        
+
         Returns:
             Disconnection message
         """
         try:
             if self.client:
                 self.client.close()
-            
+
             self.client = None
             self._is_connected = False
             self.connection_params = {}
-            
+
             return f"Disconnect from {self.alias} successfully!"
-            
+
         except Exception as e:
             raise Exception(f"Disconnect from {self.alias} error!{str(e)}")
 
@@ -135,7 +136,7 @@ class MilvusClientConnection(object):
     def get_connection_info(self):
         """
         Get connection parameter information
-        
+
         Returns:
             dict: Connection parameters
         """
@@ -143,5 +144,14 @@ class MilvusClientConnection(object):
             "uri": self.uri,
             "alias": self.alias,
             "is_connected": self._is_connected,
-            "connection_params": self.connection_params
+            "connection_params": self.connection_params,
+            "current_database": self._current_database
         }
+
+    def get_current_database(self):
+        """Get current database name."""
+        return self._current_database
+
+    def set_current_database(self, db_name):
+        """Set current database name."""
+        self._current_database = db_name

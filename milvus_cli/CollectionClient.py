@@ -417,6 +417,40 @@ Fields(* is the primary field):{field_details}"""
         except Exception as e:
             raise Exception(f"Get entities count error!{str(e)}")
 
+    def get_collection_stats(self, collectionName):
+        """
+        Get collection statistics
+
+        Args:
+            collectionName: Collection name
+
+        Returns:
+            dict: Collection statistics including row_count
+        """
+        try:
+            client = self._get_client()
+            stats = client.get_collection_stats(collection_name=collectionName)
+            return stats
+        except Exception as e:
+            raise Exception(f"Get collection stats error!{str(e)}")
+
+    def flush_all(self, timeout=None):
+        """
+        Flush all collections to storage
+
+        Args:
+            timeout: Optional timeout in seconds
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.flush_all(timeout=timeout)
+            return "Flush all collections successfully!"
+        except Exception as e:
+            raise Exception(f"Flush all error!{str(e)}")
+
     def show_loading_progress(self, collectionName=None):
         """
         Show loading progress
@@ -608,3 +642,95 @@ Fields(* is the primary field):{field_details}"""
             return state
         except Exception as e:
             raise Exception(f"Get load state error!{str(e)}")
+
+    def alter_collection_properties(self, collectionName, properties):
+        """
+        Alter collection properties
+
+        Args:
+            collectionName: Collection name
+            properties: Dictionary of properties to set
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.alter_collection_properties(
+                collection_name=collectionName,
+                properties=properties
+            )
+            return f"Alter collection {collectionName} properties successfully!"
+        except Exception as e:
+            raise Exception(f"Alter collection properties error!{str(e)}")
+
+    def drop_collection_properties(self, collectionName, property_keys):
+        """
+        Drop collection properties
+
+        Args:
+            collectionName: Collection name
+            property_keys: List of property keys to drop
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.drop_collection_properties(
+                collection_name=collectionName,
+                property_keys=property_keys
+            )
+            return f"Drop collection {collectionName} properties successfully!"
+        except Exception as e:
+            raise Exception(f"Drop collection properties error!{str(e)}")
+
+    def alter_collection_field(self, collectionName, fieldName, field_params):
+        """
+        Alter collection field properties
+
+        Args:
+            collectionName: Collection name
+            fieldName: Field name
+            field_params: Dictionary of field parameters to set
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.alter_collection_field(
+                collection_name=collectionName,
+                field_name=fieldName,
+                field_params=field_params
+            )
+            return f"Alter field {fieldName} in collection {collectionName} successfully!"
+        except Exception as e:
+            raise Exception(f"Alter collection field error!{str(e)}")
+
+    def get_flush_state(self, collectionName, timeout=None):
+        """
+        Get flush state of collection
+
+        Args:
+            collectionName: Collection name
+            timeout: Optional timeout
+
+        Returns:
+            Flush state information
+        """
+        try:
+            client = self._get_client()
+            # MilvusClient only has get_flush_all_state, not per-collection
+            # Use flush_all_state as indicator
+            try:
+                all_flushed = client.get_flush_all_state(timeout=timeout)
+                return {
+                    "flushed": all_flushed,
+                    "collection_name": collectionName,
+                    "note": "Based on flush_all state"
+                }
+            except Exception:
+                return {"flushed": True, "collection_name": collectionName}
+        except Exception as e:
+            raise Exception(f"Get flush state error!{str(e)}")

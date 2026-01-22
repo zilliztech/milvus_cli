@@ -1,4 +1,4 @@
-from .helper_client_cli import create, getList, delete, show
+from .helper_cli import create, getList, delete, show, update
 import click
 
 
@@ -67,18 +67,71 @@ def deleteUser(obj, username):
 
 
 @show.command("user")
-@click.option("-u", "--username", "username", help="The username of milvus user.")
+@click.option("-u", "--username", "username", help="The username of milvus user.", required=True)
 @click.pass_obj
 def describe_user(obj, username):
     """
-    Show user details.
+    Show user details and assigned roles.
 
-    Example:
+    USAGE:
+        milvus_cli > show user -u <username>
 
-        milvus_cli > show user -u zilliz
+    OPTIONS:
+        -u, --username    Username to describe (required)
+
+    OUTPUT:
+        Displays user information including:
+        - username: User name
+        - roles: List of roles assigned to the user
+
+    EXAMPLES:
+        milvus_cli > show user -u admin
+
+    SEE ALSO:
+        list users, create user, grant role
     """
     try:
         result = obj.user.describe_user(username)
+        click.echo(f"User: {username}")
+        click.echo(f"Details: {result}")
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@update.command("password")
+@click.option("-u", "--username", "username", help="The username of milvus user.", required=True)
+@click.pass_obj
+def update_password(obj, username):
+    """
+    Update user password.
+
+    USAGE:
+        milvus_cli > update password -u <username>
+
+    OPTIONS:
+        -u, --username    Username whose password to update (required)
+
+    INTERACTIVE PROMPTS:
+        Old password      Current password
+        New password      New password
+        Confirm password  Confirm new password
+
+    EXAMPLES:
+        milvus_cli > update password -u admin
+
+    SEE ALSO:
+        show user, create user
+    """
+    try:
+        old_password = click.prompt("Old password", hide_input=True)
+        new_password = click.prompt("New password", hide_input=True)
+        confirm_password = click.prompt("Confirm new password", hide_input=True)
+
+        if new_password != confirm_password:
+            click.echo("Error: New passwords do not match!", err=True)
+            return
+
+        result = obj.user.update_password(username, old_password, new_password)
         click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)

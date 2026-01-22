@@ -1,6 +1,3 @@
-from pymilvus import MilvusClient
-
-
 class MilvusClientDatabase:
     """
     Database operations class based on MilvusClient API
@@ -127,27 +124,49 @@ class MilvusClientDatabase:
     def describe_database(self, dbName=None):
         """
         Get database information
-        
+
         Args:
             dbName: Database name
-            
+
         Returns:
             Database information dict
         """
         try:
             client = self._get_client()
-            # For MilvusClient, describe_database may not be available
-            # Return basic information
-            database_list = client.list_databases()
-            if dbName in database_list:
-                return {
-                    "database_name": dbName,
-                    "exists": True
-                }
-            else:
-                return {
-                    "database_name": dbName,
-                    "exists": False
-                }
+            # Try to use describe_database if available
+            try:
+                result = client.describe_database(db_name=dbName)
+                return result
+            except AttributeError:
+                # Fallback: Return basic information
+                database_list = client.list_databases()
+                if dbName in database_list:
+                    return {
+                        "database_name": dbName,
+                        "exists": True
+                    }
+                else:
+                    return {
+                        "database_name": dbName,
+                        "exists": False
+                    }
         except Exception as e:
             raise Exception(f"Describe database error!{str(e)}")
+
+    def alter_database(self, dbName=None, properties=None):
+        """
+        Alter database properties
+
+        Args:
+            dbName: Database name
+            properties: Dictionary of properties to set
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.alter_database_properties(db_name=dbName, properties=properties)
+            return f"Alter database {dbName} successfully!"
+        except Exception as e:
+            raise Exception(f"Alter database error!{str(e)}")

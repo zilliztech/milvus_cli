@@ -1,6 +1,3 @@
-from pymilvus import MilvusClient
-
-
 class MilvusClientUser(object):
     """
     User operations class based on MilvusClient API

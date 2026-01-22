@@ -13,7 +13,7 @@ _global_cli_instance = None
 
 
 def get_milvus_cli_obj():
-    """Get the global MilvusClientCli instance for completion and other uses."""
+    """Get the global MilvusClientCli instance."""
     global _global_cli_instance
     if _global_cli_instance is None:
         _global_cli_instance = MilvusClientCli()

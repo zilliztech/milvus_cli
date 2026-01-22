@@ -39,7 +39,12 @@ def describe_partition(obj, collectionName, partitionName):
 
         milvus_cli > show partition -c car -p new_partition
     """
-    click.echo(obj.partition.describe_partition(collectionName, partitionName))
+    try:
+        result = obj.partition.describe_partition(collectionName, partitionName)
+        click.echo(f"Partition: {result.name}")
+        click.echo(f"Collection: {result.collection_name}")
+    except Exception as e:
+        click.echo(message=e, err=True)
 
 
 @getList.command("partitions")

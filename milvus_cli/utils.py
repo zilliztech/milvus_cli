@@ -3,7 +3,10 @@ import re
 import os
 from string import Template
 from pymilvus import __version__
-from Types import ParameterException
+try:
+    from .Types import ParameterException
+except ImportError:
+    from Types import ParameterException
 
 
 def getPackageVersion():
@@ -13,6 +16,7 @@ def getPackageVersion():
     except Exception:
         # Fallback: Read version from setup.py when package is not installed
         try:
+            # __file__ is milvus_cli/utils.py, go up 2 levels to reach root
             setup_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "setup.py")
             with open(setup_path, "r") as f:
                 content = f.read()
@@ -38,10 +42,11 @@ class Completer(object):
 
     # Static fallback dict (used if CLI not available)
     STATIC_CMDS_DICT = {
-        "grant": ["privilege", "role"],
-        "revoke": ["privilege", "role"],
+        "grant": ["privilege", "role", "privilege_group"],
+        "revoke": ["privilege", "role", "privilege_group"],
         "clear": [],
         "connect": [],
+        "disconnect": [],
         "create": [
             "alias",
             "database",
@@ -50,20 +55,27 @@ class Completer(object):
             "index",
             "user",
             "role",
+            "resource_group",
+            "privilege_group",
         ],
         "delete": [
             "alias",
             "connection_history",
             "database",
             "collection",
+            "collection_properties",
+            "connection_history",
             "entities",
             "ids",
             "partition",
             "index",
             "user",
             "role",
+            "resource_group",
+            "privilege_group",
         ],
         "exit": [],
+        "get": [],
         "help": [],
         "history": ["clear"],
         "insert": ["file", "row"],
@@ -80,15 +92,21 @@ class Completer(object):
             "roles",
             "grants",
             "bulk_insert_tasks",
+            "resource_groups",
+            "privilege_groups",
         ],
         "load": ["collection", "partition"],
         "query": [],
+        "query_iterator": [],
         "get": [],
         "release": ["collection", "partition"],
         "search": [],
+        "search_iterator": [],
+        "hybrid_search": [],
         "show": [
             "index_progress",
             "loading_progress",
+            "query_segment",
             "query_segment_info",
             "compaction_state",
             "compaction_plans",
@@ -99,6 +117,12 @@ class Completer(object):
             "bulk_insert_state",
             "replicas",
             "load_state",
+            "collection_stats",
+            "flush_state",
+            "database",
+            "user",
+            "resource_group",
+            "alias",
         ],
         "rename": ["collection"],
         "use": ["database"],
@@ -106,10 +130,16 @@ class Completer(object):
         "version": [],
         "server_version": [],
         "flush": [],
+        "flush_all": [],
         "compact": [],
         "truncate": [],
         "wait_for_loading": [],
+        "wait_for_index": [],
         "bulk_insert": [],
+        "alter": ["collection_properties", "collection_field", "database"],
+        "update": ["password", "resource_group"],
+        "transfer": ["replica"],
+        "history": [],
     }
 
     # Argument completions for specific commands
@@ -121,6 +151,7 @@ class Completer(object):
 
     def __init__(self, cli_instance=None, milvus_cli_obj=None) -> None:
         super().__init__()
+        self.cli_instance = cli_instance
         self.milvus_cli_obj = milvus_cli_obj
         self.CMDS_DICT = self._generate_cmds_dict(cli_instance)
         self.COMMANDS = list(self.CMDS_DICT.keys())
@@ -135,9 +166,10 @@ class Completer(object):
             return self.STATIC_CMDS_DICT.copy()
 
         try:
+            import click
             cmds = {}
             for name, cmd in cli_instance.commands.items():
-                if hasattr(cmd, 'commands'):
+                if isinstance(cmd, click.Group):
                     # It's a group - get subcommands
                     cmds[name] = list(cmd.commands.keys())
                 else:
@@ -273,15 +305,6 @@ class Completer(object):
         if len(res) > 1 or not (cmd in SUB_COMMANDS):
             return res
         return [cmd + " "]
-
-    # def complete_create(self, args):
-    #     "Completions for the 'create' command."
-    #     if not args:
-    #         return self._complete_path('.')
-    #     sub_cmds = ['collection', 'partition', 'index']
-    #     if len(args) <= 1:
-    #         return self._complete_2nd_level(sub_cmds, args[-1])
-    #     return self._complete_path(args[-1])
 
     def complete(self, text, state):
         "Generic readline completion entry point."
