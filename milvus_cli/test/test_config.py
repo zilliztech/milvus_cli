@@ -127,3 +127,13 @@ class TestConfig:
 
 # Global test configuration instance
 test_config = TestConfig()
+
+
+# Allow running this file directly to print configuration
+if __name__ == "__main__":
+    print("=" * 60)
+    print("Milvus CLI Unit Test Configuration")
+    print("=" * 60)
+    test_config.print_config()
+    print("\nTo change configuration, create a test.env file in this directory")
+    print("or set environment variables (see README.md for details)")
