@@ -1,5 +1,6 @@
 import pytest
 import shlex
+import os
 from click.testing import CliRunner
 
 @pytest.fixture(scope="session")
@@ -12,6 +13,11 @@ def cli_instance():
     """Get the CLI instance."""
     from milvus_cli.scripts.milvus_client_cli import cli
     return cli
+
+@pytest.fixture(scope="session")
+def milvus_uri():
+    """Get Milvus URI from environment variable or use default."""
+    return os.getenv("MILVUS_URI", "http://localhost:19530")
 
 @pytest.fixture
 def run_cmd(cli_runner, cli_instance):
@@ -26,11 +32,11 @@ def run_cmd(cli_runner, cli_instance):
 _milvus_available = None
 
 @pytest.fixture(scope="session")
-def milvus_available(cli_runner, cli_instance):
+def milvus_available(cli_runner, cli_instance, milvus_uri):
     """Check if Milvus is available (session-scoped check)."""
     global _milvus_available
     if _milvus_available is None:
-        result = cli_runner.invoke(cli_instance, ["connect", "-uri", "http://localhost:19530"])
+        result = cli_runner.invoke(cli_instance, ["connect", "-uri", milvus_uri])
         _milvus_available = result.exit_code == 0
         if _milvus_available:
             # Disconnect after check
@@ -39,7 +45,7 @@ def milvus_available(cli_runner, cli_instance):
 
 
 @pytest.fixture
-def run_connected(cli_runner, cli_instance, milvus_available):
+def run_connected(cli_runner, cli_instance, milvus_available, milvus_uri):
     """Execute CLI command with active connection.
 
     This fixture ensures the connection is established before each test
@@ -49,7 +55,7 @@ def run_connected(cli_runner, cli_instance, milvus_available):
         pytest.skip("Cannot connect to Milvus server")
 
     # Ensure we're connected before running the test
-    result = cli_runner.invoke(cli_instance, ["connect", "-uri", "http://localhost:19530"])
+    result = cli_runner.invoke(cli_instance, ["connect", "-uri", milvus_uri])
     if result.exit_code != 0:
         pytest.skip("Cannot connect to Milvus server")
 

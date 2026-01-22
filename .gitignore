@@ -132,3 +132,6 @@ dmypy.json
 
 # Git worktrees
 .worktrees/
+
+# Test reports
+TEST_REPORT_*.md
