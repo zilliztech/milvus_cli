@@ -88,7 +88,8 @@ class OutputFormatter:
 
         if isinstance(data[0], dict):
             headers = headers or list(data[0].keys())
-            rows = [list(row.values()) for row in data]
+            # Use headers to get values in consistent order, handling missing keys
+            rows = [[row.get(h, "") for h in headers] for row in data]
         else:
             rows = data
 

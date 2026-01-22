@@ -139,7 +139,6 @@ class Completer(object):
         "alter": ["collection_properties", "collection_field", "database"],
         "update": ["password", "resource_group"],
         "transfer": ["replica"],
-        "history": [],
     }
 
     # Argument completions for specific commands

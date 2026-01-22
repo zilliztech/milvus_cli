@@ -1,4 +1,3 @@
-from tabulate import tabulate
 from .helper_client_cli import show, getList, delete, cli
 import click
 import os
@@ -95,12 +94,11 @@ def connect(obj, uri, token, tlsmode, cert, save_as):
     else:
         click.echo("Connect Milvus successfully.")
         connectionInfo = obj.connection.showConnection()
-        click.echo(
-            tabulate(
-                [["Address", list(connectionInfo)[2]], ["Alias", "default"]],
-                tablefmt="pretty",
-            )
-        )
+        data = [
+            {"Property": "Address", "Value": list(connectionInfo)[2]},
+            {"Property": "Alias", "Value": "default"},
+        ]
+        click.echo(obj.formatter.format_output(data))
         # Auto-save connection to history
         conn_history = ConnectionHistory()
         conn_history.save_connection(
@@ -166,14 +164,8 @@ def connection(obj):
             else:
                 alias, _handler = conn_info[:2]
                 uri = "unknown"
-            table_data.append([alias, uri])
-        click.echo(
-            tabulate(
-                table_data,
-                headers=["Alias", "Instance"],
-                tablefmt="pretty",
-            )
-        )
+            table_data.append({"Alias": alias, "Instance": uri})
+        click.echo(obj.formatter.format_output(table_data))
     except Exception as e:
         click.echo(message=e, err=True)
 
