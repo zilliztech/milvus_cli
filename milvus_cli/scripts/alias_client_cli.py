@@ -1,4 +1,4 @@
-from .helper_client_cli import create, getList, delete
+from .helper_client_cli import create, getList, delete, show
 import click
 
 
@@ -47,7 +47,7 @@ def create_alias(
     """
     try:
         if alter:
-            result = obj.alias.alter_alias(collectionName, aliasName)
+            result = obj.alias.alter_alias(aliasName, collectionName)
         else:
             result = obj.alias.create_alias(collectionName, aliasName)
     except Exception as ce:
@@ -136,5 +136,35 @@ def delete_alias(obj, aliasName):
     """
     try:
         click.echo(obj.alias.drop_alias(aliasName))
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("alias")
+@click.option(
+    "-a",
+    "--alias-name",
+    "aliasName",
+    required=True,
+    help="The alias name to describe.",
+    type=str,
+)
+@click.pass_obj
+def show_alias(obj, aliasName):
+    """
+    Show details of an alias.
+
+    Example:
+
+      show alias -a carAlias1
+    """
+    try:
+        alias_info = obj.alias.describe_alias(aliasName)
+        if isinstance(alias_info, dict):
+            click.echo(f"Alias: {aliasName}")
+            click.echo(f"  Collection: {alias_info.get('collection_name', 'N/A')}")
+            click.echo(f"  Database: {alias_info.get('db_name', 'default')}")
+        else:
+            click.echo(alias_info)
     except Exception as e:
         click.echo(message=e, err=True)

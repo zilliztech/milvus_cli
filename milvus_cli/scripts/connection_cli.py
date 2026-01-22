@@ -1,5 +1,5 @@
 from tabulate import tabulate
-from .helper_client_cli import show, getList, delete, cli
+from .helper_cli import show, getList, delete, cli
 import click
 import os
 from ..history import ConnectionHistory

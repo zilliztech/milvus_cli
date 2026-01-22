@@ -190,8 +190,15 @@ def validateSearchParams(
     if not outputFields:
         result["output_fields"] = None
     else:
-        nameList = outputFields.replace(" ", "").split(",")
-        result["output_fields"] = nameList
+        # Clean up field names - strip brackets, quotes, and whitespace
+        raw_list = outputFields.replace(" ", "").split(",")
+        nameList = []
+        for name in raw_list:
+            # Strip brackets and quotes that user might have entered
+            name = name.strip().strip("[]'\"")
+            if name:
+                nameList.append(name)
+        result["output_fields"] = nameList if nameList else None
     if not partitionNames:
         result["partition_names"] = None
     else:
@@ -215,8 +222,15 @@ def validateQueryParams(
     if not outputFields:
         result["output_fields"] = None
     else:
-        nameList = outputFields.replace(" ", "").split(",")
-        result["output_fields"] = nameList
+        # Clean up field names - strip brackets, quotes, and whitespace
+        raw_list = outputFields.replace(" ", "").split(",")
+        nameList = []
+        for name in raw_list:
+            # Strip brackets and quotes that user might have entered
+            name = name.strip().strip("[]'\"")
+            if name:
+                nameList.append(name)
+        result["output_fields"] = nameList if nameList else None
     if not partitionNames:
         result["partition_names"] = None
     else:

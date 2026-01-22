@@ -1,3 +1,20 @@
+# Import cli and command groups from helper_client_cli to avoid duplication
+from .helper_client_cli import (
+    cli,
+    show,
+    getList,
+    rename,
+    create,
+    grant,
+    revoke,
+    load,
+    release,
+    delete,
+    use,
+    search,
+    query,
+    insert,
+)
 import sys
 import os
 import click
@@ -16,21 +33,19 @@ from Types import ConnectException, ParameterException
 
 
 def print_help_msg(command):
-    """Print help message for a command"""
     with click.Context(command) as ctx:
         click.echo(command.get_help(ctx))
 
 
-from .init_client_cli import cli
-
-
-@cli.command()
-def help():
+# Override help command to use our version
+@cli.command("help")
+def help_cmd():
     """Show help messages."""
     click.echo(print_help_msg(cli))
 
 
-@cli.command()
+# Override version command
+@cli.command("version")
 def version():
     """Get Milvus_CLI version."""
     click.echo(f"Milvus_CLI v{getPackageVersion()}")
@@ -57,7 +72,7 @@ def server_version(obj):
         click.echo(message=e, err=True)
 
 
-@cli.command()
+@cli.command("clear")
 def clear():
     """Clear screen."""
     click.clear()
@@ -127,13 +142,6 @@ def history_cmd(action):
         click.echo(f"Error reading history: {e}", err=True)
 
 
-@cli.group("show", no_args_is_help=False)
-@click.pass_obj
-def show(obj):
-    """Show connection, database, collection, loading_progress or index_progress."""
-    pass
-
-
 @show.command("output")
 @click.pass_obj
 def show_output_format(obj):
@@ -188,92 +196,29 @@ def set_output_format(obj, format):
     click.echo(f"Output format set to: {format}")
 
 
-@cli.group("list", no_args_is_help=False)
+@cli.group("alter", no_args_is_help=False)
 @click.pass_obj
-def getList(obj):
-    """List collections, databases, partitions, users, grants or indexes."""
+def alter(obj):
+    """Alter collection, database, or field properties."""
     pass
 
 
-@cli.group("rename", no_args_is_help=False)
+@cli.group("update", no_args_is_help=False)
 @click.pass_obj
-def rename(obj):
-    """Rename collection"""
+def update(obj):
+    """Update password or resource group."""
     pass
 
 
-@cli.group("create", no_args_is_help=False)
+@cli.group("transfer", no_args_is_help=False)
 @click.pass_obj
-def create(obj):
-    """Create collection, database, partition, user, role or index."""
-    pass
-
-
-@cli.group("grant", no_args_is_help=False)
-@click.pass_obj
-def grant(obj):
-    """Grant role, privilege."""
-    pass
-
-
-@cli.group("revoke", no_args_is_help=False)
-@click.pass_obj
-def revoke(obj):
-    """Revoke role, privilege."""
-    pass
-
-
-@cli.group("load", no_args_is_help=False)
-@click.pass_obj
-def load(obj):
-    """Load collection, partition"""
-    pass
-
-
-@cli.group("release", no_args_is_help=False)
-@click.pass_obj
-def release(obj):
-    """Release collection, partition"""
-    pass
-
-
-@cli.group("delete", no_args_is_help=False)
-@click.pass_obj
-def delete(obj):
-    """Delete collection, database, partition, alias, user, role or index."""
-    pass
-
-
-@cli.group("use", no_args_is_help=False)
-@click.pass_obj
-def use(obj):
-    """Use database"""
-    pass
-
-
-@cli.group("search", no_args_is_help=False)
-@click.pass_obj
-def search(obj):
-    """Similarity search"""
-    pass
-
-
-@cli.group("query", no_args_is_help=False)
-@click.pass_obj
-def query(obj):
-    """Query entities in collection."""
-    pass
-
-
-@cli.group("insert", no_args_is_help=False)
-@click.pass_obj
-def insert(obj):
-    """Insert entities"""
+def transfer(obj):
+    """Transfer replica between resource groups."""
     pass
 
 
 @cli.command("exit")
-def exit_app():
+def quit_app():
     """Exit the CLI."""
     global _quit_app
     _quit_app = True
@@ -284,23 +229,25 @@ comp = None  # Initialize later with CLI instance
 
 
 def runCliPrompt():
-    """Run CLI prompt loop"""
+    """Run CLI prompt loop with syntax highlighting and tab completion."""
     global comp, _quit_app
+
     args = sys.argv
     if args and (args[-1] == "--version"):
         print(f"Milvus_CLI v{getPackageVersion()}")
         return
+
     try:
         print(WELCOME_MSG)
 
-        # Get the shared MilvusClientCli instance
+        # Get the shared MilvusCli instance
         from .init_client_cli import get_milvus_cli_obj
         milvus_obj = get_milvus_cli_obj()
 
         # Initialize completer with CLI instance and MilvusCli object
         comp = Completer(cli_instance=cli, milvus_cli_obj=milvus_obj)
 
-        # Setup prompt_toolkit session with history and completion
+        # Setup prompt_toolkit session with history, syntax highlighting and completion
         history_path = Path.home() / ".milvus_cli_history"
         session = PromptSession(
             history=FileHistory(str(history_path)),
@@ -334,6 +281,7 @@ def runCliPrompt():
                 )
             except Exception as e:
                 click.echo(message=f"Error occurred!\n{str(e)}", err=True)
+
         print(EXIT_MSG)
     except (KeyboardInterrupt, EOFError):
         print(EXIT_MSG)

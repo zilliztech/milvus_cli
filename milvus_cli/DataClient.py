@@ -1,4 +1,3 @@
-from pymilvus import MilvusClient
 from tabulate import tabulate
 
 
@@ -102,10 +101,23 @@ class MilvusClientData:
             
             # Extract parameters
             expr = queryParameters.get("expr")
-            output_fields = queryParameters.get("output_fields", ["*"])
+            output_fields = queryParameters.get("output_fields")
             partition_names = queryParameters.get("partition_names")
             timeout = queryParameters.get("timeout")
-            
+
+            # Handle output_fields - use default if None or empty
+            if not output_fields:
+                output_fields = ["*"]
+            else:
+                # Clean up field names in case user entered brackets/quotes
+                cleaned_fields = []
+                for field in output_fields:
+                    # Strip brackets, quotes, and whitespace
+                    field = str(field).strip().strip("[]'\"")
+                    if field:
+                        cleaned_fields.append(field)
+                output_fields = cleaned_fields if cleaned_fields else ["*"]
+
             # Perform query
             result = client.query(
                 collection_name=collectionName,
@@ -166,8 +178,21 @@ class MilvusClientData:
             anns_field = searchParameters.get("anns_field")
             search_params = searchParameters.get("param", {})
             limit = searchParameters.get("limit", 10)
-            output_fields = searchParameters.get("output_fields", ["*"])
+            output_fields = searchParameters.get("output_fields")
             round_decimal = searchParameters.get("round_decimal", 4)
+
+            # Handle output_fields - use default if None or empty
+            if not output_fields:
+                output_fields = ["*"]
+            else:
+                # Clean up field names in case user entered brackets/quotes
+                cleaned_fields = []
+                for field in output_fields:
+                    # Strip brackets, quotes, and whitespace
+                    field = str(field).strip().strip("[]'\"")
+                    if field:
+                        cleaned_fields.append(field)
+                output_fields = cleaned_fields if cleaned_fields else ["*"]
             
             # Perform search
             result = client.search(
@@ -378,8 +403,8 @@ class MilvusClientData:
             Task ID
         """
         try:
-            from pymilvus import utility
-            task_id = utility.do_bulk_insert(
+            client = self._get_client()
+            task_id = client.bulk_insert(
                 collection_name=collectionName,
                 partition_name=partition_name,
                 files=files
@@ -399,8 +424,8 @@ class MilvusClientData:
             Task state
         """
         try:
-            from pymilvus import utility
-            state = utility.get_bulk_insert_state(task_id)
+            client = self._get_client()
+            state = client.get_bulk_insert_state(task_id)
             return state
         except Exception as e:
             raise Exception(f"Get bulk insert state error!{str(e)}")
@@ -417,11 +442,77 @@ class MilvusClientData:
             List of tasks
         """
         try:
-            from pymilvus import utility
-            tasks = utility.list_bulk_insert_tasks(
+            client = self._get_client()
+            tasks = client.list_bulk_insert_tasks(
                 limit=limit,
                 collection_name=collectionName
             )
             return tasks
         except Exception as e:
             raise Exception(f"List bulk insert tasks error!{str(e)}")
+
+    def hybrid_search(self, collectionName, requests, rerank, limit, output_fields=None):
+        """
+        Perform hybrid search (multi-vector search) with reranking.
+
+        Args:
+            collectionName: Collection name
+            requests: List of AnnSearchRequest objects
+            rerank: Reranker object (WeightedRanker or RRFRanker)
+            limit: Maximum number of results to return
+            output_fields: List of fields to return
+
+        Returns:
+            Formatted search results
+        """
+        try:
+            client = self._get_client()
+
+            # Handle output_fields - use default if None or empty
+            if not output_fields:
+                output_fields = ["*"]
+            else:
+                # Clean up field names in case user entered brackets/quotes
+                cleaned_fields = []
+                for field in output_fields:
+                    # Strip brackets, quotes, and whitespace
+                    field = str(field).strip().strip("[]'\"")
+                    if field:
+                        cleaned_fields.append(field)
+                output_fields = cleaned_fields if cleaned_fields else ["*"]
+
+            # Perform hybrid search using MilvusClient API
+            results = client.hybrid_search(
+                collection_name=collectionName,
+                reqs=requests,
+                ranker=rerank,
+                limit=limit,
+                output_fields=output_fields
+            )
+
+            # Format results as table
+            if results and len(results) > 0:
+                table_rows = []
+                for hit in results[0]:
+                    if isinstance(hit, dict):
+                        entity_id = hit.get("id", "N/A")
+                        distance = hit.get("distance", "N/A")
+                        fields = {k: v for k, v in hit.items() if k not in ["id", "distance"]}
+                    else:
+                        entity_id = hit.id if hasattr(hit, 'id') else "N/A"
+                        distance = hit.distance if hasattr(hit, 'distance') else "N/A"
+                        fields = hit.fields if hasattr(hit, 'fields') else {}
+                    if isinstance(distance, (int, float)):
+                        distance = round(distance, 4)
+                    table_rows.append([entity_id, distance, str(fields)])
+
+                return tabulate(
+                    table_rows,
+                    headers=["ID", "Distance", "Fields"],
+                    tablefmt="grid",
+                )
+            else:
+                return tabulate([], headers=["ID", "Distance", "Fields"], tablefmt="grid")
+
+        except Exception as e:
+            raise Exception(f"Hybrid search error! {str(e)}")

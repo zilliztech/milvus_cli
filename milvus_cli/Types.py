@@ -106,8 +106,8 @@ IndexTypesMap = {
         "search_parameters": ["search_k"],
     },
     "AUTOINDEX": {
-        "index_building_parameters": [],
-        "search_parameters": [],
+        "index_building_parameters": ["level"],
+        "search_parameters": ["level"],
     },
     "DISKANN": {
         "index_building_parameters": [],
