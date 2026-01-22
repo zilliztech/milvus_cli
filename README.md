@@ -52,23 +52,24 @@ milvus_cli/
 │   ├── user_cli.py      # User-related commands
 │   ├── alias_cli.py     # Alias-related commands
 │   └── helper_cli.py    # Helper commands
-└── test/                # Unit tests
+├── test/                # Unit tests (internal APIs)
+│   ├── test_config.py
+│   ├── test_connection_client.py
+│   ├── test_collection_client.py
+│   └── ...
+└── tests/               # Integration tests (CLI commands)
+    ├── conftest.py
     ├── test_connection.py
     ├── test_collection.py
-    ├── test_database.py
-    ├── test_index.py
-    ├── test_partition.py
-    ├── test_data.py
-    ├── test_role.py
-    ├── test_user.py
-    └── test_alias.py
+    └── ...
 ```
 
 ### Core Components
 
 - **Core Modules**: Implement the main functionality logic of Milvus CLI, each module handles specific Milvus feature domains
 - **scripts/**: Contains all CLI command implementations, providing user interaction interfaces
-- **test/**: Complete unit test suite ensuring code quality and functionality correctness
+- **milvus_cli/test/**: Unit tests for internal Python modules and classes
+- **tests/**: Integration tests for CLI commands and user interface
 
 ## Installation methods
 
@@ -109,6 +110,39 @@ Run `milvus_cli` (in a Python environment) or double click `milvus_cli-<version>
 ### Document
 
 https://milvus.io/docs/cli_commands.md
+
+## Testing
+
+This project has two types of tests:
+
+### Integration Tests (CLI Commands)
+
+Test the command-line interface and user experience.
+
+```bash
+# Run all integration tests
+source venv/bin/activate
+python run_tests.py --uri http://localhost:19530
+
+# Or use pytest directly
+MILVUS_URI=http://localhost:19530 pytest tests/ -v
+```
+
+See [TESTING.md](TESTING.md) for detailed guide.
+
+### Unit Tests (Internal APIs)
+
+Test Python modules and classes directly.
+
+```bash
+# Run all unit tests
+python -m unittest discover milvus_cli/test
+
+# Run specific test
+python -m unittest milvus_cli.test.test_connection_client
+```
+
+See [milvus_cli/test/README.md](milvus_cli/test/README.md) for configuration details.
 
 ## Community
 
