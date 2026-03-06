@@ -216,34 +216,20 @@ class MilvusClientPartition(object):
     def get_partition_stats(self, collectionName, partitionName):
         """
         Get partition statistics
-        
+
         Args:
             collectionName: Collection name
             partitionName: Partition name
-            
+
         Returns:
             Partition statistics
         """
         try:
             client = self._get_client()
-            
-            # Get partition statistics using MilvusClient API
-            # Note: MilvusClient may not have direct partition stats API
-            # We can get collection stats and estimate partition stats
-            try:
-                stats = client.get_collection_stats(collection_name=collectionName)
-                # For partition stats, we return a simulated result
-                return {
-                    "partition_name": partitionName,
-                    "collection_name": collectionName,
-                    "row_count": "Unknown"  # MilvusClient doesn't provide partition-specific stats
-                }
-            except:
-                return {
-                    "partition_name": partitionName,
-                    "collection_name": collectionName,
-                    "row_count": "Unknown"
-                }
-                
+            stats = client.get_partition_stats(
+                collection_name=collectionName,
+                partition_name=partitionName
+            )
+            return stats
         except Exception as e:
             raise Exception(f"Get partition stats error!{str(e)}")

@@ -32,6 +32,12 @@ class TestUserRole:
         output, code = run_connected("list roles")
         assert code == 0
 
+    def test_show_role(self, run_connected):
+        """Test show role command."""
+        output, code = run_connected("show role -r admin")
+        assert code == 0
+        assert "admin" in output
+
     def test_create_and_delete_role(self, run_connected, unique_name):
         """Test create and delete role."""
         role_name = f"role_{unique_name}"

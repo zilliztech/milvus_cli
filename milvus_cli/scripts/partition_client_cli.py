@@ -91,6 +91,26 @@ def load_partition(obj, collectionName, partitionName):
     click.echo(obj.partition.load_partition(collectionName, partitionName))
 
 
+@show.command("partition_stats")
+@click.option("-c", "--collection-name", "collectionName", help="Collection name.", required=True)
+@click.option("-p", "--partition", "partitionName", help="The name of partition.", required=True)
+@click.pass_obj
+def show_partition_stats(obj, collectionName, partitionName):
+    """
+    Show partition statistics.
+
+    Example:
+
+        milvus_cli > show partition_stats -c car -p _default
+    """
+    try:
+        stats = obj.partition.get_partition_stats(collectionName, partitionName)
+        click.echo(f"Partition Statistics for '{partitionName}' in '{collectionName}':")
+        click.echo(stats)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
 @release.command("partition")
 @click.option("-c", "--collection-name", "collectionName", help="Collection name.")
 @click.option("-p", "--partition", "partitionName", help="The name of partition.")

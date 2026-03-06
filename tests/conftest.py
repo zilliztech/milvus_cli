@@ -19,6 +19,11 @@ def milvus_uri():
     """Get Milvus URI from environment variable or use default."""
     return os.getenv("MILVUS_URI", "http://localhost:19530")
 
+@pytest.fixture(scope="session")
+def milvus_token():
+    """Get Milvus token from environment variable."""
+    return os.getenv("MILVUS_TOKEN") or os.getenv("ZILLIZ_TOKEN")
+
 @pytest.fixture
 def run_cmd(cli_runner, cli_instance):
     """Execute CLI command, return (output, exit_code)."""
@@ -32,11 +37,14 @@ def run_cmd(cli_runner, cli_instance):
 _milvus_available = None
 
 @pytest.fixture(scope="session")
-def milvus_available(cli_runner, cli_instance, milvus_uri):
+def milvus_available(cli_runner, cli_instance, milvus_uri, milvus_token):
     """Check if Milvus is available (session-scoped check)."""
     global _milvus_available
     if _milvus_available is None:
-        result = cli_runner.invoke(cli_instance, ["connect", "-uri", milvus_uri])
+        connect_args = ["connect", "-uri", milvus_uri]
+        if milvus_token:
+            connect_args += ["-t", milvus_token]
+        result = cli_runner.invoke(cli_instance, connect_args)
         _milvus_available = result.exit_code == 0
         if _milvus_available:
             # Disconnect after check
@@ -45,7 +53,7 @@ def milvus_available(cli_runner, cli_instance, milvus_uri):
 
 
 @pytest.fixture
-def run_connected(cli_runner, cli_instance, milvus_available, milvus_uri):
+def run_connected(cli_runner, cli_instance, milvus_available, milvus_uri, milvus_token):
     """Execute CLI command with active connection.
 
     This fixture ensures the connection is established before each test
@@ -55,7 +63,10 @@ def run_connected(cli_runner, cli_instance, milvus_available, milvus_uri):
         pytest.skip("Cannot connect to Milvus server")
 
     # Ensure we're connected before running the test
-    result = cli_runner.invoke(cli_instance, ["connect", "-uri", milvus_uri])
+    connect_args = ["connect", "-uri", milvus_uri]
+    if milvus_token:
+        connect_args += ["-t", milvus_token]
+    result = cli_runner.invoke(cli_instance, connect_args)
     if result.exit_code != 0:
         pytest.skip("Cannot connect to Milvus server")
 

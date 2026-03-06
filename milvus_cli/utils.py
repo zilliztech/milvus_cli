@@ -123,6 +123,8 @@ class Completer(object):
             "user",
             "resource_group",
             "alias",
+            "partition_stats",
+            "role",
         ],
         "rename": ["collection"],
         "use": ["database"],

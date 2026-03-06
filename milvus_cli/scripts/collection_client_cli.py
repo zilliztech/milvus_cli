@@ -894,6 +894,38 @@ def show_collection_stats(obj, collectionName):
         click.echo(message=e, err=True)
 
 
+@cli.command("truncate")
+@click.option(
+    "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
+)
+@click.option(
+    "--yes", "-y",
+    is_flag=True,
+    help="Skip confirmation prompt",
+)
+@click.pass_obj
+def truncate_collection(obj, collectionName, yes):
+    """
+    Truncate collection - remove all data but keep schema.
+
+    Example:
+
+        milvus_cli > truncate -c test_collection
+        milvus_cli > truncate -c test_collection --yes
+    """
+    if not yes:
+        click.echo(
+            "Warning!\nYou are trying to remove all data in the collection. This action cannot be undone!\n"
+        )
+        if not click.confirm("Do you want to continue?"):
+            return
+    try:
+        result = obj.collection.truncate_collection(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
 @cli.command("flush_all")
 @click.option(
     "-t",
