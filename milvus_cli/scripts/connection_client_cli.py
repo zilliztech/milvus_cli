@@ -94,10 +94,9 @@ def connect(obj, uri, token, tlsmode, cert, save_as):
         click.echo(message=e, err=True)
     else:
         click.echo("Connect Milvus successfully.")
-        connectionInfo = obj.connection.showConnection()
         click.echo(
             tabulate(
-                [["Address", list(connectionInfo)[2]], ["Alias", "default"]],
+                [["Address", uri], ["Alias", "default"]],
                 tablefmt="pretty",
             )
         )
