@@ -67,6 +67,11 @@ class TestPartition:
         output, code = run_connected(f"show partition -c {test_collection_for_partition} -p _default")
         assert code == 0
 
+    def test_show_partition_stats(self, test_collection_for_partition, run_connected):
+        """Test show partition_stats command."""
+        output, code = run_connected(f"show partition_stats -c {test_collection_for_partition} -p _default")
+        assert code == 0
+
     @pytest.mark.skip(reason="Loading partition requires an index, and create index command is interactive only")
     def test_load_and_release_partition(self, test_collection_for_partition, run_connected):
         """Test load and release partition.

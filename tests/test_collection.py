@@ -122,6 +122,11 @@ class TestCollection:
         output, code = run_connected(f"flush -c {test_collection}")
         assert code == 0
 
+    def test_truncate_collection(self, test_collection, run_connected):
+        """Test truncate command."""
+        output, code = run_connected(f"truncate -c {test_collection} --yes")
+        assert code == 0
+
     def test_flush_all(self, run_connected):
         """Test flush_all command."""
         output, code = run_connected("flush_all")

@@ -708,6 +708,24 @@ Fields(* is the primary field):{field_details}"""
         except Exception as e:
             raise Exception(f"Alter collection field error!{str(e)}")
 
+    def truncate_collection(self, collectionName, timeout=None):
+        """
+        Truncate collection - remove all data but keep schema
+
+        Args:
+            collectionName: Collection name
+            timeout: Optional timeout
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.truncate_collection(collection_name=collectionName, timeout=timeout)
+            return f"Truncate collection {collectionName} successfully!"
+        except Exception as e:
+            raise Exception(f"Truncate collection error!{str(e)}")
+
     def get_flush_state(self, collectionName, timeout=None):
         """
         Get flush state of collection

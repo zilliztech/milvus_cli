@@ -1,4 +1,4 @@
-from .helper_client_cli import create, getList, delete, grant, revoke
+from .helper_client_cli import create, getList, delete, grant, revoke, show
 import click
 import os
 import sys
@@ -163,6 +163,35 @@ def revoke_privilege(obj):
         )
         obj.role.revokePrivilege(roleName, objectName, objectType, privilege, dbName)
         obj.role.listGrants(roleName, objectName, objectType)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@show.command("role")
+@click.option("-r", "--roleName", "roleName", help="The role name.", required=True)
+@click.pass_obj
+def describe_role(obj, roleName):
+    """
+    Show role details and granted privileges.
+
+    Example:
+
+        milvus_cli > show role -r admin
+    """
+    try:
+        role_info = obj.role.describeRole(roleName)
+        click.echo(f"Role: {roleName}")
+        privileges = role_info.get('privileges', [])
+        if privileges:
+            click.echo("Privileges:")
+            for priv in privileges:
+                obj_type = priv.get('object_type', '')
+                obj_name = priv.get('object_name', '')
+                privilege = priv.get('privilege', '')
+                db_name = priv.get('db_name', 'default')
+                click.echo(f"  - {privilege} on {obj_type}:{obj_name} (db: {db_name})")
+        else:
+            click.echo("Privileges: (none)")
     except Exception as e:
         click.echo(message=e, err=True)
 
