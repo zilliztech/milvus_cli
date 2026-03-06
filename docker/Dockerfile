@@ -1,6 +1,6 @@
-From python:3.8-slim
+FROM python:3.11-slim
 
-RUN pip install milvus-cli==1.0.2
-RUN pip3 install protobuf==3.20.0 
+ARG VERSION
+RUN pip install --no-cache-dir milvus-cli==${VERSION}
 
 ENTRYPOINT ["milvus_cli"]
