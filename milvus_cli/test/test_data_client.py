@@ -42,7 +42,7 @@ class TestDataClient(unittest.TestCase):
         try:
             if collection.has_collection(collectionName):
                 collection.drop_collection(collectionName)
-        except:
+        except Exception:
             pass
 
         # Create test collection

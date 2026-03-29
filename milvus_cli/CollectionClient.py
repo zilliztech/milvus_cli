@@ -1,41 +1,21 @@
+from __future__ import annotations
+
+from typing import Any
+
 from pymilvus import MilvusClient, DataType
 from tabulate import tabulate
-from Types import DataTypeByNum
+try:
+    from .BaseClient import BaseMilvusClient
+    from .Types import DataTypeByNum
+    from .utils import safe_int
+except ImportError:
+    from BaseClient import BaseMilvusClient
+    from Types import DataTypeByNum
+    from utils import safe_int
 
 
-class MilvusClientCollection(object):
-    """
-    Collection operations class based on MilvusClient API
-    Used to replace the original Collection operations based on ORM API
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize Collection client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
-
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+class MilvusClientCollection(BaseMilvusClient):
+    """Collection operations based on MilvusClient API."""
 
     def create_collection(
         self,
@@ -166,7 +146,7 @@ class MilvusClientCollection(object):
             return self.get_collection_details(collectionName=collectionName)
             
         except Exception as e:
-            raise Exception(f"Create collection error!{str(e)}")
+            raise RuntimeError(f"Create collection error: {e}") from e
 
     def list_collections(self):
         """
@@ -179,7 +159,7 @@ class MilvusClientCollection(object):
             client = self._get_client()
             return client.list_collections()
         except Exception as e:
-            raise Exception(f"List collection error!{str(e)}")
+            raise RuntimeError(f"List collection error: {e}") from e
 
     def drop_collection(self, collectionName=None):
         """
@@ -196,7 +176,7 @@ class MilvusClientCollection(object):
             client.drop_collection(collection_name=collectionName)
             return f"Drop collection {collectionName} successfully!"
         except Exception as e:
-            raise Exception(f"Delete collection error!{str(e)}")
+            raise RuntimeError(f"Delete collection error: {e}") from e
 
     def has_collection(self, collectionName=None):
         """
@@ -212,7 +192,7 @@ class MilvusClientCollection(object):
             client = self._get_client()
             return client.has_collection(collection_name=collectionName)
         except Exception as e:
-            raise Exception(f"Has collection error!{str(e)}")
+            raise RuntimeError(f"Has collection error: {e}") from e
 
     def load_collection(self, collectionName=None):
         """
@@ -229,7 +209,7 @@ class MilvusClientCollection(object):
             client.load_collection(collection_name=collectionName)
             return f"Load collection {collectionName} successfully!"
         except Exception as e:
-            raise Exception(f"Load collection error!{str(e)}")
+            raise RuntimeError(f"Load collection error: {e}") from e
 
     def release_collection(self, collectionName=None):
         """
@@ -246,7 +226,7 @@ class MilvusClientCollection(object):
             client.release_collection(collection_name=collectionName)
             return f"Release collection {collectionName} successfully!"
         except Exception as e:
-            raise Exception(f"Release collection error!{str(e)}")
+            raise RuntimeError(f"Release collection error: {e}") from e
 
     def rename_collection(self, collectionName=None, newName=None):
         """
@@ -267,7 +247,7 @@ class MilvusClientCollection(object):
             )
             return f"Rename collection {collectionName} to {newName} successfully!"
         except Exception as e:
-            raise Exception(f"Rename collection error!{str(e)}")
+            raise RuntimeError(f"Rename collection error: {e}") from e
 
     def get_collection_details(self, collectionName=""):
         """
@@ -295,25 +275,10 @@ class MilvusClientCollection(object):
             # Get statistics
             try:
                 stats = client.get_collection_stats(collection_name=collectionName)
-                raw_count = stats.get("row_count", 0)
-                
-                # Handle cases where row_count might be string 'null' or other unexpected values
-                if isinstance(raw_count, str):
-                    if raw_count.lower() == 'null' or raw_count == '':
-                        entity_count = 0
-                    else:
-                        try:
-                            entity_count = int(raw_count)
-                        except ValueError:
-                            entity_count = 0
-                else:
-                    entity_count = raw_count if raw_count is not None else 0
-                
+                entity_count = safe_int(stats.get("row_count", 0))
                 rows.append(["Entities", entity_count])
                 rows.append(["Is Empty", entity_count == 0])
-            except Exception as e:
-                # More detailed error handling for debugging
-                print(f"Debug: Error getting collection stats: {e}")
+            except Exception:
                 rows.append(["Entities", "Unknown"])
                 rows.append(["Is Empty", "Unknown"])
             
@@ -367,55 +332,35 @@ Fields(* is the primary field):{field_details}"""
             
             rows.append(["Schema", schema_details])
             
-            # Partition information (MilvusClient API may need to get separately)
+            # Partition information
             try:
                 partitions = client.list_partitions(collection_name=collectionName)
                 partition_details = "  - " + "\n- ".join(partitions)
                 rows.append(["Partitions", partition_details])
-            except:
+            except Exception:
                 rows.append(["Partitions", "  - _default"])
             
-            # Index information (MilvusClient API may need to get separately)
+            # Index information
             try:
                 indexes = client.list_indexes(collection_name=collectionName)
                 index_details = "  - " + "\n- ".join(indexes) if indexes else "  - No indexes"
                 rows.append(["Indexes", index_details])
-            except:
+            except Exception:
                 rows.append(["Indexes", "  - Unknown"])
             
             return tabulate(rows, tablefmt="grid")
             
         except Exception as e:
-            raise Exception(f"Get collection detail error!{str(e)}")
+            raise RuntimeError(f"Get collection detail error: {e}") from e
 
-    def get_entities_count(self, collectionName):
-        """
-        Get entity count in Collection
-        
-        Args:
-            collectionName: Collection name
-            
-        Returns:
-            int: Entity count
-        """
+    def get_entities_count(self, collectionName: str) -> int:
+        """Get entity count in Collection."""
         try:
             client = self._get_client()
             stats = client.get_collection_stats(collection_name=collectionName)
-            raw_count = stats.get("row_count", 0)
-            
-            # Handle cases where row_count might be string 'null' or other unexpected values
-            if isinstance(raw_count, str):
-                if raw_count.lower() == 'null' or raw_count == '':
-                    return None
-                else:
-                    try:
-                        return int(raw_count)
-                    except ValueError:
-                        return None
-        
-            return raw_count if raw_count is not None else 0
+            return safe_int(stats.get("row_count", 0))
         except Exception as e:
-            raise Exception(f"Get entities count error!{str(e)}")
+            raise RuntimeError(f"Get entities count error: {e}") from e
 
     def get_collection_stats(self, collectionName):
         """
@@ -432,7 +377,7 @@ Fields(* is the primary field):{field_details}"""
             stats = client.get_collection_stats(collection_name=collectionName)
             return stats
         except Exception as e:
-            raise Exception(f"Get collection stats error!{str(e)}")
+            raise RuntimeError(f"Get collection stats error: {e}") from e
 
     def flush_all(self, timeout=None):
         """
@@ -449,26 +394,16 @@ Fields(* is the primary field):{field_details}"""
             client.flush_all(timeout=timeout)
             return "Flush all collections successfully!"
         except Exception as e:
-            raise Exception(f"Flush all error!{str(e)}")
+            raise RuntimeError(f"Flush all error: {e}") from e
 
-    def show_loading_progress(self, collectionName=None):
-        """
-        Show loading progress
-        
-        Args:
-            collectionName: Collection name
-            
-        Returns:
-            Loading progress information
-        """
+    def show_loading_progress(self, collectionName: str | None = None) -> dict[str, Any]:
+        """Show loading progress for a collection."""
         try:
             client = self._get_client()
-            # MilvusClient API may not have direct loading progress interface
-            # Here return a simple status check
-            stats = client.get_collection_stats(collection_name=collectionName)
-            return {"loading_progress": "100%", "loaded_partitions": ["_default"]}
+            state = client.get_load_state(collection_name=collectionName)
+            return {"load_state": state, "collection_name": collectionName}
         except Exception as e:
-            raise Exception(f"Show loading progress error!{str(e)}")
+            raise RuntimeError(f"Show loading progress error: {e}") from e
 
     def list_field_names(self, collectionName):
         """
@@ -486,7 +421,7 @@ Fields(* is the primary field):{field_details}"""
             fields = collection_info.get("fields", [])
             return [field.get("name", "") for field in fields]
         except Exception as e:
-            raise Exception(f"List field names error!{str(e)}")
+            raise RuntimeError(f"List field names error: {e}") from e
 
     def list_fields_info(self, collectionName):
         """
@@ -522,7 +457,7 @@ Fields(* is the primary field):{field_details}"""
             
             return result
         except Exception as e:
-            raise Exception(f"List fields info error!{str(e)}")
+            raise RuntimeError(f"List fields info error: {e}") from e
 
     def flush(self, collectionName, timeout=None):
         """
@@ -540,7 +475,7 @@ Fields(* is the primary field):{field_details}"""
             client.flush(collection_name=collectionName, timeout=timeout)
             return f"Flush collection {collectionName} successfully!"
         except Exception as e:
-            raise Exception(f"Flush collection error!{str(e)}")
+            raise RuntimeError(f"Flush collection error: {e}") from e
 
     def compact(self, collectionName, timeout=None):
         """
@@ -562,7 +497,7 @@ Fields(* is the primary field):{field_details}"""
                 "compaction_id": compaction_id
             }
         except Exception as e:
-            raise Exception(f"Compact collection error!{str(e)}")
+            raise RuntimeError(f"Compact collection error: {e}") from e
 
     def get_compaction_state(self, compactionId, timeout=None):
         """
@@ -580,7 +515,7 @@ Fields(* is the primary field):{field_details}"""
             state = client.get_compaction_state(job_id=compactionId, timeout=timeout)
             return state
         except Exception as e:
-            raise Exception(f"Get compaction state error!{str(e)}")
+            raise RuntimeError(f"Get compaction state error: {e}") from e
 
     def get_compaction_plans(self, collectionName, compactionId, timeout=None):
         """
@@ -599,7 +534,7 @@ Fields(* is the primary field):{field_details}"""
             plans = client.get_compaction_plans(job_id=compactionId, timeout=timeout)
             return plans
         except Exception as e:
-            raise Exception(f"Get compaction plans error!{str(e)}")
+            raise RuntimeError(f"Get compaction plans error: {e}") from e
 
     def get_replicas(self, collectionName, timeout=None):
         """
@@ -620,7 +555,7 @@ Fields(* is the primary field):{field_details}"""
             )
             return replicas
         except Exception as e:
-            raise Exception(f"Get replicas error!{str(e)}")
+            raise RuntimeError(f"Get replicas error: {e}") from e
 
     def load_state(self, collectionName, partitionName=None):
         """
@@ -641,7 +576,7 @@ Fields(* is the primary field):{field_details}"""
             )
             return state
         except Exception as e:
-            raise Exception(f"Get load state error!{str(e)}")
+            raise RuntimeError(f"Get load state error: {e}") from e
 
     def alter_collection_properties(self, collectionName, properties):
         """
@@ -662,7 +597,7 @@ Fields(* is the primary field):{field_details}"""
             )
             return f"Alter collection {collectionName} properties successfully!"
         except Exception as e:
-            raise Exception(f"Alter collection properties error!{str(e)}")
+            raise RuntimeError(f"Alter collection properties error: {e}") from e
 
     def drop_collection_properties(self, collectionName, property_keys):
         """
@@ -683,7 +618,7 @@ Fields(* is the primary field):{field_details}"""
             )
             return f"Drop collection {collectionName} properties successfully!"
         except Exception as e:
-            raise Exception(f"Drop collection properties error!{str(e)}")
+            raise RuntimeError(f"Drop collection properties error: {e}") from e
 
     def alter_collection_field(self, collectionName, fieldName, field_params):
         """
@@ -706,7 +641,7 @@ Fields(* is the primary field):{field_details}"""
             )
             return f"Alter field {fieldName} in collection {collectionName} successfully!"
         except Exception as e:
-            raise Exception(f"Alter collection field error!{str(e)}")
+            raise RuntimeError(f"Alter collection field error: {e}") from e
 
     def truncate_collection(self, collectionName, timeout=None):
         """
@@ -724,7 +659,7 @@ Fields(* is the primary field):{field_details}"""
             client.truncate_collection(collection_name=collectionName, timeout=timeout)
             return f"Truncate collection {collectionName} successfully!"
         except Exception as e:
-            raise Exception(f"Truncate collection error!{str(e)}")
+            raise RuntimeError(f"Truncate collection error: {e}") from e
 
     def get_flush_state(self, collectionName, timeout=None):
         """
@@ -751,4 +686,4 @@ Fields(* is the primary field):{field_details}"""
             except Exception:
                 return {"flushed": True, "collection_name": collectionName}
         except Exception as e:
-            raise Exception(f"Get flush state error!{str(e)}")
+            raise RuntimeError(f"Get flush state error: {e}") from e

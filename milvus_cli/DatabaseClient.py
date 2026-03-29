@@ -1,36 +1,13 @@
-class MilvusClientDatabase:
-    """
-    Database operations class based on MilvusClient API
-    Used to replace the original Database operations based on ORM API
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize Database client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
+from __future__ import annotations
 
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+try:
+    from .BaseClient import BaseMilvusClient
+except ImportError:
+    from BaseClient import BaseMilvusClient
+
+
+class MilvusClientDatabase(BaseMilvusClient):
+    """Database operations based on MilvusClient API."""
 
     def create_database(self, dbName=None):
         """
@@ -47,7 +24,7 @@ class MilvusClientDatabase:
             client.create_database(db_name=dbName)
             return f"Create database {dbName} successfully!"
         except Exception as e:
-            raise Exception(f"Create database error!{str(e)}")
+            raise RuntimeError(f"Create database error: {e}") from e
 
     def list_databases(self):
         """
@@ -60,7 +37,7 @@ class MilvusClientDatabase:
             client = self._get_client()
             return client.list_databases()
         except Exception as e:
-            raise Exception(f"List database error!{str(e)}")
+            raise RuntimeError(f"List database error: {e}") from e
 
     def drop_database(self, dbName=None):
         """
@@ -85,7 +62,7 @@ class MilvusClientDatabase:
             client.drop_database(db_name=dbName)
             return f"Drop database {dbName} successfully!"
         except Exception as e:
-            raise Exception(f"Drop database error!{str(e)}")
+            raise RuntimeError(f"Drop database error: {e}") from e
 
     def using_database(self, dbName=None):
         """
@@ -102,7 +79,7 @@ class MilvusClientDatabase:
             client.using_database(db_name=dbName)
             return f"Using database {dbName} successfully!"
         except Exception as e:
-            raise Exception(f"Using database error!{str(e)}")
+            raise RuntimeError(f"Using database error: {e}") from e
 
     def has_database(self, dbName=None):
         """
@@ -119,7 +96,7 @@ class MilvusClientDatabase:
             database_list = client.list_databases()
             return dbName in database_list
         except Exception as e:
-            raise Exception(f"Check database existence error!{str(e)}")
+            raise RuntimeError(f"Check database existence error: {e}") from e
 
     def describe_database(self, dbName=None):
         """
@@ -151,7 +128,7 @@ class MilvusClientDatabase:
                         "exists": False
                     }
         except Exception as e:
-            raise Exception(f"Describe database error!{str(e)}")
+            raise RuntimeError(f"Describe database error: {e}") from e
 
     def alter_database(self, dbName=None, properties=None):
         """
@@ -169,4 +146,4 @@ class MilvusClientDatabase:
             client.alter_database_properties(db_name=dbName, properties=properties)
             return f"Alter database {dbName} successfully!"
         except Exception as e:
-            raise Exception(f"Alter database error!{str(e)}")
+            raise RuntimeError(f"Alter database error: {e}") from e

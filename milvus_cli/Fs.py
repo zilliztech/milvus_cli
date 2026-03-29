@@ -1,4 +1,7 @@
-from Types import ParameterException
+try:
+    from .Types import ParameterException
+except ImportError:
+    from Types import ParameterException
 import os
 
 

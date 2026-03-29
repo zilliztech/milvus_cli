@@ -1,5 +1,8 @@
 from pymilvus import MilvusClient
-from Types import ConnectException
+try:
+    from .Types import ConnectException
+except ImportError:
+    from Types import ConnectException
 
 
 class MilvusClientConnection(object):
@@ -67,7 +70,7 @@ class MilvusClientConnection(object):
             
         except Exception as e:
             self._is_connected = False
-            raise ConnectException(f"Connect to Milvus error!{str(e)}")
+            raise ConnectException(f"Connect to Milvus error: {e}") from e
 
     def get_client(self):
         """
@@ -102,7 +105,7 @@ class MilvusClientConnection(object):
             return [self.uri, self.alias, self.uri]
             
         except Exception as e:
-            raise Exception(f"Show connection error!{str(e)}")
+            raise RuntimeError(f"Show connection error: {e}") from e
 
     def disconnect(self):
         """
@@ -122,7 +125,7 @@ class MilvusClientConnection(object):
             return f"Disconnect from {self.alias} successfully!"
 
         except Exception as e:
-            raise Exception(f"Disconnect from {self.alias} error!{str(e)}")
+            raise RuntimeError(f"Disconnect from {self.alias} error: {e}") from e
 
     def is_connected(self):
         """

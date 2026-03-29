@@ -27,31 +27,40 @@ milvus_cli/
 ├── Core Modules
 │   ├── main.py          # Main entry point
 │   ├── Cli.py           # CLI command interface
-│   ├── Connection.py    # Milvus connection management
-│   ├── Collection.py    # Collection operations
-│   ├── Database.py      # Database management
-│   ├── Index.py         # Index management
-│   ├── Partition.py     # Partition management
-│   ├── Data.py          # Data import/export
-│   ├── Role.py          # Role management
-│   ├── User.py          # User management
-│   ├── Alias.py         # Alias management
-│   ├── Fs.py            # File system operations
-│   ├── Types.py         # Data type definitions
-│   ├── utils.py         # Utility functions
-│   └── Validation.py    # Input validation
+│   ├── BaseClient.py    # Base class for all client modules
+│   ├── ConnectionClient.py # Milvus connection management
+│   ├── CollectionClient.py # Collection operations
+│   ├── DatabaseClient.py   # Database management
+│   ├── IndexClient.py      # Index management
+│   ├── PartitionClient.py  # Partition management
+│   ├── DataClient.py       # Data import/export/search
+│   ├── RoleClient.py       # Role management
+│   ├── UserClient.py       # User management
+│   ├── AliasClient.py      # Alias management
+│   ├── ResourceGroup.py    # Resource group management
+│   ├── PrivilegeGroup.py   # Privilege group management
+│   ├── CliClient.py        # Main CLI client (aggregates all modules)
+│   ├── OutputFormatter.py  # Output formatting (table/json/csv)
+│   ├── Fs.py               # File system operations
+│   ├── Types.py            # Data type definitions
+│   ├── utils.py            # Utility functions
+│   └── Validation.py       # Input validation
 ├── scripts/             # CLI command implementations
 │   ├── milvus_cli.py    # Main CLI script
-│   ├── connection_cli.py # Connection-related commands
-│   ├── collection_cli.py # Collection-related commands
-│   ├── database_cli.py  # Database-related commands
-│   ├── index_cli.py     # Index-related commands
-│   ├── partition_cli.py # Partition-related commands
-│   ├── data_cli.py      # Data-related commands
-│   ├── role_cli.py      # Role-related commands
-│   ├── user_cli.py      # User-related commands
-│   ├── alias_cli.py     # Alias-related commands
-│   └── helper_cli.py    # Helper commands
+│   ├── init_client_cli.py # CLI initialization and global state
+│   ├── helper_client_cli.py # REPL loop, command groups, output settings
+│   ├── helper_cli.py    # Help, version, history commands
+│   ├── connection_client_cli.py # Connection commands
+│   ├── collection_client_cli.py # Collection commands
+│   ├── database_client_cli.py  # Database commands
+│   ├── index_client_cli.py     # Index commands
+│   ├── partition_client_cli.py # Partition commands
+│   ├── data_client_cli.py      # Data commands
+│   ├── role_client_cli.py      # Role commands
+│   ├── user_client_cli.py      # User commands
+│   ├── alias_client_cli.py     # Alias commands
+│   ├── resource_group_cli.py   # Resource group commands
+│   └── privilege_group_cli.py  # Privilege group commands
 ├── test/                # Unit tests (internal APIs)
 │   ├── test_config.py
 │   ├── test_connection_client.py

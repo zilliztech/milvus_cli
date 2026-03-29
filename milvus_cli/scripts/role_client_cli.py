@@ -1,14 +1,7 @@
 from .helper_client_cli import create, getList, delete, grant, revoke, show
 import click
-import os
-import sys
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-
-from Types import Privileges
-
+from ..Types import Privileges
 
 @create.command("role")
 @click.option("-r", "--roleName", "roleName", help="The role name of milvus role.")
@@ -27,7 +20,6 @@ def create_role(obj, roleName):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @getList.command("roles")
 @click.pass_obj
 def list_roles(obj):
@@ -40,7 +32,6 @@ def list_roles(obj):
         obj.role.listRoles()
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @delete.command("role")
 @click.option("-r", "--roleName", "roleName", help="The role name of milvus role.")
@@ -59,7 +50,6 @@ def drop_role(obj, roleName):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @grant.command("role")
 @click.option("-r", "--roleName", "roleName", help="The role name of milvus role.")
 @click.option("-u", "--username", "username", help="The username of milvus user.")
@@ -77,7 +67,6 @@ def add_role_users(obj, roleName, username):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @revoke.command("role")
 @click.option("-r", "--roleName", "roleName", help="The role name of milvus role.")
 @click.option("-u", "--username", "username", help="The username of milvus user.")
@@ -94,7 +83,6 @@ def drop_role_users(obj, roleName, username):
         obj.role.revokeRole(roleName, username)
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @grant.command("privilege")
 @click.pass_obj
@@ -131,7 +119,6 @@ def grant_privilege(obj):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @revoke.command("privilege")
 @click.pass_obj
 def revoke_privilege(obj):
@@ -166,7 +153,6 @@ def revoke_privilege(obj):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("role")
 @click.option("-r", "--roleName", "roleName", help="The role name.", required=True)
 @click.pass_obj
@@ -194,7 +180,6 @@ def describe_role(obj, roleName):
             click.echo("Privileges: (none)")
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @getList.command("grants")
 @click.option("-r", "--roleName", "roleName", help="The role name of milvus role.")

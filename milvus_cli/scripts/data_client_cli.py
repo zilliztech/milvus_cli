@@ -1,21 +1,14 @@
 from .helper_client_cli import delete, insert, cli, show, getList
 
 import click
-import os
-import sys
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-
-from Validation import validateQueryParams, validateSearchParams
-from Types import ParameterException, IndexTypesMap, DataTypeByNum
-from Fs import readCsvFile
+from ..Validation import validateQueryParams, validateSearchParams
+from ..Types import ParameterException, IndexTypesMap, DataTypeByNum
+from ..Fs import readCsvFile
 import json
 import ast
 from tabulate import tabulate
 from pymilvus import DataType
-
 
 @delete.command("entities")
 @click.option("-c", "--collection-name", "collectionName", help="Collection name.")
@@ -72,7 +65,6 @@ def delete_entities(
         return
     result = obj.data.delete_entities(expr, collectionName, partitionName)
     click.echo(result)
-
 
 @cli.command("query")
 @click.pass_obj
@@ -154,7 +146,6 @@ def query(obj):
         else:
             click.echo("No results found.")
 
-
 @insert.command("file")
 @click.option(
     "-c",
@@ -227,7 +218,6 @@ def insert_data(obj, collectionName, partitionName, timeout, path):
     else:
         click.echo(f"\nInserted successfully.\n")
         click.echo(result)
-
 
 @insert.command("row")
 @click.pass_obj
@@ -305,13 +295,11 @@ def insert_row(obj):
         click.echo(f"\nInserted successfully.\n")
         click.echo(result)
 
-
 @cli.group("upsert", no_args_is_help=False)
 @click.pass_obj
 def upsert(obj):
     """Upsert entities (insert or update)"""
     pass
-
 
 @upsert.command("file")
 @click.option(
@@ -354,7 +342,6 @@ def upsert_data(obj, collectionName, partitionName, timeout, path):
     else:
         click.echo(f"\nUpserted successfully.\n")
         click.echo(result)
-
 
 @upsert.command("row")
 @click.pass_obj
@@ -432,7 +419,6 @@ def upsert_row(obj):
         click.echo(f"\nUpserted successfully.\n")
         click.echo(result)
 
-
 @cli.command("get")
 @click.pass_obj
 def get_by_ids(obj):
@@ -478,7 +464,6 @@ def get_by_ids(obj):
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
 
-
 @delete.command("ids")
 @click.option("-c", "--collection-name", "collectionName", help="Collection name.")
 @click.option(
@@ -515,7 +500,6 @@ def delete_by_ids(
         click.echo(result)
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
-
 
 @cli.command("bulk_insert")
 @click.option(
@@ -584,7 +568,6 @@ def bulk_insert(obj, collectionName, partitionName, files):
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
 
-
 @show.command("bulk_insert_state")
 @click.option(
     "-id",
@@ -608,7 +591,6 @@ def show_bulk_insert_state(obj, taskId):
         click.echo(f"Task state: {state}")
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
-
 
 @getList.command("bulk_insert_tasks")
 @click.option(
@@ -643,7 +625,6 @@ def list_bulk_insert_tasks(obj, limit, collectionName):
             click.echo("No bulk insert tasks found.")
     except Exception as e:
         click.echo("Error!\n{}".format(str(e)))
-
 
 @cli.command("hybrid_search")
 @click.pass_obj
@@ -820,7 +801,6 @@ def hybrid_search(obj):
 
     except Exception as e:
         click.echo(f"Error executing hybrid search: {str(e)}", err=True)
-
 
 @cli.command("search")
 @click.pass_obj

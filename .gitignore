@@ -136,3 +136,9 @@ dmypy.json
 # Test reports
 TEST_REPORT_*.md
 docs/plans/*
+# IDE
+.cursor/
+.kiro/
+
+# Test env (may contain tokens)
+milvus_cli/test/test.env

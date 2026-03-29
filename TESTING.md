@@ -7,8 +7,9 @@ This project has two types of tests:
 ### 1. **Unit Tests** (`milvus_cli/test/`)
 - **Framework**: `unittest`
 - **Purpose**: Test Python modules and classes directly
-- **Target**: Internal APIs (`ConnectionClient`, `CollectionClient`, etc.)
-- **Run with**: `python -m unittest discover milvus_cli/test`
+- **Target**: Internal APIs (`BaseClient`, `ConnectionClient`, `CollectionClient`, etc.)
+- **Config**: `milvus_cli/test/test.env` (set `MILVUS_TEST_URI`, see `test.env.example`)
+- **Run with**: `python -m pytest milvus_cli/test/ -v`
 
 ### 2. **Integration Tests** (`tests/`)
 - **Framework**: `pytest`

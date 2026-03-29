@@ -45,7 +45,7 @@ class TestAliasClient(unittest.TestCase):
                 collection_client.drop_collection(test_collection_name)
             if collection_client.has_collection(test_collection_name2):
                 collection_client.drop_collection(test_collection_name2)
-        except:
+        except Exception:
             pass
         
         # Clean up any existing test aliases
@@ -54,7 +54,7 @@ class TestAliasClient(unittest.TestCase):
                 alias_client.drop_alias(test_alias_name)
             if alias_client.has_alias(test_alias_name2):
                 alias_client.drop_alias(test_alias_name2)
-        except:
+        except Exception:
             pass
         
         # Define collection schema
@@ -114,7 +114,7 @@ class TestAliasClient(unittest.TestCase):
         try:
             if alias_client.has_alias(test_alias_name):
                 alias_client.drop_alias(test_alias_name)
-        except:
+        except Exception:
             pass
         
         result = alias_client.create_alias(
@@ -198,7 +198,7 @@ class TestAliasClient(unittest.TestCase):
             collection_name = alias_client.get_alias_collection(test_alias_name)
             if collection_name:  # Only check if get_alias_collection returns a value
                 self.assertEqual(collection_name, test_collection_name2)
-        except:
+        except Exception:
             # Some versions might not support this operation or return different format
             pass
 
@@ -227,7 +227,7 @@ class TestAliasClient(unittest.TestCase):
             try:
                 if alias_client.has_alias(alias):
                     alias_client.drop_alias(alias)
-            except:
+            except Exception:
                 pass
         
         results = alias_client.create_multiple_aliases(
@@ -313,7 +313,7 @@ class TestAliasClient(unittest.TestCase):
             if not alias_client.has_alias(alias):
                 try:
                     alias_client.create_alias(test_collection_name, alias)
-                except:
+                except Exception:
                     pass  # Might fail if alias already exists
         
         results = alias_client.drop_multiple_aliases(test_aliases)

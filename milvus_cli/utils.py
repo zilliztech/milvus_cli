@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import readline
 import re
 import os
@@ -7,6 +9,23 @@ try:
     from .Types import ParameterException
 except ImportError:
     from Types import ParameterException
+
+
+def safe_int(value: object, default: int = 0) -> int:
+    """Safely convert a value to int, handling 'null', empty strings, None."""
+    if value is None:
+        return default
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        stripped = value.strip().lower()
+        if stripped in ("null", ""):
+            return default
+        try:
+            return int(stripped)
+        except ValueError:
+            return default
+    return default
 
 
 def getPackageVersion():
