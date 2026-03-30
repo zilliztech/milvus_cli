@@ -72,15 +72,14 @@ class TestPartition:
         output, code = run_connected(f"show partition_stats -c {test_collection_for_partition} -p _default")
         assert code == 0
 
-    @pytest.mark.skip(reason="Loading partition requires an index, and create index command is interactive only")
     def test_load_and_release_partition(self, test_collection_for_partition, run_connected):
-        """Test load and release partition.
-
-        Note: This test is skipped because loading a partition requires
-        an index, and the 'create index' command only supports interactive
-        input, not command-line options.
-        """
+        """Test load and release partition (requires vector index)."""
         coll = test_collection_for_partition
+
+        output, code = run_connected(
+            f"create index -c {coll} -f embedding -t FLAT -m L2"
+        )
+        assert code == 0
 
         # Load
         output, code = run_connected(f"load partition -c {coll} -p _default")

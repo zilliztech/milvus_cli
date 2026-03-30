@@ -42,20 +42,28 @@ def list_users(obj):
 
 @delete.command("user")
 @click.option("-u", "--username", "username", help="The username of milvus user.")
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Skip confirmation prompt",
+)
 @click.pass_obj
-def deleteUser(obj, username):
+def deleteUser(obj, username, yes=False):
     """
     Drop user in milvus by username
 
     Example:
 
         milvus_cli > delete user -u zilliz
+        milvus_cli > delete user -u zilliz --yes
     """
-    click.echo(
-        "Warning!\nYou are trying to delete the user in milvus. This action cannot be undone!\n"
-    )
-    if not click.confirm("Do you want to continue?"):
-        return
+    if not yes:
+        click.echo(
+            "Warning!\nYou are trying to delete the user in milvus. This action cannot be undone!\n"
+        )
+        if not click.confirm("Do you want to continue?"):
+            return
     try:
         result = obj.user.delete_user(
             username,

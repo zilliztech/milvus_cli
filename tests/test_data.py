@@ -1,7 +1,9 @@
 """Integration tests for data operation commands."""
-import pytest
+import csv
 import json
 import os
+
+import pytest
 
 
 class TestData:
@@ -16,8 +18,8 @@ class TestData:
             "auto_id": False,
             "fields": [
                 {"name": "id", "type": "INT64", "is_primary": True},
-                {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4}
-            ]
+                {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4},
+            ],
         }
         schema_file = f"/tmp/{coll_name}_schema.json"
         with open(schema_file, "w") as f:
@@ -32,7 +34,10 @@ class TestData:
             pytest.skip(f"Failed to create collection: {output}")
 
         # Create index and load
-        run_connected(f"create index -c {coll_name} -f embedding -t FLAT -m L2")
+        output, code = run_connected(
+            f"create index -c {coll_name} -f embedding -t FLAT -m L2"
+        )
+        assert code == 0, output
         run_connected(f"load collection -c {coll_name}")
 
         yield coll_name
@@ -44,58 +49,46 @@ class TestData:
         except OSError:
             pass
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_insert_and_query(self, loaded_collection, run_connected):
-        """Test insert and query commands.
-
-        Note: This test is skipped because the loaded_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test insert and query commands."""
         coll = loaded_collection
 
-        # Insert data using file
-        data = [
-            {"id": 1, "embedding": [0.1, 0.2, 0.3, 0.4]},
-            {"id": 2, "embedding": [0.5, 0.6, 0.7, 0.8]}
-        ]
-        data_file = f"/tmp/{coll}_data.json"
-        with open(data_file, "w") as f:
-            json.dump(data, f)
+        # insert file expects a positional path to .csv (cells JSON-parsed per Fs.formatRowForData)
+        data_file = f"/tmp/{coll}_data.csv"
+        with open(data_file, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["id", "embedding"])
+            w.writerow([1, json.dumps([0.1, 0.2, 0.3, 0.4])])
+            w.writerow([2, json.dumps([0.5, 0.6, 0.7, 0.8])])
 
-        output, code = run_connected(f"insert file -c {coll} --data-file {data_file}")
-        assert code == 0
+        output, code = run_connected(f"insert file -c {coll} {data_file}")
+        assert code == 0, output
 
         # Flush to make data visible
         run_connected(f"flush -c {coll}")
 
-        # Query
-        output, code = run_connected(f"query collection -c {coll} -f 'id >= 0'")
-        assert code == 0
+        # Query (top-level `query`, not `query collection`)
+        output, code = run_connected(f"query -c {coll} -e 'id >= 0'")
+        assert code == 0, output
 
         os.remove(data_file)
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_delete_entities(self, loaded_collection, run_connected):
-        """Test delete entities command.
-
-        Note: This test is skipped because the loaded_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test delete entities command."""
         coll = loaded_collection
 
-        # Insert data first
-        data = [{"id": 100, "embedding": [0.1, 0.2, 0.3, 0.4]}]
-        data_file = f"/tmp/{coll}_del_data.json"
-        with open(data_file, "w") as f:
-            json.dump(data, f)
+        data_file = f"/tmp/{coll}_del_data.csv"
+        with open(data_file, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["id", "embedding"])
+            w.writerow([100, json.dumps([0.1, 0.2, 0.3, 0.4])])
 
-        run_connected(f"insert file -c {coll} --data-file {data_file}")
+        run_connected(f"insert file -c {coll} {data_file}")
         run_connected(f"flush -c {coll}")
 
-        # Delete
-        output, code = run_connected(f"delete entity -c {coll} -f 'id == 100'")
-        assert code == 0
+        output, code = run_connected(
+            f"delete entities -c {coll} -e 'id == 100' --yes"
+        )
+        assert code == 0, output
 
         os.remove(data_file)

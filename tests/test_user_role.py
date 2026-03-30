@@ -23,8 +23,8 @@ class TestUserRole:
         output, code = run_connected("list users")
         assert username in output
 
-        # Delete user
-        output, code = run_connected(f"delete user -u {username}")
+        # Delete user (--yes: non-interactive CI / pytest CliRunner)
+        output, code = run_connected(f"delete user -u {username} --yes")
         assert code == 0
 
     def test_list_roles(self, run_connected):

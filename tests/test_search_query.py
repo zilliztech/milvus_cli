@@ -1,7 +1,9 @@
 """Integration tests for search and query commands."""
-import pytest
+import csv
 import json
 import os
+
+import pytest
 
 
 class TestSearchQuery:
@@ -16,8 +18,8 @@ class TestSearchQuery:
             "auto_id": False,
             "fields": [
                 {"name": "id", "type": "INT64", "is_primary": True},
-                {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4}
-            ]
+                {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4},
+            ],
         }
         schema_file = f"/tmp/{coll_name}_schema.json"
         with open(schema_file, "w") as f:
@@ -32,18 +34,27 @@ class TestSearchQuery:
             pytest.skip(f"Failed to create collection: {output}")
 
         # Create index
-        run_connected(f"create index -c {coll_name} -f embedding -t FLAT -m L2")
+        output, code = run_connected(
+            f"create index -c {coll_name} -f embedding -t FLAT -m L2"
+        )
+        assert code == 0, output
 
-        # Insert data
-        data = [
-            {"id": i, "embedding": [float(i)*0.1, float(i)*0.2, float(i)*0.3, float(i)*0.4]}
-            for i in range(10)
-        ]
-        data_file = f"/tmp/{coll_name}_data.json"
-        with open(data_file, "w") as f:
-            json.dump(data, f)
+        # Insert data (CSV for insert file)
+        data_file = f"/tmp/{coll_name}_data.csv"
+        with open(data_file, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["id", "embedding"])
+            for i in range(10):
+                vec = [
+                    float(i) * 0.1,
+                    float(i) * 0.2,
+                    float(i) * 0.3,
+                    float(i) * 0.4,
+                ]
+                w.writerow([i, json.dumps(vec)])
 
-        run_connected(f"insert file -c {coll_name} --data-file {data_file}")
+        output, code = run_connected(f"insert file -c {coll_name} {data_file}")
+        assert code == 0, output
         run_connected(f"flush -c {coll_name}")
         run_connected(f"load collection -c {coll_name}")
 
@@ -57,30 +68,18 @@ class TestSearchQuery:
         except OSError:
             pass
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_search(self, searchable_collection, run_connected):
-        """Test search command.
-
-        Note: This test is skipped because the searchable_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test search command (non-interactive flags)."""
         coll = searchable_collection
 
         output, code = run_connected(
-            f"search collection -c {coll} -f embedding -v '[0.1, 0.2, 0.3, 0.4]' -l 5"
+            f'search -c {coll} -f embedding -v "[0.1, 0.2, 0.3, 0.4]" -l 5'
         )
-        assert code == 0
+        assert code == 0, output
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_query(self, searchable_collection, run_connected):
-        """Test query command.
-
-        Note: This test is skipped because the searchable_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test query command (non-interactive flags)."""
         coll = searchable_collection
 
-        output, code = run_connected(f"query collection -c {coll} -f 'id < 5'")
-        assert code == 0
+        output, code = run_connected(f"query -c {coll} -e 'id < 5'")
+        assert code == 0, output
