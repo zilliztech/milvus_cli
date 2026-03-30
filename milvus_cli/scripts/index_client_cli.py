@@ -11,13 +11,66 @@ from Types import IndexTypes, MetricTypes, IndexTypesMap
 
 
 @create.command("index")
+@click.option(
+    "-c",
+    "--collection",
+    "collectionName",
+    default=None,
+    help="Collection name (use with -f, -t, -m for non-interactive create)",
+)
+@click.option(
+    "-f",
+    "--field",
+    "fieldName",
+    default=None,
+    help="Vector field name",
+)
+@click.option(
+    "-in",
+    "--index-name",
+    "indexName",
+    default=None,
+    help="Index name (defaults to field name)",
+)
+@click.option(
+    "-t",
+    "--index-type",
+    "indexType",
+    default=None,
+    help="Index type (e.g. FLAT, IVF_FLAT, HNSW)",
+)
+@click.option(
+    "-m",
+    "--metric",
+    "metricType",
+    default=None,
+    help="Metric type (e.g. L2, IP, COSINE)",
+)
+@click.option(
+    "--param",
+    "param_pairs",
+    multiple=True,
+    help="Index build parameter as key:value (repeatable). Example: --param nlist:1024",
+)
 @click.pass_obj
-def createIndex(obj):
+def createIndex(
+    obj,
+    collectionName,
+    fieldName,
+    indexName,
+    indexType,
+    metricType,
+    param_pairs,
+):
     """
     Create an index on a vector field.
 
     USAGE:
         milvus_cli > create index
+        milvus_cli > create index -c COL -f vec -t FLAT -m L2
+
+    NON-INTERACTIVE:
+        When -c, -f, -t, and -m are all set, prompts are skipped.
 
     INTERACTIVE PROMPTS:
         Collection name    Target collection
@@ -55,6 +108,35 @@ def createIndex(obj):
     SEE ALSO:
         list indexes, show index, delete index, show index_progress
     """
+    non_interactive = bool(
+        collectionName and fieldName and indexType and metricType
+    )
+    if non_interactive:
+        try:
+            if collectionName not in obj.collection.list_collections():
+                raise Exception(f"Collection '{collectionName}' does not exist")
+            fields = obj.collection.list_field_names(collectionName)
+            if fieldName not in fields:
+                raise Exception(
+                    f"Field '{fieldName}' not found in collection '{collectionName}'"
+                )
+            idx_name = indexName or fieldName
+            params_list = list(param_pairs)
+            click.echo(
+                obj.index.create_index(
+                    collectionName,
+                    fieldName,
+                    idx_name,
+                    indexType,
+                    metricType,
+                    params_list,
+                )
+            )
+            click.echo("Create index successfully!")
+        except Exception as e:
+            click.echo("Error!\n{}".format(str(e)))
+        return
+
     try:
         collectionName = click.prompt(
             "Collection name", type=click.Choice(obj.collection.list_collections())
@@ -164,21 +246,29 @@ def show_index_details(obj, collectionName, indexName):
     type=str,
 )
 @click.option("-in", "--index-name", "indexName", help="Index name")
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Skip confirmation prompt",
+)
 @click.pass_obj
-def delete_index(obj, collectionName, indexName):
+def delete_index(obj, collectionName, indexName, yes):
     """
     Delete index.
 
     Example:
 
         milvus_cli > delete index -c test_collection -in index_name
+        milvus_cli > delete index -c test_collection -in embedding --yes
 
     """
-    click.echo(
-        "Warning!\nYou are trying to delete the index of collection. This action cannot be undone!\n"
-    )
-    if not click.confirm("Do you want to continue?"):
-        return
+    if not yes:
+        click.echo(
+            "Warning!\nYou are trying to delete the index of collection. This action cannot be undone!\n"
+        )
+        if not click.confirm("Do you want to continue?"):
+            return
     try:
         click.echo(obj.index.drop_index(collectionName, indexName))
     except Exception as e:

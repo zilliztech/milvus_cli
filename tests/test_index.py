@@ -39,13 +39,8 @@ class TestIndex:
         except OSError:
             pass
 
-    @pytest.mark.skip(reason="create index command is interactive only - no CLI options")
     def test_create_and_delete_index(self, test_collection_for_index, run_connected):
-        """Test create and delete index.
-
-        Note: This test is skipped because the 'create index' command
-        only supports interactive input, not command-line options.
-        """
+        """Test create and delete index (non-interactive flags)."""
         coll = test_collection_for_index
 
         # Create index
@@ -57,24 +52,19 @@ class TestIndex:
         assert code == 0
 
         # Delete index
-        output, code = run_connected(f"delete index -c {coll} -f embedding")
+        output, code = run_connected(f"delete index -c {coll} -in embedding --yes")
         assert code == 0
 
-    @pytest.mark.skip(reason="create index command is interactive only - no CLI options")
     def test_show_index(self, test_collection_for_index, run_connected):
-        """Test show index command.
-
-        Note: This test is skipped because the 'create index' command
-        only supports interactive input, not command-line options.
-        """
+        """Test show index command."""
         coll = test_collection_for_index
 
         # Create index first
         run_connected(f"create index -c {coll} -f embedding -t FLAT -m L2")
 
-        # Show index
-        output, code = run_connected(f"show index -c {coll} -f embedding")
+        # Show index (MilvusClient indexes by field / index name)
+        output, code = run_connected(f"show index -c {coll} -in embedding")
         assert code == 0
 
         # Cleanup
-        run_connected(f"delete index -c {coll} -f embedding")
+        run_connected(f"delete index -c {coll} -in embedding --yes")

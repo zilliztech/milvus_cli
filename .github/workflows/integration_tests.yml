@@ -1,6 +1,8 @@
 name: Integration tests
 
+# Trial: any-branch push + manual run. Narrow to main-only after verification.
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
@@ -8,7 +10,8 @@ on:
       - "**/*.md"
       - "docs/**"
   push:
-    branches: [main]
+    branches:
+      - "**"
     paths-ignore:
       - "**/*.md"
       - "docs/**"

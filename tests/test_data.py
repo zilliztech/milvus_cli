@@ -32,7 +32,10 @@ class TestData:
             pytest.skip(f"Failed to create collection: {output}")
 
         # Create index and load
-        run_connected(f"create index -c {coll_name} -f embedding -t FLAT -m L2")
+        output, code = run_connected(
+            f"create index -c {coll_name} -f embedding -t FLAT -m L2"
+        )
+        assert code == 0, output
         run_connected(f"load collection -c {coll_name}")
 
         yield coll_name
@@ -44,14 +47,8 @@ class TestData:
         except OSError:
             pass
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_insert_and_query(self, loaded_collection, run_connected):
-        """Test insert and query commands.
-
-        Note: This test is skipped because the loaded_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test insert and query commands."""
         coll = loaded_collection
 
         # Insert data using file
@@ -75,14 +72,8 @@ class TestData:
 
         os.remove(data_file)
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_delete_entities(self, loaded_collection, run_connected):
-        """Test delete entities command.
-
-        Note: This test is skipped because the loaded_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test delete entities command."""
         coll = loaded_collection
 
         # Insert data first

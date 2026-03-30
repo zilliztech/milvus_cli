@@ -32,7 +32,10 @@ class TestSearchQuery:
             pytest.skip(f"Failed to create collection: {output}")
 
         # Create index
-        run_connected(f"create index -c {coll_name} -f embedding -t FLAT -m L2")
+        output, code = run_connected(
+            f"create index -c {coll_name} -f embedding -t FLAT -m L2"
+        )
+        assert code == 0, output
 
         # Insert data
         data = [
@@ -57,14 +60,8 @@ class TestSearchQuery:
         except OSError:
             pass
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_search(self, searchable_collection, run_connected):
-        """Test search command.
-
-        Note: This test is skipped because the searchable_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test search command."""
         coll = searchable_collection
 
         output, code = run_connected(
@@ -72,14 +69,8 @@ class TestSearchQuery:
         )
         assert code == 0
 
-    @pytest.mark.skip(reason="create index command is interactive only - fixture cannot create index")
     def test_query(self, searchable_collection, run_connected):
-        """Test query command.
-
-        Note: This test is skipped because the searchable_collection fixture
-        requires creating an index, but the 'create index' command only
-        supports interactive input, not command-line options.
-        """
+        """Test query command."""
         coll = searchable_collection
 
         output, code = run_connected(f"query collection -c {coll} -f 'id < 5'")
