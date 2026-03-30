@@ -1,8 +1,6 @@
 name: Integration tests
 
-# Wider triggers for trial: any-branch push + manual run. Narrow to main-only when ready.
 on:
-  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
@@ -10,8 +8,7 @@ on:
       - "**/*.md"
       - "docs/**"
   push:
-    branches:
-      - "**"
+    branches: [main]
     paths-ignore:
       - "**/*.md"
       - "docs/**"
