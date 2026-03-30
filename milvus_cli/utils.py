@@ -231,6 +231,24 @@ class Completer(object):
         except Exception:
             return []
 
+    def _collection_from_trailing_args(self, args):
+        """Return collection name following -c/--collection in token list."""
+        for i, tok in enumerate(args):
+            if tok in ("-c", "--collection", "--collection-name") and i + 1 < len(
+                args
+            ):
+                return args[i + 1] or None
+        return None
+
+    def _get_field_names(self, collection_name):
+        """Get field names for a collection (e.g. create index -f)."""
+        if not collection_name or self.milvus_cli_obj is None:
+            return []
+        try:
+            return self.milvus_cli_obj.collection.list_field_names(collection_name)
+        except Exception:
+            return []
+
     def createCompleteFuncs(self, cmdDict):
         for cmd in cmdDict:
             sub_cmds = cmdDict[cmd]
@@ -286,6 +304,14 @@ class Completer(object):
                     if current_arg:
                         return [d for d in databases if d.startswith(current_arg)]
                     return databases
+
+                # Field name after create index -c COL -f
+                if prev_arg in ["-f", "--field"]:
+                    coll = self._collection_from_trailing_args(args)
+                    fields = self._get_field_names(coll) if coll else []
+                    if current_arg:
+                        return [f for f in fields if f.startswith(current_arg)]
+                    return fields
 
             return self._complete_path(args[-1])
 

@@ -19,11 +19,26 @@ from pymilvus import DataType
     help="[Optional] - Name of partitions that contain entities.",
     default=None,
 )
+@click.option(
+    "-e",
+    "--expr",
+    "expr_opt",
+    default=None,
+    help="Filter expression (non-interactive; skips prompt when set with --yes).",
+)
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Skip confirmation prompt (use with -e for scripting/CI).",
+)
 @click.pass_obj
 def delete_entities(
     obj,
     collectionName,
     partitionName,
+    expr_opt,
+    yes,
 ):
     """
     Delete entities using filter expression.
@@ -48,32 +63,53 @@ def delete_entities(
         milvus_cli > delete entities -c products
         Expression: id in [100, 101, 102]
 
-        # Delete by condition
-        milvus_cli > delete entities -c products
-        Expression: status == "deleted" and updated_at < 1704067200
+        # Non-interactive (CI/scripts)
+        milvus_cli > delete entities -c products -e 'id == 100' --yes
 
     SEE ALSO:
         delete ids, query
     """
-    expr = click.prompt(
-        '''The expression to specify entities to be deleted, such as "film_id in [ 0, 1 ]"'''
-    )
-    click.echo(
-        "You are trying to delete the entities of collection. This action cannot be undone!\n"
-    )
-    if not click.confirm("Do you want to continue?"):
-        return
+    if expr_opt:
+        expr = expr_opt
+    else:
+        expr = click.prompt(
+            '''The expression to specify entities to be deleted, such as "film_id in [ 0, 1 ]"'''
+        )
+    if not yes:
+        click.echo(
+            "You are trying to delete the entities of collection. This action cannot be undone!\n"
+        )
+        if not click.confirm("Do you want to continue?"):
+            return
     result = obj.data.delete_entities(expr, collectionName, partitionName)
     click.echo(result)
 
 @cli.command("query")
+@click.option(
+    "-c",
+    "--collection-name",
+    "collectionName_opt",
+    default=None,
+    help="Collection name (with -e/--expr skips prompts).",
+)
+@click.option(
+    "-e",
+    "--expr",
+    "expr_opt",
+    default=None,
+    help="Query filter expression (e.g. 'id > 0').",
+)
 @click.pass_obj
-def query(obj):
+def query(obj, collectionName_opt, expr_opt):
     """
     Query entities with filter expressions.
 
     USAGE:
         milvus_cli > query
+        milvus_cli > query -c my_coll -e 'id >= 0'
+
+    NON-INTERACTIVE:
+        Pass -c and -e to run without prompts.
 
     INTERACTIVE PROMPTS:
         Collection name      Select from available collections
@@ -104,6 +140,28 @@ def query(obj):
     SEE ALSO:
         search, get, set output
     """
+    if collectionName_opt and expr_opt:
+        collectionName = collectionName_opt
+        expr = expr_opt
+        try:
+            queryParameters = validateQueryParams(
+                expr,
+                "",
+                "",
+                0,
+                5,
+                "",
+            )
+        except ParameterException as pe:
+            click.echo("Error!\n{}".format(str(pe)))
+            return
+        results = obj.data.query(collectionName, queryParameters)
+        if results:
+            click.echo(obj.formatter.format_output(results))
+        else:
+            click.echo("No results found.")
+        return
+
     collectionName = click.prompt(
         "Collection name", type=click.Choice(obj.collection.list_collections())
     )
@@ -803,13 +861,46 @@ def hybrid_search(obj):
         click.echo(f"Error executing hybrid search: {str(e)}", err=True)
 
 @cli.command("search")
+@click.option(
+    "-c",
+    "--collection-name",
+    "collectionName_opt",
+    default=None,
+    help="Collection name (with -f/-v/-l skips prompts for dense vector search).",
+)
+@click.option(
+    "-f",
+    "--field",
+    "annsField_opt",
+    default=None,
+    help="Vector field name.",
+)
+@click.option(
+    "-v",
+    "--vector",
+    "vector_json",
+    default=None,
+    help="Query vector as JSON array, e.g. '[0.1,0.2,0.3,0.4]'.",
+)
+@click.option(
+    "-l",
+    "--limit",
+    "limit_opt",
+    default=None,
+    type=int,
+    help="Top K (max results).",
+)
 @click.pass_obj
-def search(obj):
+def search(obj, collectionName_opt, annsField_opt, vector_json, limit_opt):
     """
     Perform vector similarity search.
 
     USAGE:
         milvus_cli > search
+        milvus_cli > search -c my_coll -f embedding -v '[0.1,0.2,0.3,0.4]' -l 5
+
+    NON-INTERACTIVE:
+        Pass -c, -f, -v, and -l for dense vector search (indexed collection).
 
     INTERACTIVE PROMPTS:
         Collection name     Target collection
@@ -845,6 +936,90 @@ def search(obj):
     SEE ALSO:
         query, create index, show index
     """
+    if (
+        collectionName_opt
+        and annsField_opt
+        and vector_json is not None
+        and limit_opt is not None
+    ):
+        collectionName = collectionName_opt
+        annsField = annsField_opt
+        limit = limit_opt
+        try:
+            vector = json.loads(vector_json.strip())
+            if not isinstance(vector, list):
+                raise ParameterException("Dense vector must be a JSON array")
+            data = [vector]
+
+            fields_info = obj.collection.list_fields_info(collectionName)
+            annsField_info = next(
+                (field for field in fields_info if field["name"] == annsField), None
+            )
+            if not annsField_info:
+                click.echo(
+                    f"Field {annsField} not found in collection {collectionName}.",
+                    err=True,
+                )
+                return
+
+            indexes = obj.index.list_indexes(collectionName, onlyData=True)
+            indexDetails = None
+            for index in indexes:
+                if index.get("field_name") == annsField:
+                    indexDetails = index
+                    break
+
+            hasIndex = bool(indexDetails)
+            if indexDetails:
+                index_type = indexDetails.get("index_type", "AUTOINDEX")
+                metricType = indexDetails.get("metric_type", "")
+                search_parameters = IndexTypesMap.get(index_type, {}).get(
+                    "search_parameters", []
+                )
+                params = []
+                defaults = {
+                    "nprobe": "10",
+                    "ef": "64",
+                    "search_list": "20",
+                    "reorder_k": "10",
+                    "search_length": "10",
+                    "search_k": "100",
+                    "drop_ratio_search": "0.2",
+                }
+                for parameter in search_parameters:
+                    if parameter == "metric_type":
+                        continue
+                    pval = defaults.get(parameter, "0")
+                    params.append(f"{parameter}:{pval}")
+            else:
+                metricType = ""
+                params = []
+
+            searchParameters = validateSearchParams(
+                data=data,
+                annsField=annsField,
+                metricType=metricType,
+                params=params,
+                limit=limit,
+                expr="",
+                outputFields="",
+                roundDecimal=-1,
+                hasIndex=hasIndex,
+                guarantee_timestamp=0,
+                partitionNames="",
+            )
+        except ParameterException as pe:
+            click.echo("Error!\n{}".format(str(pe)))
+            return
+        except Exception as e:
+            click.echo("Error!\n{}".format(str(e)), err=True)
+            return
+        else:
+            results = obj.data.search(collectionName, searchParameters)
+            click.echo("Search result: \n")
+            click.echo(results)
+        return
+
     collectionName = click.prompt(
         "Collection name", type=click.Choice(obj.collection.list_collections())
     )
