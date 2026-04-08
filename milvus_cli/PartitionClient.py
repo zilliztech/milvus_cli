@@ -1,39 +1,14 @@
+from __future__ import annotations
+
 from pymilvus import MilvusClient
+try:
+    from .BaseClient import BaseMilvusClient
+except ImportError:
+    from BaseClient import BaseMilvusClient
 
 
-class MilvusClientPartition(object):
-    """
-    Partition operations class based on MilvusClient API
-    Used to replace the original Partition operations based on ORM API
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize Partition client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
-
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+class MilvusClientPartition(BaseMilvusClient):
+    """Partition operations based on MilvusClient API."""
 
     def create_partition(self, collectionName, description, partitionName):
         """
@@ -61,7 +36,7 @@ class MilvusClientPartition(object):
             return type('Partition', (), {'name': partitionName, 'description': description})()
             
         except Exception as e:
-            raise Exception(f"Create partition error!{str(e)}")
+            raise RuntimeError(f"Create partition error: {e}") from e
 
     def describe_partition(self, collectionName, partitionName):
         """
@@ -81,13 +56,13 @@ class MilvusClientPartition(object):
             partitions = client.list_partitions(collection_name=collectionName)
             
             if partitionName not in partitions:
-                raise Exception(f"Partition '{partitionName}' not found in collection '{collectionName}'")
+                raise ValueError(f"Partition '{partitionName}' not found in collection '{collectionName}'")
             
             # Return partition information - simulate ORM partition object
             return type('Partition', (), {'name': partitionName, 'collection_name': collectionName})()
             
         except Exception as e:
-            raise Exception(f"Describe partition error!{str(e)}")
+            raise RuntimeError(f"Describe partition error: {e}") from e
 
     def delete_partition(self, collectionName, partitionName):
         """
@@ -106,7 +81,7 @@ class MilvusClientPartition(object):
             # Check if partition exists first
             partitions = client.list_partitions(collection_name=collectionName)
             if partitionName not in partitions:
-                raise Exception(f"Partition '{partitionName}' not found in collection '{collectionName}'")
+                raise ValueError(f"Partition '{partitionName}' not found in collection '{collectionName}'")
             
             # Drop partition using MilvusClient API
             client.drop_partition(
@@ -118,7 +93,7 @@ class MilvusClientPartition(object):
             return self.list_partition_names(collectionName)
             
         except Exception as e:
-            raise Exception(f"Delete partition error!{str(e)}")
+            raise RuntimeError(f"Delete partition error: {e}") from e
 
     def list_partition_names(self, collectionName):
         """
@@ -139,7 +114,7 @@ class MilvusClientPartition(object):
             return partitions
             
         except Exception as e:
-            raise Exception(f"List partition names error!{str(e)}")
+            raise RuntimeError(f"List partition names error: {e}") from e
 
     def load_partition(self, collectionName, partitionName):
         """
@@ -164,7 +139,7 @@ class MilvusClientPartition(object):
             return f"Load partition {partitionName} successfully!"
             
         except Exception as e:
-            raise Exception(f"Load partition error!{str(e)}")
+            raise RuntimeError(f"Load partition error: {e}") from e
 
     def release_partition(self, collectionName, partitionName):
         """
@@ -189,7 +164,7 @@ class MilvusClientPartition(object):
             return f"Release partition {partitionName} successfully!"
             
         except Exception as e:
-            raise Exception(f"Release partition error!{str(e)}")
+            raise RuntimeError(f"Release partition error: {e}") from e
 
     def has_partition(self, collectionName, partitionName):
         """
@@ -211,7 +186,7 @@ class MilvusClientPartition(object):
             return partitionName in partitions
             
         except Exception as e:
-            raise Exception(f"Check partition existence error!{str(e)}")
+            raise RuntimeError(f"Check partition existence error: {e}") from e
 
     def get_partition_stats(self, collectionName, partitionName):
         """
@@ -232,4 +207,4 @@ class MilvusClientPartition(object):
             )
             return stats
         except Exception as e:
-            raise Exception(f"Get partition stats error!{str(e)}")
+            raise RuntimeError(f"Get partition stats error: {e}") from e

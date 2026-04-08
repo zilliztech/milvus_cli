@@ -1,39 +1,39 @@
+from __future__ import annotations
+
 from tabulate import tabulate
+try:
+    from .BaseClient import BaseMilvusClient
+    from .utils import safe_int
+except ImportError:
+    from BaseClient import BaseMilvusClient
+    from utils import safe_int
 
 
-class MilvusClientData:
-    """
-    Data operations class based on MilvusClient API
-    Used to replace the original Data operations based on ORM API
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize Data client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
+class MilvusClientData(BaseMilvusClient):
+    """Data operations based on MilvusClient API."""
 
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+    def _normalize_data(self, client, collectionName: str, data) -> list[dict]:
+        """Normalize input data to list of dicts, handling auto_id fields."""
+        if isinstance(data, dict):
+            return [data]
+        if isinstance(data, list) and data and isinstance(data[0], list):
+            collection_info = client.describe_collection(collection_name=collectionName)
+            fields = collection_info.get("fields", [])
+            # Exclude auto_id fields — user data won't contain them
+            field_names = [
+                f.get("name", "") for f in fields
+                if not f.get("auto_id", False)
+            ]
+            num_entities = len(data[0])
+            formatted = []
+            for i in range(num_entities):
+                entity = {}
+                for j, name in enumerate(field_names):
+                    if j < len(data):
+                        entity[name] = data[j][i]
+                formatted.append(entity)
+            return formatted
+        return data
 
     def insert(self, collectionName, data, partitionName=None, timeout=None):
         """
@@ -50,27 +50,7 @@ class MilvusClientData:
         """
         try:
             client = self._get_client()
-            
-            # Handle different data formats
-            if isinstance(data, dict):
-                # Single row as dict, convert to list of dicts
-                data = [data]
-            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
-                # Convert list of lists to list of dicts format
-                # This requires field schema information
-                collection_info = client.describe_collection(collection_name=collectionName)
-                fields = collection_info.get("fields", [])
-                field_names = [field.get("name", "") for field in fields]
-                
-                # Convert data format
-                formatted_data = []
-                for i in range(len(data[0])):  # Number of entities
-                    entity = {}
-                    for j, field_name in enumerate(field_names):
-                        if j < len(data):
-                            entity[field_name] = data[j][i]
-                    formatted_data.append(entity)
-                data = formatted_data
+            data = self._normalize_data(client, collectionName, data)
             
             # Insert data
             result = client.insert(
@@ -83,7 +63,7 @@ class MilvusClientData:
             return result
             
         except Exception as e:
-            raise Exception(f"Insert data error!{str(e)}")
+            raise RuntimeError(f"Insert data error: {e}") from e
 
     def query(self, collectionName, queryParameters):
         """
@@ -130,7 +110,7 @@ class MilvusClientData:
             return result
             
         except Exception as e:
-            raise Exception(f"Query data error!{str(e)}")
+            raise RuntimeError(f"Query data error: {e}") from e
 
     def delete_entities(self, expr, collectionName, partition_name=None):
         """
@@ -156,7 +136,7 @@ class MilvusClientData:
             return result
             
         except Exception as e:
-            raise Exception(f"Delete entities error!{str(e)}")
+            raise RuntimeError(f"Delete entities error: {e}") from e
 
     def search(self, collectionName, searchParameters, prettierFormat=True):
         """
@@ -252,48 +232,22 @@ class MilvusClientData:
                 return tabulate([], headers=["ID", "Distance", "Entity"], tablefmt="grid")
                 
         except Exception as e:
-            raise Exception(f"Search data error!{str(e)}")
+            raise RuntimeError(f"Search data error: {e}") from e
 
-    def get_entity_count(self, collectionName, partitionName=None):
-        """
-        Get entity count in collection
-        
-        Args:
-            collectionName: Collection name
-            partitionName: Partition name
-            
-        Returns:
-            Entity count
-        """
+    def get_entity_count(self, collectionName: str, partitionName: str | None = None) -> int:
+        """Get entity count in collection or partition."""
         try:
             client = self._get_client()
-            
             if partitionName:
-                # Get partition stats
                 stats = client.get_partition_stats(
                     collection_name=collectionName,
                     partition_name=partitionName
                 )
             else:
-                # Get collection stats
                 stats = client.get_collection_stats(collection_name=collectionName)
-            
-            raw_count = stats.get("row_count", 0)
-            
-            # Handle cases where row_count might be string 'null' or other unexpected values
-            if isinstance(raw_count, str):
-                if raw_count.lower() == 'null' or raw_count == '':
-                    return 0
-                else:
-                    try:
-                        return int(raw_count)
-                    except ValueError:
-                        return 0
-            
-            return raw_count if raw_count is not None else 0
-            
+            return safe_int(stats.get("row_count", 0))
         except Exception as e:
-            raise Exception(f"Get entity count error!{str(e)}")
+            raise RuntimeError(f"Get entity count error: {e}") from e
 
     def upsert(self, collectionName, data, partitionName=None, timeout=None):
         """
@@ -310,26 +264,7 @@ class MilvusClientData:
         """
         try:
             client = self._get_client()
-            
-            # Handle different data formats
-            if isinstance(data, dict):
-                # Single row as dict, convert to list of dicts
-                data = [data]
-            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
-                # Convert list of lists to list of dicts format
-                collection_info = client.describe_collection(collection_name=collectionName)
-                fields = collection_info.get("fields", [])
-                field_names = [field.get("name", "") for field in fields]
-                
-                # Convert data format
-                formatted_data = []
-                for i in range(len(data[0])):  # Number of entities
-                    entity = {}
-                    for j, field_name in enumerate(field_names):
-                        if j < len(data):
-                            entity[field_name] = data[j][i]
-                    formatted_data.append(entity)
-                data = formatted_data
+            data = self._normalize_data(client, collectionName, data)
             
             # Upsert data
             result = client.upsert(
@@ -342,7 +277,7 @@ class MilvusClientData:
             return result
 
         except Exception as e:
-            raise Exception(f"Upsert data error!{str(e)}")
+            raise RuntimeError(f"Upsert data error: {e}") from e
 
     def get_by_ids(self, collectionName, ids, output_fields=None):
         """
@@ -365,7 +300,7 @@ class MilvusClientData:
             )
             return result
         except Exception as e:
-            raise Exception(f"Get by IDs error!{str(e)}")
+            raise RuntimeError(f"Get by IDs error: {e}") from e
 
     def delete_by_ids(self, collectionName, ids, partition_name=None):
         """
@@ -388,7 +323,7 @@ class MilvusClientData:
             )
             return result
         except Exception as e:
-            raise Exception(f"Delete by IDs error!{str(e)}")
+            raise RuntimeError(f"Delete by IDs error: {e}") from e
 
     def bulk_insert(self, collectionName, files, partition_name=None):
         """
@@ -411,7 +346,7 @@ class MilvusClientData:
             )
             return task_id
         except Exception as e:
-            raise Exception(f"Bulk insert error!{str(e)}")
+            raise RuntimeError(f"Bulk insert error: {e}") from e
 
     def get_bulk_insert_state(self, task_id):
         """
@@ -428,7 +363,7 @@ class MilvusClientData:
             state = client.get_bulk_insert_state(task_id)
             return state
         except Exception as e:
-            raise Exception(f"Get bulk insert state error!{str(e)}")
+            raise RuntimeError(f"Get bulk insert state error: {e}") from e
 
     def list_bulk_insert_tasks(self, limit=None, collectionName=None):
         """
@@ -449,7 +384,7 @@ class MilvusClientData:
             )
             return tasks
         except Exception as e:
-            raise Exception(f"List bulk insert tasks error!{str(e)}")
+            raise RuntimeError(f"List bulk insert tasks error: {e}") from e
 
     def hybrid_search(self, collectionName, requests, rerank, limit, output_fields=None):
         """
@@ -515,4 +450,4 @@ class MilvusClientData:
                 return tabulate([], headers=["ID", "Distance", "Fields"], tablefmt="grid")
 
         except Exception as e:
-            raise Exception(f"Hybrid search error! {str(e)}")
+            raise RuntimeError(f"Hybrid search error: {e}") from e

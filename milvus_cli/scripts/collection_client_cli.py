@@ -1,19 +1,12 @@
 from tabulate import tabulate
 import click
-import os
-import sys
-
-current_dir = os.path.dirname(os.path.realpath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
 
 from .init_client_cli import cli
 from .helper_cli import create, getList, delete, rename, show, load, release, alter
-from Types import FieldDataTypes, BUILT_IN_ANALYZERS
+from ..Types import FieldDataTypes, BUILT_IN_ANALYZERS
 from pymilvus import FieldSchema, DataType, FunctionType, Function
 
 NOT_SET = "Not set"
-
 
 @create.command("collection")
 @click.option(
@@ -365,7 +358,6 @@ def create_collection(obj, schema_file):
     )
     click.echo("Create collection successfully!")
 
-
 @getList.command("collections")
 @click.pass_obj
 def list_collections(obj):
@@ -393,7 +385,6 @@ def list_collections(obj):
         click.echo(obj.formatter.format_list(res, header="Collection"))
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @delete.command("collection")
 @click.option(
@@ -432,7 +423,6 @@ def delete_collection(obj, collectionName, yes):
         result = obj.collection.drop_collection(collectionName)
         click.echo(result)
 
-
 @rename.command("collection")
 @click.option(
     "-old",
@@ -467,7 +457,6 @@ def rename_collection(obj, collectionName, newName):
         result = obj.collection.rename_collection(collectionName, newName)
         click.echo(result)
 
-
 @show.command("collection")
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection."
@@ -485,7 +474,6 @@ def describe_collection(obj, collectionName):
         click.echo(obj.collection.get_collection_details(collectionName))
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @load.command("collection")
 @click.option(
@@ -508,7 +496,6 @@ def load_collection(
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @release.command("collection")
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection."
@@ -527,7 +514,6 @@ def release_collection(obj, collectionName):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("loading_progress")
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection."
@@ -545,7 +531,6 @@ def show_loading_progress(obj, collectionName):
         click.echo(obj.collection.show_loading_progress(collectionName))
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @cli.command("flush")
 @click.option(
@@ -573,7 +558,6 @@ def flush_collection(obj, collectionName, timeout):
         click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @cli.command("compact")
 @click.option(
@@ -603,7 +587,6 @@ def compact_collection(obj, collectionName, timeout):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("compaction_state")
 @click.option(
     "-id", "--compaction-id", "compactionId", help="The compaction ID.", required=True, type=int
@@ -622,7 +605,6 @@ def show_compaction_state(obj,  compactionId):
         click.echo(f"Compaction state: {state}")
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @show.command("compaction_plans")
 @click.option(
@@ -646,7 +628,6 @@ def show_compaction_plans(obj, collectionName, compactionId):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("replicas")
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
@@ -665,7 +646,6 @@ def show_replicas(obj, collectionName):
         click.echo(replicas)
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @show.command("load_state")
 @click.option(
@@ -692,7 +672,6 @@ def show_load_state(obj, collectionName, partitionName):
         click.echo(f"Load state: {state}")
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @show.command("query_segment_info")
 @click.option(
@@ -731,7 +710,6 @@ def show_query_segment_info(obj, collectionName):
             click.echo("No segment info available.")
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @alter.command("collection_properties")
 @click.option(
@@ -779,7 +757,6 @@ def alter_collection_properties(obj, collectionName):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @delete.command("collection_properties")
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
@@ -810,7 +787,6 @@ def drop_collection_properties(obj, collectionName, propertyKey):
         click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @alter.command("collection_field")
 @click.option(
@@ -862,7 +838,6 @@ def alter_collection_field(obj, collectionName, fieldName):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("collection_stats")
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
@@ -892,7 +867,6 @@ def show_collection_stats(obj, collectionName):
         click.echo(stats)
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @cli.command("truncate")
 @click.option(
@@ -924,7 +898,6 @@ def truncate_collection(obj, collectionName, yes):
         click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @cli.command("flush_all")
 @click.option(
@@ -959,7 +932,6 @@ def flush_all_collections(obj, timeout):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("flush_state")
 @click.option(
     "-c", "--collection-name", "collectionName", help="The name of collection.", required=True
@@ -983,7 +955,6 @@ def show_flush_state(obj, collectionName):
         click.echo(f"Flush state for '{collectionName}': {state}")
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @cli.command("query_iterator")
 @click.pass_obj
@@ -1060,7 +1031,6 @@ def query_iterator(obj):
 
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
-
 
 @cli.command("search_iterator")
 @click.pass_obj

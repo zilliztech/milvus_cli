@@ -16,26 +16,19 @@ from .helper_client_cli import (
     insert,
 )
 import sys
-import os
 import click
 import shlex
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-
-from utils import WELCOME_MSG, EXIT_MSG, Completer, getPackageVersion
+from ..utils import WELCOME_MSG, EXIT_MSG, Completer, getPackageVersion
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
-from prompt_style import MilvusLexer, MilvusCompleter, milvus_style
+from ..prompt_style import MilvusLexer, MilvusCompleter, milvus_style
 from pathlib import Path
-from Types import ConnectException, ParameterException
-
+from ..Types import ConnectException, ParameterException
 
 def print_help_msg(command):
     with click.Context(command) as ctx:
         click.echo(command.get_help(ctx))
-
 
 # Override help command to use our version
 @cli.command("help")
@@ -43,13 +36,11 @@ def help_cmd():
     """Show help messages."""
     click.echo(print_help_msg(cli))
 
-
 # Override version command
 @cli.command("version")
 def version():
     """Get Milvus_CLI version."""
     click.echo(f"Milvus_CLI v{getPackageVersion()}")
-
 
 @cli.command("server_version")
 @click.pass_obj
@@ -71,12 +62,10 @@ def server_version(obj):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @cli.command("clear")
 def clear():
     """Clear screen."""
     click.clear()
-
 
 @cli.command("history")
 @click.argument("action", required=False, default=None)
@@ -141,7 +130,6 @@ def history_cmd(action):
     except IOError as e:
         click.echo(f"Error reading history: {e}", err=True)
 
-
 @show.command("output")
 @click.pass_obj
 def show_output_format(obj):
@@ -157,13 +145,11 @@ def show_output_format(obj):
     """
     click.echo(f"Current output format: {obj.formatter.format}")
 
-
 @cli.group("set", no_args_is_help=False)
 @click.pass_obj
 def set_config(obj):
     """Set CLI configuration options."""
     pass
-
 
 @set_config.command("output")
 @click.argument("format", type=click.Choice(["table", "json", "csv"]))
@@ -195,13 +181,11 @@ def set_output_format(obj, format):
     obj.formatter.format = format
     click.echo(f"Output format set to: {format}")
 
-
 @cli.group("alter", no_args_is_help=False)
 @click.pass_obj
 def alter(obj):
     """Alter collection, database, or field properties."""
     pass
-
 
 @cli.group("update", no_args_is_help=False)
 @click.pass_obj
@@ -209,13 +193,11 @@ def update(obj):
     """Update password or resource group."""
     pass
 
-
 @cli.group("transfer", no_args_is_help=False)
 @click.pass_obj
 def transfer(obj):
     """Transfer replica between resource groups."""
     pass
-
 
 @cli.command("exit")
 def quit_app():
@@ -223,10 +205,8 @@ def quit_app():
     global _quit_app
     _quit_app = True
 
-
 _quit_app = False  # global flag
 comp = None  # Initialize later with CLI instance
-
 
 def runCliPrompt():
     """Run CLI prompt loop with syntax highlighting and tab completion."""

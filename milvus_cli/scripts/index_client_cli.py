@@ -1,14 +1,8 @@
 from tabulate import tabulate
 from .helper_client_cli import create, getList, delete, show, cli
 import click
-import os
-import sys
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-from Types import IndexTypes, MetricTypes, IndexTypesMap
-
+from ..Types import IndexTypes, MetricTypes, IndexTypesMap
 
 @create.command("index")
 @click.option(
@@ -180,7 +174,6 @@ def createIndex(
         )
         click.echo("Create index successfully!")
 
-
 @getList.command("indexes")
 @click.option(
     "-c",
@@ -211,7 +204,6 @@ def list_indexes(obj, collectionName):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("index")
 @click.option(
     "-c",
@@ -235,7 +227,6 @@ def show_index_details(obj, collectionName, indexName):
         click.echo(obj.index.get_index_details(collectionName, indexName))
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @delete.command("index")
 @click.option(
@@ -274,7 +265,6 @@ def delete_index(obj, collectionName, indexName, yes):
     except Exception as e:
         click.echo(message=e, err=True)
 
-
 @show.command("index_progress")
 @click.option(
     "-c",
@@ -298,7 +288,6 @@ def show_index_progress(obj, collectionName, indexName):
         click.echo(obj.index.get_index_build_progress(collectionName, indexName))
     except Exception as e:
         click.echo(message=e, err=True)
-
 
 @cli.command("wait_for_index")
 @click.option(

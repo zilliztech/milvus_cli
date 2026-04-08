@@ -1,13 +1,25 @@
-from Types import ParameterException
-from Types import (
-    FieldDataTypes,
-    IndexTypes,
-    IndexTypesMap,
-    SearchParams,
-    MetricTypes,
-    Operators,
-)
-from Fs import readCsvFile
+try:
+    from .Types import ParameterException
+    from .Types import (
+        FieldDataTypes,
+        IndexTypes,
+        IndexTypesMap,
+        SearchParams,
+        MetricTypes,
+        Operators,
+    )
+    from .Fs import readCsvFile
+except ImportError:
+    from Types import ParameterException
+    from Types import (
+        FieldDataTypes,
+        IndexTypes,
+        IndexTypesMap,
+        SearchParams,
+        MetricTypes,
+        Operators,
+    )
+    from Fs import readCsvFile
 
 
 def validateParamsByCustomFunc(customFunc, errMsg, *params):

@@ -1,40 +1,17 @@
+from __future__ import annotations
+
+from typing import Any
+
 from pymilvus import MilvusClient
 from tabulate import tabulate
+try:
+    from .BaseClient import BaseMilvusClient
+except ImportError:
+    from BaseClient import BaseMilvusClient
 
 
-class MilvusClientIndex(object):
-    """
-    Index operations class based on MilvusClient API
-    Used to replace the original Index operations based on ORM API
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize Index client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
-
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+class MilvusClientIndex(BaseMilvusClient):
+    """Index operations based on MilvusClient API."""
 
     def create_index(
         self,
@@ -99,7 +76,7 @@ class MilvusClientIndex(object):
             return type('IndexResult', (), {'code': 0, 'message': 'Success'})()
             
         except Exception as e:
-            raise Exception(f"Create index error!{str(e)}")
+            raise RuntimeError(f"Create index error: {e}") from e
 
     def get_index_details(self, collectionName, indexName):
         """
@@ -136,7 +113,7 @@ class MilvusClientIndex(object):
                         index_info.get('index_name') == indexName):
                         target_index = index_info
                         break
-                except:
+                except Exception:
                     continue
             
             if not target_index:
@@ -162,7 +139,7 @@ class MilvusClientIndex(object):
             return tabulate(rows, tablefmt="grid")
             
         except Exception as e:
-            raise Exception(f"Get index details error!{str(e)}")
+            raise RuntimeError(f"Get index details error: {e}") from e
 
     def drop_index(self, collectionName, indexName, timeout=None):
         """
@@ -181,7 +158,7 @@ class MilvusClientIndex(object):
             
             # Check if index exists first
             if not self.has_index(collectionName, indexName):
-                raise Exception(f"Index on field '{indexName}' not found in collection '{collectionName}'")
+                raise ValueError(f"Index on field '{indexName}' not found in collection '{collectionName}'")
             
             # In MilvusClient API, we drop index by field name
             client.drop_index(
@@ -193,7 +170,7 @@ class MilvusClientIndex(object):
             return self.list_indexes(collectionName)
             
         except Exception as e:
-            raise Exception(f"Drop index error!{str(e)}")
+            raise RuntimeError(f"Drop index error: {e}") from e
 
     def has_index(self, collectionName, indexName, timeout=None):
         """
@@ -224,37 +201,32 @@ class MilvusClientIndex(object):
                         index_info.get('field_name') == indexName or
                         index_info.get('index_name') == indexName):
                         return True
-                except:
+                except Exception:
                     continue
             
             return False
             
         except Exception as e:
-            raise Exception(f"Check index existence error!{str(e)}")
+            raise RuntimeError(f"Check index existence error: {e}") from e
 
-    def get_index_build_progress(self, collectionName, indexName):
-        """
-        Get index build progress
-        
-        Args:
-            collectionName: Collection name
-            indexName: Index name
-            
-        Returns:
-            Index build progress information
-        """
+    def get_index_build_progress(self, collectionName: str, indexName: str) -> dict[str, Any]:
+        """Get index build progress."""
         try:
-            # MilvusClient API may not have direct index build progress
-            # Return a simulated progress result
+            client = self._get_client()
+            # describe_index contains state info in newer pymilvus versions
+            index_info = client.describe_index(
+                collection_name=collectionName,
+                index_name=indexName
+            )
             return {
-                "total_rows": "Unknown",
-                "indexed_rows": "Unknown", 
-                "progress": "100%",
-                "state": "Finished"
+                "index_name": indexName,
+                "state": index_info.get("state", "Unknown"),
+                "indexed_rows": index_info.get("indexed_rows", "Unknown"),
+                "total_rows": index_info.get("total_rows", "Unknown"),
+                "pending_index_rows": index_info.get("pending_index_rows", "Unknown"),
             }
-            
         except Exception as e:
-            raise Exception(f"Get index build progress error!{str(e)}")
+            raise RuntimeError(f"Get index build progress error: {e}") from e
 
     def list_indexes(self, collectionName, onlyData=False):
         """
@@ -287,7 +259,7 @@ class MilvusClientIndex(object):
                         index_name=index_name
                     )
                     index_details.append(index_info)
-                except:
+                except Exception:
                     # If describe fails, create a basic entry
                     index_details.append({
                         "field_name": index_name,
@@ -319,7 +291,7 @@ class MilvusClientIndex(object):
             )
             
         except Exception as e:
-            raise Exception(f"List indexes error!{str(e)}")
+            raise RuntimeError(f"List indexes error: {e}") from e
 
     def get_vector_index(self, collectionName):
         """
@@ -353,10 +325,10 @@ class MilvusClientIndex(object):
                             "metric_type": index_info.get("metric_type", ""),
                             "params": index_info.get("params", {}),
                         }
-                except:
+                except Exception:
                     continue
             
             return {}
             
         except Exception as e:
-            raise Exception(f"Get vector index error!{str(e)}")
+            raise RuntimeError(f"Get vector index error: {e}") from e

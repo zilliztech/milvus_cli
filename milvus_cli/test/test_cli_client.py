@@ -32,7 +32,7 @@ class TestCliClient(unittest.TestCase):
         try:
             if cli_client.is_connected():
                 cli_client.disconnect()
-        except:
+        except Exception:
             pass
 
     def test_initialization(self):

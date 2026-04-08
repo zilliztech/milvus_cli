@@ -1,40 +1,18 @@
+from __future__ import annotations
+
 from pymilvus import MilvusClient
+try:
+    from .BaseClient import BaseMilvusClient
+except ImportError:
+    from BaseClient import BaseMilvusClient
 
 
-class MilvusClientAlias(object):
-    """
-    Alias operations class based on MilvusClient API
-    Used to replace the original Alias operations based on utility functions
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize Alias client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
-        self.alias = "default"  # Keep for compatibility
+class MilvusClientAlias(BaseMilvusClient):
+    """Alias operations based on MilvusClient API."""
 
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+    def __init__(self, connection_client=None) -> None:
+        super().__init__(connection_client)
+        self.alias = "default"
 
     def create_alias(self, collectionName, aliasName):
         """
@@ -52,7 +30,7 @@ class MilvusClientAlias(object):
             
             # Check if alias already exists
             if self.has_alias(aliasName):
-                raise Exception(f"Alias '{aliasName}' already exists")
+                raise ValueError(f"Alias '{aliasName}' already exists")
             
             # Create alias using MilvusClient API
             client.create_alias(
@@ -63,7 +41,7 @@ class MilvusClientAlias(object):
             return f"Create alias {aliasName} successfully!"
             
         except Exception as e:
-            raise Exception(f"Create alias error!{str(e)}")
+            raise RuntimeError(f"Create alias error: {e}") from e
 
     def list_aliases(self, collectionName=None):
         """
@@ -95,7 +73,7 @@ class MilvusClientAlias(object):
                 return self.list_all_aliases()
 
         except Exception as e:
-            raise Exception(f"List alias error!{str(e)}")
+            raise RuntimeError(f"List alias error: {e}") from e
 
     def drop_alias(self, aliasName):
         """
@@ -112,7 +90,7 @@ class MilvusClientAlias(object):
             
             # Check if alias exists first
             if not self.has_alias(aliasName):
-                raise Exception(f"Alias '{aliasName}' does not exist")
+                raise ValueError(f"Alias '{aliasName}' does not exist")
             
             # Drop alias using MilvusClient API
             client.drop_alias(alias=aliasName)
@@ -120,7 +98,7 @@ class MilvusClientAlias(object):
             return f"Drop alias {aliasName} successfully!"
             
         except Exception as e:
-            raise Exception(f"Drop alias error!{str(e)}")
+            raise RuntimeError(f"Drop alias error: {e}") from e
 
     def alter_alias(self, aliasName, collectionName):
         """
@@ -145,7 +123,7 @@ class MilvusClientAlias(object):
             return f"Alter alias {aliasName} successfully!"
             
         except Exception as e:
-            raise Exception(f"Alter alias error!{str(e)}")
+            raise RuntimeError(f"Alter alias error: {e}") from e
 
     def describe_alias(self, aliasName):
         """
@@ -166,7 +144,7 @@ class MilvusClientAlias(object):
             return alias_info
             
         except Exception as e:
-            raise Exception(f"Describe alias error!{str(e)}")
+            raise RuntimeError(f"Describe alias error: {e}") from e
 
     def has_alias(self, aliasName):
         """
@@ -201,7 +179,7 @@ class MilvusClientAlias(object):
             return ''
             
         except Exception as e:
-            raise Exception(f"Get alias collection error!{str(e)}")
+            raise RuntimeError(f"Get alias collection error: {e}") from e
 
     def list_all_aliases(self):
         """
@@ -226,13 +204,13 @@ class MilvusClientAlias(object):
                                 'alias': alias,
                                 'collection': collection
                             })
-                except:
+                except Exception:
                     continue  # Skip collections without aliases or with errors
             
             return all_aliases
             
         except Exception as e:
-            raise Exception(f"List all aliases error!{str(e)}")
+            raise RuntimeError(f"List all aliases error: {e}") from e
 
     def validate_alias_name(self, aliasName):
         """

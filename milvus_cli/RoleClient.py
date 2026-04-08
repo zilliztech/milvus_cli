@@ -1,40 +1,15 @@
+from __future__ import annotations
+
 from pymilvus import MilvusClient
 from tabulate import tabulate
+try:
+    from .BaseClient import BaseMilvusClient
+except ImportError:
+    from BaseClient import BaseMilvusClient
 
 
-class MilvusClientRole(object):
-    """
-    Role operations class based on MilvusClient API
-    Used to replace the original Role operations based on ORM API
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize Role client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
-
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+class MilvusClientRole(BaseMilvusClient):
+    """Role operations based on MilvusClient API."""
 
     def createRole(self, roleName):
         """
@@ -55,7 +30,7 @@ class MilvusClientRole(object):
             return f"Create role successfully!"
             
         except Exception as e:
-            raise Exception(f"Create role error!{str(e)}")
+            raise RuntimeError(f"Create role error: {e}") from e
 
     def listRoles(self):
         """
@@ -99,7 +74,7 @@ class MilvusClientRole(object):
             return role_objects
             
         except Exception as e:
-            raise Exception(f"List role error!{str(e)}")
+            raise RuntimeError(f"List role error: {e}") from e
 
     def dropRole(self, roleName):
         """
@@ -120,7 +95,7 @@ class MilvusClientRole(object):
             return f"Drop role successfully!"
             
         except Exception as e:
-            raise Exception(f"Drop role error!{str(e)}")
+            raise RuntimeError(f"Drop role error: {e}") from e
 
     def grantRole(self, roleName, username):
         """
@@ -142,7 +117,7 @@ class MilvusClientRole(object):
             return f"Role '{roleName}' granted to user '{username}' successfully!"
             
         except Exception as e:
-            raise Exception(f"Grant role error!{str(e)}")
+            raise RuntimeError(f"Grant role error: {e}") from e
 
     def revokeRole(self, roleName, username):
         """
@@ -164,7 +139,7 @@ class MilvusClientRole(object):
             return f"Role '{roleName}' revoked from user '{username}' successfully!"
             
         except Exception as e:
-            raise Exception(f"Revoke role error!{str(e)}")
+            raise RuntimeError(f"Revoke role error: {e}") from e
 
     def grantPrivilege(self, roleName, objectName, objectType, privilege, dbName="default"):
         """
@@ -195,7 +170,7 @@ class MilvusClientRole(object):
             return f"Grant privilege successfully!"
             
         except Exception as e:
-            raise Exception(f"Grant privilege error!{str(e)}")
+            raise RuntimeError(f"Grant privilege error: {e}") from e
 
     def revokePrivilege(self, roleName, objectName, objectType, privilege, dbName="default"):
         """
@@ -226,7 +201,7 @@ class MilvusClientRole(object):
             return f"Revoke privilege successfully!"
             
         except Exception as e:
-            raise Exception(f"Revoke privilege error!{str(e)}")
+            raise RuntimeError(f"Revoke privilege error: {e}") from e
 
     def listGrants(self, roleName, objectName, objectType):
         """
@@ -282,7 +257,7 @@ class MilvusClientRole(object):
             return data
             
         except Exception as e:
-            raise Exception(f"List grants error!{str(e)}")
+            raise RuntimeError(f"List grants error: {e}") from e
 
     def describeRole(self, roleName):
         """
@@ -303,7 +278,7 @@ class MilvusClientRole(object):
             return role_info
             
         except Exception as e:
-            raise Exception(f"Describe role error!{str(e)}")
+            raise RuntimeError(f"Describe role error: {e}") from e
 
     def hasRole(self, roleName):
         """
@@ -320,7 +295,7 @@ class MilvusClientRole(object):
             return roleName in roles
             
         except Exception as e:
-            raise Exception(f"Check role existence error!{str(e)}")
+            raise RuntimeError(f"Check role existence error: {e}") from e
 
     def listRoleNames(self):
         """
@@ -338,7 +313,7 @@ class MilvusClientRole(object):
             return roles if roles else []
             
         except Exception as e:
-            raise Exception(f"List role names error!{str(e)}")
+            raise RuntimeError(f"List role names error: {e}") from e
 
     def getRolePrivileges(self, roleName):
         """
@@ -355,4 +330,4 @@ class MilvusClientRole(object):
             return role_info.get('privileges', [])
             
         except Exception as e:
-            raise Exception(f"Get role privileges error!{str(e)}")
+            raise RuntimeError(f"Get role privileges error: {e}") from e

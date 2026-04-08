@@ -1,36 +1,13 @@
-class MilvusClientUser(object):
-    """
-    User operations class based on MilvusClient API
-    Used to replace the original User operations based on utility functions
-    """
-    
-    def __init__(self, connection_client=None):
-        """
-        Initialize User client
-        
-        Args:
-            connection_client: MilvusClientConnection instance
-        """
-        self.connection_client = connection_client
+from __future__ import annotations
 
-    def _get_client(self):
-        """
-        Get MilvusClient instance
-        
-        Returns:
-            MilvusClient instance
-            
-        Raises:
-            Exception: If not connected or connection is invalid
-        """
-        if not self.connection_client:
-            raise Exception("Connection client not set!")
-        
-        client = self.connection_client.get_client()
-        if not client:
-            raise Exception("Not connected to Milvus! Please connect first.")
-        
-        return client
+try:
+    from .BaseClient import BaseMilvusClient
+except ImportError:
+    from BaseClient import BaseMilvusClient
+
+
+class MilvusClientUser(BaseMilvusClient):
+    """User operations based on MilvusClient API."""
 
     def create_user(self, username, password):
         """
@@ -55,7 +32,7 @@ class MilvusClientUser(object):
             return f"Create user successfully!"
             
         except Exception as e:
-            raise Exception(f"Create user error!{str(e)}")
+            raise RuntimeError(f"Create user error: {e}") from e
 
     def list_users(self):
         """
@@ -90,7 +67,7 @@ class MilvusClientUser(object):
             return []
             
         except Exception as e:
-            raise Exception(f"List users error!{str(e)}")
+            raise RuntimeError(f"List users error: {e}") from e
 
     def delete_user(self, username):
         """
@@ -108,7 +85,7 @@ class MilvusClientUser(object):
             # Check if user exists first
             users = self.list_users()
             if username not in users:
-                raise Exception(f"User '{username}' does not exist")
+                raise ValueError(f"User '{username}' does not exist")
             
             # Try to delete user using MilvusClient API
             try:
@@ -131,7 +108,7 @@ class MilvusClientUser(object):
                             if role_name:
                                 try:
                                     client.revoke_role(user_name=username, role_name=role_name)
-                                except:
+                                except Exception:
                                     pass  # Continue even if some roles fail to revoke
                         
                         # Note: Some Milvus versions may not support direct user deletion
@@ -139,12 +116,12 @@ class MilvusClientUser(object):
                         return f"Revoked all roles from user {username} (user still exists but has no permissions)!"
                         
                     except Exception:
-                        raise Exception(f"Cannot delete user '{username}' - operation not supported in current Milvus version")
+                        raise RuntimeError(f"Cannot delete user '{username}' - operation not supported in current Milvus version")
             
             return f"Delete user {username} successfully!"
             
         except Exception as e:
-            raise Exception(f"Delete user error!{str(e)}")
+            raise RuntimeError(f"Delete user error: {e}") from e
 
     def describe_user(self, username):
         """
@@ -161,7 +138,7 @@ class MilvusClientUser(object):
             
             # Check if user exists first
             if not self.has_user(username):
-                raise Exception(f"User '{username}' does not exist")
+                raise ValueError(f"User '{username}' does not exist")
             
             # Describe user using MilvusClient API
             user_info = client.describe_user(user_name=username)
@@ -169,7 +146,7 @@ class MilvusClientUser(object):
             return user_info
             
         except Exception as e:
-            raise Exception(f"Describe user error!{str(e)}")
+            raise RuntimeError(f"Describe user error: {e}") from e
 
     def update_password(self, username, old_password, new_password):
         """
@@ -196,7 +173,7 @@ class MilvusClientUser(object):
             return f"Update password for user {username} successfully!"
             
         except Exception as e:
-            raise Exception(f"Update password error!{str(e)}")
+            raise RuntimeError(f"Update password error: {e}") from e
 
     def grant_role(self, username, role_name):
         """
@@ -221,7 +198,7 @@ class MilvusClientUser(object):
             return f"Grant role {role_name} to user {username} successfully!"
             
         except Exception as e:
-            raise Exception(f"Grant role error!{str(e)}")
+            raise RuntimeError(f"Grant role error: {e}") from e
 
     def revoke_role(self, username, role_name):
         """
@@ -246,7 +223,7 @@ class MilvusClientUser(object):
             return f"Revoke role {role_name} from user {username} successfully!"
             
         except Exception as e:
-            raise Exception(f"Revoke role error!{str(e)}")
+            raise RuntimeError(f"Revoke role error: {e}") from e
 
     def list_user_roles(self, username):
         """
@@ -274,10 +251,10 @@ class MilvusClientUser(object):
                             role_names.append(role_name)
                 return role_names
             
-            return roles if roles else []
+            return list(roles) if roles else []
             
         except Exception as e:
-            raise Exception(f"List user roles error!{str(e)}")
+            raise RuntimeError(f"List user roles error: {e}") from e
 
     def has_user(self, username):
         """
@@ -294,4 +271,4 @@ class MilvusClientUser(object):
             return username in users
             
         except Exception as e:
-            raise Exception(f"Check user existence error!{str(e)}")
+            raise RuntimeError(f"Check user existence error: {e}") from e

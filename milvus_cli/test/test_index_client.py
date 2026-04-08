@@ -42,7 +42,7 @@ class TestIndexClient(unittest.TestCase):
         try:
             if collection_client.has_collection(collectionName):
                 collection_client.drop_collection(collectionName)
-        except:
+        except Exception:
             pass
         
         # Define collection schema
@@ -183,7 +183,7 @@ class TestIndexClient(unittest.TestCase):
         
         result = index_client.get_index_build_progress(collectionName, vectorName)
         self.assertIsInstance(result, dict)
-        self.assertIn("progress", result)
+        self.assertIn("state", result)
 
     def test_get_vector_index(self):
         """

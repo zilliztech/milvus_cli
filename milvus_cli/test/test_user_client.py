@@ -38,7 +38,7 @@ class TestUserClient(unittest.TestCase):
         try:
             if user_client.has_user(test_username):
                 user_client.delete_user(test_username)
-        except:
+        except Exception:
             pass  # Ignore errors during cleanup
 
     @classmethod
@@ -61,7 +61,7 @@ class TestUserClient(unittest.TestCase):
         try:
             if user_client.has_user(test_username):
                 user_client.delete_user(test_username)
-        except:
+        except Exception:
             pass
         
         result = user_client.create_user(
@@ -86,8 +86,8 @@ class TestUserClient(unittest.TestCase):
         
         self.assertIsInstance(users, list)
         self.assertIn(test_username, users)
-        # Root user should typically exist
-        self.assertIn("db_admin", users)
+        # Root user should always exist
+        self.assertIn("root", users)
 
     def test_has_user(self):
         """
