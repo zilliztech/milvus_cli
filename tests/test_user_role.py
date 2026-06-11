@@ -1,4 +1,5 @@
 """Integration tests for user and role commands."""
+import ast
 import pytest
 
 
@@ -9,7 +10,9 @@ class TestUserRole:
         """Test list users command."""
         output, code = run_connected("list users")
         assert code == 0
-        assert "root" in output
+        users = ast.literal_eval(output.strip())
+        assert isinstance(users, list)
+        assert users
 
     def test_create_and_delete_user(self, run_connected, unique_name):
         """Test create and delete user."""

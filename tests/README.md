@@ -4,7 +4,7 @@ Integration tests for Milvus CLI.
 
 ## Prerequisites
 
-- Python >= 3.8.5
+- Python >= 3.9
 - Running Milvus instance
 - pytest
 

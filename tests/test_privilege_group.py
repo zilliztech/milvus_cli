@@ -2,6 +2,12 @@
 import pytest
 
 
+def skip_if_permission_denied(output):
+    lowered = output.lower()
+    if "permission deny" in lowered or "permission_denied" in lowered:
+        pytest.skip("Current Milvus credentials cannot manage privilege groups")
+
+
 class TestPrivilegeGroup:
     """Test privilege group commands."""
 
@@ -17,6 +23,7 @@ class TestPrivilegeGroup:
         # Create
         output, code = run_connected(f"create privilege_group -n {group_name}")
         assert code == 0
+        skip_if_permission_denied(output)
         assert "successfully" in output.lower()
 
         # List - verify command works (note: group names show as "Unknown" - known issue)
@@ -33,15 +40,19 @@ class TestPrivilegeGroup:
         group_name = f"pg_{unique_name}"
 
         # Create group
-        run_connected(f"create privilege_group -n {group_name}")
+        output, code = run_connected(f"create privilege_group -n {group_name}")
+        assert code == 0
+        skip_if_permission_denied(output)
 
         # Grant privileges
         output, code = run_connected(f"grant privilege_group -n {group_name} -p Query,Search")
         assert code == 0
+        assert "error" not in output.lower()
 
         # Revoke privileges
         output, code = run_connected(f"revoke privilege_group -n {group_name} -p Query")
         assert code == 0
+        assert "error" not in output.lower()
 
         # Cleanup
         run_connected(f"delete privilege_group -n {group_name} --yes")

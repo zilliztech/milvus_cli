@@ -22,7 +22,7 @@ SUBCOMMANDS = {
     "loading_progress", "index_progress", "load_state", "flush_state",
     "collection_stats", "query_segment_info", "compaction_state", "compaction_plans",
     "replicas", "collection_properties", "collection_field", "password", "replica",
-    "ids", "entities", "privilege",
+    "ids", "entities", "privilege", "partition_exists", "database_properties", "index_properties",
 }
 
 OPTIONS = {

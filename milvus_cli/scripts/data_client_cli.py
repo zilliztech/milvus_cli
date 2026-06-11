@@ -624,7 +624,7 @@ def bulk_insert(obj, collectionName, partitionName, files):
         click.echo(f"Bulk insert task submitted successfully!")
         click.echo(f"Task ID: {task_id}")
     except Exception as e:
-        click.echo("Error!\n{}".format(str(e)))
+        raise click.ClickException(str(e)) from e
 
 @show.command("bulk_insert_state")
 @click.option(
@@ -648,7 +648,7 @@ def show_bulk_insert_state(obj, taskId):
         state = obj.data.get_bulk_insert_state(taskId)
         click.echo(f"Task state: {state}")
     except Exception as e:
-        click.echo("Error!\n{}".format(str(e)))
+        raise click.ClickException(str(e)) from e
 
 @getList.command("bulk_insert_tasks")
 @click.option(
@@ -682,7 +682,7 @@ def list_bulk_insert_tasks(obj, limit, collectionName):
         else:
             click.echo("No bulk insert tasks found.")
     except Exception as e:
-        click.echo("Error!\n{}".format(str(e)))
+        raise click.ClickException(str(e)) from e
 
 @cli.command("hybrid_search")
 @click.pass_obj

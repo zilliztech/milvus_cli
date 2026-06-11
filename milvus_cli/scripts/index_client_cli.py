@@ -1,5 +1,5 @@
 from tabulate import tabulate
-from .helper_client_cli import create, getList, delete, show, cli
+from .helper_cli import create, getList, delete, show, alter, cli
 import click
 
 from ..Types import IndexTypes, MetricTypes, IndexTypesMap
@@ -262,6 +262,112 @@ def delete_index(obj, collectionName, indexName, yes):
             return
     try:
         click.echo(obj.index.drop_index(collectionName, indexName))
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@alter.command("index_properties")
+@click.option(
+    "-c",
+    "--collection",
+    "collectionName",
+    help="The collection name.",
+    required=True,
+    type=str,
+)
+@click.option(
+    "-in",
+    "--index-name",
+    "indexName",
+    help="Index name.",
+    required=True,
+    type=str,
+)
+@click.pass_obj
+def alter_index_properties(obj, collectionName, indexName):
+    """
+    Alter index properties.
+
+    USAGE:
+        milvus_cli > alter index_properties -c <collection> -in <index_name>
+
+    INTERACTIVE PROMPTS:
+        Property key      The index property key
+        Property value    The value to set
+
+    EXAMPLES:
+        milvus_cli > alter index_properties -c products -in embedding
+        Property key: index.build_thread_pool_size
+        Property value: 16
+
+    SEE ALSO:
+        show index, drop index_properties
+    """
+    try:
+        properties = {}
+        while True:
+            key = click.prompt("Property key")
+            value = click.prompt(f"Property value for '{key}'")
+            if value.lower() in ["true", "false"]:
+                value = value.lower() == "true"
+            elif value.isdigit():
+                value = int(value)
+            properties[key] = value
+            if not click.confirm("Add another property?", default=False):
+                break
+        result = obj.index.alter_index_properties(collectionName, indexName, properties)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@delete.command("index_properties")
+@click.option(
+    "-c",
+    "--collection",
+    "collectionName",
+    help="The collection name.",
+    required=True,
+    type=str,
+)
+@click.option(
+    "-in",
+    "--index-name",
+    "indexName",
+    help="Index name.",
+    required=True,
+    type=str,
+)
+@click.option(
+    "-k",
+    "--property-key",
+    "propertyKey",
+    help="The property key to delete.",
+    required=True,
+    type=str,
+)
+@click.pass_obj
+def drop_index_properties(obj, collectionName, indexName, propertyKey):
+    """
+    Delete index properties by key.
+
+    USAGE:
+        milvus_cli > delete index_properties -c <collection> -in <index_name> -k <property_key>
+
+    OPTIONS:
+        -c, --collection         Target collection (required)
+        -in, --index-name        Target index (required)
+        -k, --property-key       Property key to delete (required)
+
+    EXAMPLES:
+        milvus_cli > delete index_properties -c products -in embedding -k index.build_thread_pool_size
+
+    SEE ALSO:
+        alter index_properties, show index
+    """
+    try:
+        result = obj.index.drop_index_properties(collectionName, indexName, [propertyKey])
+        click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)
 

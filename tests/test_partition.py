@@ -1,7 +1,11 @@
 """Integration tests for partition commands."""
+from types import SimpleNamespace
 import pytest
 import json
 import os
+
+from milvus_cli.scripts import init_client_cli
+from milvus_cli.scripts.milvus_client_cli import cli
 
 
 class TestPartition:
@@ -71,6 +75,72 @@ class TestPartition:
         """Test show partition_stats command."""
         output, code = run_connected(f"show partition_stats -c {test_collection_for_partition} -p _default")
         assert code == 0
+
+    def test_show_partition_exists(self, test_collection_for_partition, run_connected):
+        """Test show partition_exists command for an existing partition."""
+        output, code = run_connected(
+            f"show partition_exists -c {test_collection_for_partition} -p _default"
+        )
+        assert code == 0
+        assert "true" in output.lower()
+        assert test_collection_for_partition in output
+
+    def test_show_partition_exists_false(self, test_collection_for_partition, run_connected, unique_name):
+        """Test show partition_exists command for a missing partition."""
+        missing = f"part_missing_{unique_name}"
+        output, code = run_connected(
+            f"show partition_exists -c {test_collection_for_partition} -p {missing}"
+        )
+        assert code == 0
+        assert "false" in output.lower()
+
+    def test_show_partition_exists_command(self, cli_runner):
+        """Test show partition_exists command path."""
+        old_instance = init_client_cli._global_cli_instance
+
+        calls = []
+
+        init_client_cli._global_cli_instance = SimpleNamespace(
+            partition=SimpleNamespace(
+                has_partition=lambda collection_name, partition_name: (
+                    calls.append((collection_name, partition_name))
+                    or (partition_name == "existing")
+                )
+            )
+        )
+
+        try:
+            result_true = cli_runner.invoke(
+                cli,
+                [
+                    "show",
+                    "partition_exists",
+                    "-c",
+                    "test_collection",
+                    "-p",
+                    "existing",
+                ],
+            )
+
+            result_false = cli_runner.invoke(
+                cli,
+                [
+                    "show",
+                    "partition_exists",
+                    "-c",
+                    "test_collection",
+                    "-p",
+                    "missing",
+                ],
+            )
+        finally:
+            init_client_cli._global_cli_instance = old_instance
+
+        assert result_true.exit_code == 0
+        assert result_false.exit_code == 0
+        assert calls == [("test_collection", "existing"), ("test_collection", "missing")]
+        assert "Partition 'existing' exists in collection 'test_collection': True" in result_true.output
+        assert "Partition 'missing' exists in collection 'test_collection': False" in result_false.output
 
     def test_load_and_release_partition(self, test_collection_for_partition, run_connected):
         """Test load and release partition (requires vector index)."""

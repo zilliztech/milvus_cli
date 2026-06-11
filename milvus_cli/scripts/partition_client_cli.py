@@ -111,6 +111,39 @@ def show_partition_stats(obj, collectionName, partitionName):
         click.echo(message=e, err=True)
 
 
+@show.command("partition_exists")
+@click.option(
+    "-c",
+    "--collection-name",
+    "collectionName",
+    help="Collection name.",
+    required=True,
+)
+@click.option(
+    "-p",
+    "--partition",
+    "partitionName",
+    help="The name of partition.",
+    required=True,
+)
+@click.pass_obj
+def show_partition_exists(obj, collectionName, partitionName):
+    """
+    Check whether a partition exists.
+
+    Example:
+
+        milvus_cli > show partition_exists -c car -p new_partition
+    """
+    try:
+        exists = obj.partition.has_partition(collectionName, partitionName)
+        click.echo(
+            f"Partition '{partitionName}' exists in collection '{collectionName}': {exists}"
+        )
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
 @release.command("partition")
 @click.option("-c", "--collection-name", "collectionName", help="Collection name.")
 @click.option("-p", "--partition", "partitionName", help="The name of partition.")

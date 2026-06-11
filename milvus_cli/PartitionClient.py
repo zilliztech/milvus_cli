@@ -179,10 +179,15 @@ class MilvusClientPartition(BaseMilvusClient):
         """
         try:
             client = self._get_client()
-            
-            # Check if partition exists by listing partitions
+
+            if hasattr(client, "has_partition"):
+                return client.has_partition(
+                    collection_name=collectionName,
+                    partition_name=partitionName,
+                )
+
+            # Fallback for older clients without has_partition
             partitions = client.list_partitions(collection_name=collectionName)
-            
             return partitionName in partitions
             
         except Exception as e:

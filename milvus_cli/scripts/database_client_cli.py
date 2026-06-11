@@ -246,3 +246,45 @@ def alter_database(obj, db_name):
         click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)
+
+
+@delete.command("database_properties")
+@click.option(
+    "-db",
+    "--db_name",
+    "db_name",
+    help="Database name.",
+    required=True,
+    type=str,
+)
+@click.option(
+    "-k",
+    "--property-key",
+    "propertyKey",
+    help="The property key to delete.",
+    required=True,
+    type=str,
+)
+@click.pass_obj
+def drop_database_properties(obj, db_name, propertyKey):
+    """
+    Delete database properties by key.
+
+    USAGE:
+        milvus_cli > delete database_properties -db <name> -k <property_key>
+
+    OPTIONS:
+        -db, --db_name           Database name (required)
+        -k, --property-key       Property key to delete (required)
+
+    EXAMPLES:
+        milvus_cli > delete database_properties -db analytics -k database.replica.number
+
+    SEE ALSO:
+        alter database, show database, list databases
+    """
+    try:
+        result = obj.database.drop_database_properties(db_name, [propertyKey])
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)

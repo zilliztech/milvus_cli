@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pymilvus import utility
 from tabulate import tabulate
 try:
     from .BaseClient import BaseMilvusClient
@@ -338,11 +339,13 @@ class MilvusClientData(BaseMilvusClient):
             Task ID
         """
         try:
-            client = self._get_client()
-            task_id = client.bulk_insert(
+            self._get_client()
+            using = self.connection_client.ensure_orm_connection()
+            task_id = utility.do_bulk_insert(
                 collection_name=collectionName,
                 partition_name=partition_name,
-                files=files
+                files=files,
+                using=using,
             )
             return task_id
         except Exception as e:
@@ -359,8 +362,9 @@ class MilvusClientData(BaseMilvusClient):
             Task state
         """
         try:
-            client = self._get_client()
-            state = client.get_bulk_insert_state(task_id)
+            self._get_client()
+            using = self.connection_client.ensure_orm_connection()
+            state = utility.get_bulk_insert_state(task_id, using=using)
             return state
         except Exception as e:
             raise RuntimeError(f"Get bulk insert state error: {e}") from e
@@ -377,10 +381,12 @@ class MilvusClientData(BaseMilvusClient):
             List of tasks
         """
         try:
-            client = self._get_client()
-            tasks = client.list_bulk_insert_tasks(
-                limit=limit,
-                collection_name=collectionName
+            self._get_client()
+            using = self.connection_client.ensure_orm_connection()
+            tasks = utility.list_bulk_insert_tasks(
+                limit=0 if limit is None else limit,
+                collection_name=collectionName or "",
+                using=using,
             )
             return tasks
         except Exception as e:
