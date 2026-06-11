@@ -1142,3 +1142,194 @@ def search_iterator(obj):
 
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
+
+
+@cli.command("run_analyzer")
+@click.option("-t", "--text", "text", required=True, help="Text to analyze.")
+@click.option(
+    "-a",
+    "--analyzer",
+    "analyzer",
+    default="standard",
+    help="Analyzer name or params (JSON string).",
+)
+@click.pass_obj
+def run_analyzer(obj, text, analyzer):
+    """
+    Run analyzer on text to get tokens.
+
+    USAGE:
+        milvus_cli > run_analyzer -t "hello world" -a standard
+
+    OPTIONS:
+        -t, --text        Text to analyze (required)
+        -a, --analyzer    Analyzer name or JSON params (default: standard)
+
+    EXAMPLES:
+        milvus_cli > run_analyzer -t "hello world" -a standard
+        milvus_cli > run_analyzer -t "测试文本" -a '{"tokenizer": "jieba"}'
+    """
+    try:
+        import json
+        try:
+            params = json.loads(analyzer)
+        except json.JSONDecodeError:
+            params = {"tokenizer": analyzer}
+        result = obj.collection.run_analyzer([text], params)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("optimize")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def optimize_collection(obj, collectionName):
+    """
+    Optimize collection for search performance.
+
+    USAGE:
+        milvus_cli > optimize -c <collection>
+
+    EXAMPLES:
+        milvus_cli > optimize -c my_collection
+    """
+    try:
+        result = obj.collection.optimize(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("refresh_load")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def refresh_load(obj, collectionName):
+    """
+    Refresh collection load to sync latest data.
+
+    USAGE:
+        milvus_cli > refresh_load -c <collection>
+
+    EXAMPLES:
+        milvus_cli > refresh_load -c my_collection
+    """
+    try:
+        result = obj.collection.refresh_load(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("add_collection_function")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.option("-fn", "--function-name", "functionName", required=True, help="Function name.")
+@click.option(
+    "-ft",
+    "--function-type",
+    "functionType",
+    required=True,
+    type=click.Choice(["BM25", "TextEmbedding", "OpenAI"], case_sensitive=True),
+    help="Function type.",
+)
+@click.option("-if", "--input-field", "inputField", required=True, help="Input field name.")
+@click.option("-of", "--output-field", "outputField", required=True, help="Output field name.")
+@click.pass_obj
+def add_collection_function(obj, collectionName, functionName, functionType, inputField, outputField):
+    """
+    Add a function to an existing collection.
+
+    USAGE:
+        milvus_cli > add_collection_function -c <collection> -fn <name> -ft BM25 -if <input> -of <output>
+
+    EXAMPLES:
+        milvus_cli > add_collection_function -c docs -fn bm25_fn -ft BM25 -if text -of embedding
+    """
+    try:
+        function = Function(
+            name=functionName,
+            function_type=getattr(FunctionType, functionType),
+            input_field_names=[inputField],
+            output_field_names=[outputField],
+        )
+        result = obj.collection.add_collection_function(collectionName, function)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("drop_collection_function")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.option("-fn", "--function-name", "functionName", required=True, help="Function name.")
+@click.pass_obj
+def drop_collection_function(obj, collectionName, functionName):
+    """
+    Drop a function from a collection.
+
+    USAGE:
+        milvus_cli > drop_collection_function -c <collection> -fn <function_name>
+
+    EXAMPLES:
+        milvus_cli > drop_collection_function -c docs -fn bm25_fn
+    """
+    try:
+        result = obj.collection.drop_collection_function(collectionName, functionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("add_collection_field")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.option("-f", "--field-name", "fieldName", required=True, help="Field name.")
+@click.option(
+    "-dt",
+    "--data-type",
+    "dataType",
+    required=True,
+    type=click.Choice(FieldDataTypes),
+    help="Data type.",
+)
+@click.option("--max-length", "maxLength", default=None, type=int, help="Max length for string fields.")
+@click.pass_obj
+def add_collection_field(obj, collectionName, fieldName, dataType, maxLength):
+    """
+    Add a field to an existing collection.
+
+    USAGE:
+        milvus_cli > add_collection_field -c <collection> -f <field> -dt <type>
+
+    EXAMPLES:
+        milvus_cli > add_collection_field -c my_collection -f new_field -dt INT64
+        milvus_cli > add_collection_field -c my_collection -f desc -dt VARCHAR --max-length 512
+    """
+    try:
+        kwargs = {"name": fieldName, "dtype": getattr(DataType, dataType)}
+        if maxLength is not None:
+            kwargs["max_length"] = maxLength
+        field_schema = FieldSchema(**kwargs)
+        result = obj.collection.add_collection_field(collectionName, field_schema)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("drop_collection_field")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.option("-f", "--field-name", "fieldName", required=True, help="Field name.")
+@click.pass_obj
+def drop_collection_field(obj, collectionName, fieldName):
+    """
+    Drop a field from a collection.
+
+    USAGE:
+        milvus_cli > drop_collection_field -c <collection> -f <field_name>
+
+    EXAMPLES:
+        milvus_cli > drop_collection_field -c my_collection -f old_field
+    """
+    try:
+        result = obj.collection.drop_collection_field(collectionName, fieldName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)

@@ -11,6 +11,9 @@ COMMANDS = {
     "flush", "flush_all", "compact", "truncate", "bulk_insert", "history",
     "get", "describe", "import", "wait_for_loading", "wait_for_index",
     "alter", "update", "transfer", "disconnect", "hybrid_search", "query_iterator",
+    "run_analyzer", "optimize", "refresh_load",
+    "add_collection_function", "drop_collection_function",
+    "add_collection_field", "drop_collection_field",
 }
 
 SUBCOMMANDS = {

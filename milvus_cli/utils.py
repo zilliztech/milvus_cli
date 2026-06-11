@@ -164,6 +164,13 @@ class Completer(object):
         "update": ["password", "resource_group"],
         "transfer": ["replica"],
         "history": [],
+        "run_analyzer": [],
+        "optimize": [],
+        "refresh_load": [],
+        "add_collection_function": [],
+        "drop_collection_function": [],
+        "add_collection_field": [],
+        "drop_collection_field": [],
     }
 
     # Argument completions for specific commands

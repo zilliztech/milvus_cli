@@ -687,3 +687,70 @@ Fields(* is the primary field):{field_details}"""
                 return {"flushed": True, "collection_name": collectionName}
         except Exception as e:
             raise RuntimeError(f"Get flush state error: {e}") from e
+
+    def add_collection_function(self, collectionName, function):
+        try:
+            client = self._get_client()
+            client.add_collection_function(collection_name=collectionName, function=function)
+            return f"Add function to collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Add collection function error: {e}") from e
+
+    def alter_collection_function(self, collectionName, function):
+        try:
+            client = self._get_client()
+            client.alter_collection_function(collection_name=collectionName, function=function)
+            return f"Alter function in collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Alter collection function error: {e}") from e
+
+    def drop_collection_function(self, collectionName, functionName):
+        try:
+            client = self._get_client()
+            client.drop_collection_function(collection_name=collectionName, function_name=functionName)
+            return f"Drop function {functionName} from collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Drop collection function error: {e}") from e
+
+    def add_collection_field(self, collectionName, fieldSchema):
+        try:
+            client = self._get_client()
+            client.add_collection_field(collection_name=collectionName, field_schema=fieldSchema)
+            return f"Add field to collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Add collection field error: {e}") from e
+
+    def drop_collection_field(self, collectionName, fieldName):
+        try:
+            client = self._get_client()
+            client.drop_collection_field(collection_name=collectionName, field_name=fieldName)
+            return f"Drop field {fieldName} from collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Drop collection field error: {e}") from e
+
+    def run_analyzer(self, texts, analyzerParams):
+        try:
+            client = self._get_client()
+            result = client.run_analyzer(data=texts, analyzer_params=analyzerParams)
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Run analyzer error: {e}") from e
+
+    def optimize(self, collectionName, segmentIds=None):
+        try:
+            client = self._get_client()
+            kwargs = {"collection_name": collectionName}
+            if segmentIds:
+                kwargs["segment_ids"] = segmentIds
+            client.optimize(**kwargs)
+            return f"Optimize collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Optimize error: {e}") from e
+
+    def refresh_load(self, collectionName):
+        try:
+            client = self._get_client()
+            client.refresh_load(collection_name=collectionName)
+            return f"Refresh load for collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Refresh load error: {e}") from e
