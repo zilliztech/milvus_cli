@@ -14,6 +14,7 @@ COMMANDS = {
     "run_analyzer", "optimize", "refresh_load",
     "add_collection_function", "drop_collection_function",
     "add_collection_field", "drop_collection_field",
+    "add_file_resource", "remove_file_resource", "list_file_resources",
 }
 
 SUBCOMMANDS = {

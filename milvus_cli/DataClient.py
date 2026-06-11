@@ -457,3 +457,27 @@ class MilvusClientData(BaseMilvusClient):
 
         except Exception as e:
             raise RuntimeError(f"Hybrid search error: {e}") from e
+
+    def add_file_resource(self, files, kwargs=None):
+        try:
+            client = self._get_client()
+            result = client.add_file_resource(files, **(kwargs or {}))
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Add file resource error: {e}") from e
+
+    def remove_file_resource(self, resource_name):
+        try:
+            client = self._get_client()
+            client.remove_file_resource(resource_name)
+            return f"Remove file resource {resource_name} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Remove file resource error: {e}") from e
+
+    def list_file_resources(self):
+        try:
+            client = self._get_client()
+            result = client.list_file_resources()
+            return result
+        except Exception as e:
+            raise RuntimeError(f"List file resources error: {e}") from e

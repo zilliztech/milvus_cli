@@ -202,3 +202,53 @@ def list_grants(obj, roleName, objectName, objectType):
         obj.role.listGrants(roleName, objectName, objectType)
     except Exception as e:
         click.echo(message=e, err=True)
+
+
+@grant.command("privilege_v2")
+@click.option("-r", "--roleName", "roleName", required=True, help="Role name.")
+@click.option("-p", "--privilege", "privilege", required=True, help="Privilege name.")
+@click.option("-c", "--collection", "collectionName", default=None, help="Collection name.")
+@click.option("-db", "--database", "databaseName", default=None, help="Database name.")
+@click.option("-rg", "--resource-group", "resourceGroupName", default=None, help="Resource group name.")
+@click.pass_obj
+def grant_privilege_v2(obj, roleName, privilege, collectionName, databaseName, resourceGroupName):
+    """
+    Grant privilege to role using v2 API.
+
+    USAGE:
+        milvus_cli > grant privilege_v2 -r <role> -p <privilege> [-c <collection>] [-db <database>]
+
+    EXAMPLES:
+        milvus_cli > grant privilege_v2 -r admin -p Search -c my_collection
+        milvus_cli > grant privilege_v2 -r admin -p CreateCollection -db my_db
+    """
+    try:
+        result = obj.role.grantPrivilegeV2(roleName, privilege, collectionName, databaseName, resourceGroupName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@revoke.command("privilege_v2")
+@click.option("-r", "--roleName", "roleName", required=True, help="Role name.")
+@click.option("-p", "--privilege", "privilege", required=True, help="Privilege name.")
+@click.option("-c", "--collection", "collectionName", default=None, help="Collection name.")
+@click.option("-db", "--database", "databaseName", default=None, help="Database name.")
+@click.option("-rg", "--resource-group", "resourceGroupName", default=None, help="Resource group name.")
+@click.pass_obj
+def revoke_privilege_v2(obj, roleName, privilege, collectionName, databaseName, resourceGroupName):
+    """
+    Revoke privilege from role using v2 API.
+
+    USAGE:
+        milvus_cli > revoke privilege_v2 -r <role> -p <privilege> [-c <collection>] [-db <database>]
+
+    EXAMPLES:
+        milvus_cli > revoke privilege_v2 -r admin -p Search -c my_collection
+        milvus_cli > revoke privilege_v2 -r admin -p CreateCollection -db my_db
+    """
+    try:
+        result = obj.role.revokePrivilegeV2(roleName, privilege, collectionName, databaseName, resourceGroupName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)

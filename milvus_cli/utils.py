@@ -171,6 +171,9 @@ class Completer(object):
         "drop_collection_function": [],
         "add_collection_field": [],
         "drop_collection_field": [],
+        "add_file_resource": [],
+        "remove_file_resource": [],
+        "list_file_resources": [],
     }
 
     # Argument completions for specific commands
