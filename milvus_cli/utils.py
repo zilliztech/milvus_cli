@@ -178,6 +178,8 @@ class Completer(object):
         "get_refresh_external_collection_progress": [],
         "list_refresh_external_collection_jobs": [],
         "has_collection": [],
+        "get_replicate_configuration": [],
+        "update_replicate_configuration": [],
     }
 
     # Argument completions for specific commands

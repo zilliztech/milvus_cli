@@ -785,3 +785,19 @@ Fields(* is the primary field):{field_details}"""
             return client.has_collection(collection_name=collectionName)
         except Exception as e:
             raise RuntimeError(f"Has collection error: {e}") from e
+
+    def get_replicate_configuration(self, collectionName):
+        try:
+            client = self._get_client()
+            result = client.get_replicate_configuration(collection_name=collectionName)
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Get replicate configuration error: {e}") from e
+
+    def update_replicate_configuration(self, collectionName, config):
+        try:
+            client = self._get_client()
+            client.update_replicate_configuration(collection_name=collectionName, config=config)
+            return f"Update replicate configuration for {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Update replicate configuration error: {e}") from e

@@ -1413,3 +1413,46 @@ def has_collection(obj, collectionName):
         click.echo(f"Collection '{collectionName}' exists: {result}")
     except Exception as e:
         click.echo(message=e, err=True)
+
+
+@cli.command("get_replicate_configuration")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def get_replicate_configuration(obj, collectionName):
+    """
+    Get replicate configuration for a collection.
+
+    USAGE:
+        milvus_cli > get_replicate_configuration -c <collection>
+
+    EXAMPLES:
+        milvus_cli > get_replicate_configuration -c my_collection
+    """
+    try:
+        result = obj.collection.get_replicate_configuration(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("update_replicate_configuration")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def update_replicate_configuration(obj, collectionName):
+    """
+    Update replicate configuration for a collection.
+
+    USAGE:
+        milvus_cli > update_replicate_configuration -c <collection>
+
+    EXAMPLES:
+        milvus_cli > update_replicate_configuration -c my_collection
+    """
+    try:
+        import json
+        config_str = click.prompt("Replicate configuration (JSON)")
+        config = json.loads(config_str)
+        result = obj.collection.update_replicate_configuration(collectionName, config)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)

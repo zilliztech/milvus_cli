@@ -17,6 +17,7 @@ COMMANDS = {
     "add_file_resource", "remove_file_resource", "list_file_resources",
     "refresh_external_collection", "get_refresh_external_collection_progress",
     "list_refresh_external_collection_jobs", "has_collection",
+    "get_replicate_configuration", "update_replicate_configuration",
 }
 
 SUBCOMMANDS = {
