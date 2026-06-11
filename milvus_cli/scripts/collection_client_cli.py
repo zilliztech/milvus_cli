@@ -1333,3 +1333,83 @@ def drop_collection_field(obj, collectionName, fieldName):
         click.echo(result)
     except Exception as e:
         click.echo(message=e, err=True)
+
+
+@cli.command("refresh_external_collection")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def refresh_external_collection(obj, collectionName):
+    """
+    Refresh external collection data.
+
+    USAGE:
+        milvus_cli > refresh_external_collection -c <collection>
+
+    EXAMPLES:
+        milvus_cli > refresh_external_collection -c my_iceberg_table
+    """
+    try:
+        result = obj.collection.refresh_external_collection(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("get_refresh_external_collection_progress")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def get_refresh_external_collection_progress(obj, collectionName):
+    """
+    Get refresh external collection progress.
+
+    USAGE:
+        milvus_cli > get_refresh_external_collection_progress -c <collection>
+
+    EXAMPLES:
+        milvus_cli > get_refresh_external_collection_progress -c my_iceberg_table
+    """
+    try:
+        result = obj.collection.get_refresh_external_collection_progress(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("list_refresh_external_collection_jobs")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def list_refresh_external_collection_jobs(obj, collectionName):
+    """
+    List refresh external collection jobs.
+
+    USAGE:
+        milvus_cli > list_refresh_external_collection_jobs -c <collection>
+
+    EXAMPLES:
+        milvus_cli > list_refresh_external_collection_jobs -c my_iceberg_table
+    """
+    try:
+        result = obj.collection.list_refresh_external_collection_jobs(collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("has_collection")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.pass_obj
+def has_collection(obj, collectionName):
+    """
+    Check if collection exists.
+
+    USAGE:
+        milvus_cli > has_collection -c <collection>
+
+    EXAMPLES:
+        milvus_cli > has_collection -c my_collection
+    """
+    try:
+        result = obj.collection.has_collection(collectionName)
+        click.echo(f"Collection '{collectionName}' exists: {result}")
+    except Exception as e:
+        click.echo(message=e, err=True)

@@ -754,3 +754,34 @@ Fields(* is the primary field):{field_details}"""
             return f"Refresh load for collection {collectionName} successfully!"
         except Exception as e:
             raise RuntimeError(f"Refresh load error: {e}") from e
+
+    def refresh_external_collection(self, collectionName):
+        try:
+            client = self._get_client()
+            client.refresh_external_collection(collection_name=collectionName)
+            return f"Refresh external collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Refresh external collection error: {e}") from e
+
+    def get_refresh_external_collection_progress(self, collectionName):
+        try:
+            client = self._get_client()
+            result = client.get_refresh_external_collection_progress(collection_name=collectionName)
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Get refresh external collection progress error: {e}") from e
+
+    def list_refresh_external_collection_jobs(self, collectionName):
+        try:
+            client = self._get_client()
+            result = client.list_refresh_external_collection_jobs(collection_name=collectionName)
+            return result
+        except Exception as e:
+            raise RuntimeError(f"List refresh external collection jobs error: {e}") from e
+
+    def has_collection(self, collectionName):
+        try:
+            client = self._get_client()
+            return client.has_collection(collection_name=collectionName)
+        except Exception as e:
+            raise RuntimeError(f"Has collection error: {e}") from e

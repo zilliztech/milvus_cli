@@ -174,6 +174,10 @@ class Completer(object):
         "add_file_resource": [],
         "remove_file_resource": [],
         "list_file_resources": [],
+        "refresh_external_collection": [],
+        "get_refresh_external_collection_progress": [],
+        "list_refresh_external_collection_jobs": [],
+        "has_collection": [],
     }
 
     # Argument completions for specific commands

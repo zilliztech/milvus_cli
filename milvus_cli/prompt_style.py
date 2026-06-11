@@ -15,6 +15,8 @@ COMMANDS = {
     "add_collection_function", "drop_collection_function",
     "add_collection_field", "drop_collection_field",
     "add_file_resource", "remove_file_resource", "list_file_resources",
+    "refresh_external_collection", "get_refresh_external_collection_progress",
+    "list_refresh_external_collection_jobs", "has_collection",
 }
 
 SUBCOMMANDS = {
