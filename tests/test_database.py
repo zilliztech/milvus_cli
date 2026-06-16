@@ -1,5 +1,9 @@
 """Integration tests for database commands."""
+from types import SimpleNamespace
 import pytest
+
+from milvus_cli.scripts import init_client_cli
+from milvus_cli.scripts.milvus_client_cli import cli
 
 
 class TestDatabase:
@@ -43,3 +47,37 @@ class TestDatabase:
         """Test show database without -db shows current."""
         output, code = run_connected("show database")
         assert code == 0
+
+    def test_delete_database_properties_command(self, cli_runner):
+        """Test delete database properties command path."""
+        old_instance = init_client_cli._global_cli_instance
+
+        calls = []
+
+        init_client_cli._global_cli_instance = SimpleNamespace(
+            database=SimpleNamespace(
+                drop_database_properties=lambda db_name, keys: (
+                    calls.append((db_name, list(keys)))
+                    or f"Drop database {db_name} properties successfully!"
+                )
+            )
+        )
+
+        try:
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "delete",
+                    "database_properties",
+                    "-db",
+                    "test_db",
+                    "-k",
+                    "database.replica.number",
+                ],
+            )
+        finally:
+            init_client_cli._global_cli_instance = old_instance
+
+        assert result.exit_code == 0
+        assert calls == [("test_db", ["database.replica.number"])]
+        assert "Drop database test_db properties successfully!" in result.output

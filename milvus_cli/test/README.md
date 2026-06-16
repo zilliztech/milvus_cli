@@ -13,9 +13,9 @@ These tests directly test Python classes like:
 
 ## Prerequisites
 
-- Python >= 3.8.5
+- Python >= 3.9
 - Running Milvus instance
-- pymilvus >= 2.5.0
+- pymilvus >= 2.6.0
 
 ## Configuration
 

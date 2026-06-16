@@ -92,3 +92,11 @@ class TestData:
         assert code == 0, output
 
         os.remove(data_file)
+
+
+class TestFileResource:
+    """Test file resource commands."""
+
+    def test_list_file_resources(self, run_connected):
+        output, code = run_connected("list_file_resources")
+        assert code == 0

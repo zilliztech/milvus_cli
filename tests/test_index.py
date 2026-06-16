@@ -2,6 +2,10 @@
 import pytest
 import json
 import os
+from types import SimpleNamespace
+
+from milvus_cli.scripts import init_client_cli
+from milvus_cli.scripts.milvus_client_cli import cli
 
 
 class TestIndex:
@@ -68,3 +72,82 @@ class TestIndex:
 
         # Cleanup
         run_connected(f"delete index -c {coll} -in embedding --yes")
+
+    def test_alter_index_properties_command(self, cli_runner):
+        """Test alter index properties command path with prompt input."""
+        old_instance = init_client_cli._global_cli_instance
+
+        captured = {}
+
+        init_client_cli._global_cli_instance = SimpleNamespace(
+            index=SimpleNamespace(
+                alter_index_properties=lambda collection_name, index_name, properties: (
+                    captured.update(
+                        {
+                            "collection": collection_name,
+                            "index": index_name,
+                            "properties": properties,
+                        }
+                    )
+                    or f"Alter index {index_name} in collection {collection_name} successfully!"
+                )
+            )
+        )
+
+        try:
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "alter",
+                    "index_properties",
+                    "-c",
+                    "test_collection",
+                    "-in",
+                    "embedding",
+                ],
+                input="index_thread_pool\n4\nn\n",
+            )
+        finally:
+            init_client_cli._global_cli_instance = old_instance
+
+        assert result.exit_code == 0
+        assert captured["collection"] == "test_collection"
+        assert captured["index"] == "embedding"
+        assert captured["properties"] == {"index_thread_pool": 4}
+        assert "Alter index embedding in collection test_collection successfully!" in result.output
+
+    def test_drop_index_properties_command(self, cli_runner):
+        """Test delete index properties command path."""
+        old_instance = init_client_cli._global_cli_instance
+
+        calls = []
+
+        init_client_cli._global_cli_instance = SimpleNamespace(
+            index=SimpleNamespace(
+                drop_index_properties=lambda collection_name, index_name, property_keys: (
+                    calls.append((collection_name, index_name, list(property_keys)))
+                    or f"Drop index {index_name} in collection {collection_name} successfully!"
+                )
+            )
+        )
+
+        try:
+            result = cli_runner.invoke(
+                cli,
+                [
+                    "delete",
+                    "index_properties",
+                    "-c",
+                    "test_collection",
+                    "-in",
+                    "embedding",
+                    "-k",
+                    "index_thread_pool",
+                ],
+            )
+        finally:
+            init_client_cli._global_cli_instance = old_instance
+
+        assert result.exit_code == 0
+        assert calls == [("test_collection", "embedding", ["index_thread_pool"])]
+        assert "Drop index embedding in collection test_collection successfully!" in result.output

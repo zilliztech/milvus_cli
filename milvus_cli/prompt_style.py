@@ -11,6 +11,11 @@ COMMANDS = {
     "flush", "flush_all", "compact", "truncate", "bulk_insert", "history",
     "get", "describe", "import", "wait_for_loading", "wait_for_index",
     "alter", "update", "transfer", "disconnect", "hybrid_search", "query_iterator",
+    "run_analyzer", "optimize", "refresh_load",
+    "add_collection_function", "drop_collection_function",
+    "add_collection_field", "drop_collection_field",
+    "add_file_resource", "remove_file_resource", "list_file_resources",
+    "has_collection", "get_replicate_configuration", "update_replicate_configuration",
 }
 
 SUBCOMMANDS = {
@@ -22,7 +27,7 @@ SUBCOMMANDS = {
     "loading_progress", "index_progress", "load_state", "flush_state",
     "collection_stats", "query_segment_info", "compaction_state", "compaction_plans",
     "replicas", "collection_properties", "collection_field", "password", "replica",
-    "ids", "entities", "privilege",
+    "ids", "entities", "privilege", "partition_exists", "database_properties", "index_properties",
 }
 
 OPTIONS = {

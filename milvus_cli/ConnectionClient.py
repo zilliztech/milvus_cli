@@ -1,4 +1,4 @@
-from pymilvus import MilvusClient
+from pymilvus import MilvusClient, connections
 try:
     from .Types import ConnectException
 except ImportError:
@@ -18,6 +18,7 @@ class MilvusClientConnection(object):
         self.connection_params = {}
         self._is_connected = False
         self._current_database = "default"
+        self._orm_database = None
 
     def connect(self, uri=None, token=None, tlsmode=0, cert=None):
         """
@@ -39,6 +40,12 @@ class MilvusClientConnection(object):
         trimcert = None if cert is None else cert.strip()
         
         try:
+            if self.client:
+                self.client.close()
+            if self._orm_database is not None:
+                connections.disconnect(self.alias)
+                self._orm_database = None
+
             # Build connection parameters
             connection_params = {
                 "uri": self.uri
@@ -65,6 +72,7 @@ class MilvusClientConnection(object):
             self.client = MilvusClient(**connection_params)
             self.connection_params = connection_params
             self._is_connected = True
+            self._orm_database = None
 
             return self.client
             
@@ -117,10 +125,13 @@ class MilvusClientConnection(object):
         try:
             if self.client:
                 self.client.close()
+            if self._orm_database is not None:
+                connections.disconnect(self.alias)
 
             self.client = None
             self._is_connected = False
             self.connection_params = {}
+            self._orm_database = None
 
             return f"Disconnect from {self.alias} successfully!"
 
@@ -158,3 +169,20 @@ class MilvusClientConnection(object):
     def set_current_database(self, db_name):
         """Set current database name."""
         self._current_database = db_name
+        self._orm_database = None
+
+    def ensure_orm_connection(self):
+        """Ensure an ORM connection exists for pymilvus.utility APIs."""
+        if not self._is_connected or not self.connection_params:
+            raise ConnectionError("Not connected to Milvus! Please connect first.")
+        if self._orm_database == self._current_database:
+            return self.alias
+        if self._orm_database is not None:
+            connections.disconnect(self.alias)
+        connections.connect(
+            alias=self.alias,
+            db_name=self._current_database,
+            **self.connection_params,
+        )
+        self._orm_database = self._current_database
+        return self.alias

@@ -624,7 +624,7 @@ def bulk_insert(obj, collectionName, partitionName, files):
         click.echo(f"Bulk insert task submitted successfully!")
         click.echo(f"Task ID: {task_id}")
     except Exception as e:
-        click.echo("Error!\n{}".format(str(e)))
+        raise click.ClickException(str(e)) from e
 
 @show.command("bulk_insert_state")
 @click.option(
@@ -648,7 +648,7 @@ def show_bulk_insert_state(obj, taskId):
         state = obj.data.get_bulk_insert_state(taskId)
         click.echo(f"Task state: {state}")
     except Exception as e:
-        click.echo("Error!\n{}".format(str(e)))
+        raise click.ClickException(str(e)) from e
 
 @getList.command("bulk_insert_tasks")
 @click.option(
@@ -682,7 +682,7 @@ def list_bulk_insert_tasks(obj, limit, collectionName):
         else:
             click.echo("No bulk insert tasks found.")
     except Exception as e:
-        click.echo("Error!\n{}".format(str(e)))
+        raise click.ClickException(str(e)) from e
 
 @cli.command("hybrid_search")
 @click.pass_obj
@@ -1172,3 +1172,63 @@ def search(obj, collectionName_opt, annsField_opt, vector_json, limit_opt):
         )
         click.echo(f"Search result: \n")
         click.echo(results)
+
+
+@cli.command("add_file_resource")
+@click.option("-f", "--files", "files", required=True, help="Comma-separated file paths.")
+@click.pass_obj
+def add_file_resource(obj, files):
+    """
+    Add file resources for bulk import.
+
+    USAGE:
+        milvus_cli > add_file_resource -f "path1.json,path2.json"
+
+    EXAMPLES:
+        milvus_cli > add_file_resource -f "/data/file1.json,/data/file2.json"
+    """
+    try:
+        file_list = [f.strip() for f in files.split(",")]
+        result = obj.data.add_file_resource(file_list)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("remove_file_resource")
+@click.option("-n", "--name", "name", required=True, help="Resource name.")
+@click.pass_obj
+def remove_file_resource(obj, name):
+    """
+    Remove a file resource.
+
+    USAGE:
+        milvus_cli > remove_file_resource -n <name>
+
+    EXAMPLES:
+        milvus_cli > remove_file_resource -n resource_1
+    """
+    try:
+        result = obj.data.remove_file_resource(name)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("list_file_resources")
+@click.pass_obj
+def list_file_resources(obj):
+    """
+    List all file resources.
+
+    USAGE:
+        milvus_cli > list_file_resources
+
+    EXAMPLES:
+        milvus_cli > list_file_resources
+    """
+    try:
+        result = obj.data.list_file_resources()
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)

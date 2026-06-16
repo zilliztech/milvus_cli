@@ -86,12 +86,12 @@ milvus_cli/
 
 #### Prerequisites
 
-Python >= 3.8.5
+Python >= 3.9
 
 #### Install from PyPI (Recommended)
 
-Run `pip install pymilvus>=2.5.0`
-Run `pip install milvus-cli==1.0.2`
+Run `pip install pymilvus>=2.6.0`
+Run `pip install milvus-cli==1.2.1`
 
 #### Install from a tarball
 

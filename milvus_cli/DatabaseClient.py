@@ -76,7 +76,12 @@ class MilvusClientDatabase(BaseMilvusClient):
         """
         try:
             client = self._get_client()
-            client.using_database(db_name=dbName)
+            if hasattr(client, "use_database"):
+                client.use_database(db_name=dbName)
+            else:
+                client.using_database(db_name=dbName)
+            if self.connection_client:
+                self.connection_client.set_current_database(dbName)
             return f"Using database {dbName} successfully!"
         except Exception as e:
             raise RuntimeError(f"Using database error: {e}") from e
@@ -147,3 +152,24 @@ class MilvusClientDatabase(BaseMilvusClient):
             return f"Alter database {dbName} successfully!"
         except Exception as e:
             raise RuntimeError(f"Alter database error: {e}") from e
+
+    def drop_database_properties(self, dbName=None, property_keys=None):
+        """
+        Drop database properties
+
+        Args:
+            dbName: Database name
+            property_keys: List of property keys to drop
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.drop_database_properties(
+                db_name=dbName,
+                property_keys=property_keys,
+            )
+            return f"Drop database {dbName} properties successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Drop database properties error: {e}") from e

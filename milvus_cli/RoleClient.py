@@ -331,3 +331,33 @@ class MilvusClientRole(BaseMilvusClient):
             
         except Exception as e:
             raise RuntimeError(f"Get role privileges error: {e}") from e
+
+    def grantPrivilegeV2(self, role_name, privilege, collection_name=None, database_name=None, resource_group_name=None):
+        try:
+            client = self._get_client()
+            kwargs = {"role_name": role_name, "privilege": privilege}
+            if collection_name:
+                kwargs["collection_name"] = collection_name
+            if database_name:
+                kwargs["database_name"] = database_name
+            if resource_group_name:
+                kwargs["resource_group_name"] = resource_group_name
+            client.grant_privilege_v2(**kwargs)
+            return f"Grant privilege v2 successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Grant privilege v2 error: {e}") from e
+
+    def revokePrivilegeV2(self, role_name, privilege, collection_name=None, database_name=None, resource_group_name=None):
+        try:
+            client = self._get_client()
+            kwargs = {"role_name": role_name, "privilege": privilege}
+            if collection_name:
+                kwargs["collection_name"] = collection_name
+            if database_name:
+                kwargs["database_name"] = database_name
+            if resource_group_name:
+                kwargs["resource_group_name"] = resource_group_name
+            client.revoke_privilege_v2(**kwargs)
+            return f"Revoke privilege v2 successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Revoke privilege v2 error: {e}") from e

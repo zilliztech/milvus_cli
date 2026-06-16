@@ -332,3 +332,49 @@ class MilvusClientIndex(BaseMilvusClient):
             
         except Exception as e:
             raise RuntimeError(f"Get vector index error: {e}") from e
+
+    def alter_index_properties(self, collectionName, indexName, properties):
+        """
+        Alter index properties
+
+        Args:
+            collectionName: Collection name
+            indexName: Index name (or field name depending on collection)
+            properties: Dictionary of properties to set
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.alter_index_properties(
+                collection_name=collectionName,
+                index_name=indexName,
+                properties=properties,
+            )
+            return f"Alter index {indexName} in collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Alter index properties error: {e}") from e
+
+    def drop_index_properties(self, collectionName, indexName, property_keys):
+        """
+        Drop index properties
+
+        Args:
+            collectionName: Collection name
+            indexName: Index name (or field name depending on collection)
+            property_keys: List of property keys to drop
+
+        Returns:
+            Success message
+        """
+        try:
+            client = self._get_client()
+            client.drop_index_properties(
+                collection_name=collectionName,
+                index_name=indexName,
+                property_keys=property_keys,
+            )
+            return f"Drop index {indexName} in collection {collectionName} successfully!"
+        except Exception as e:
+            raise RuntimeError(f"Drop index properties error: {e}") from e
