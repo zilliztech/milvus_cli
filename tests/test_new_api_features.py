@@ -117,3 +117,64 @@ class TestPrivilegeV2:
         assert result.exit_code == 0
         assert calls["role"] == "test_role"
         assert calls["privilege"] == "Search"
+
+
+class TestExternalCollection:
+    """Test external collection commands."""
+
+    def test_refresh_external_collection_command(self, cli_runner):
+        """Test refresh_external_collection command path."""
+        old_instance = init_client_cli._global_cli_instance
+        calls = {}
+
+        class FakeCollection:
+            def refresh_external_collection(self, collectionName):
+                calls["collection"] = collectionName
+                return "ok"
+
+        init_client_cli._global_cli_instance = SimpleNamespace(collection=FakeCollection())
+        try:
+            result = cli_runner.invoke(cli, ["refresh_external_collection", "-c", "test_col"])
+        finally:
+            init_client_cli._global_cli_instance = old_instance
+
+        assert result.exit_code == 0
+        assert calls["collection"] == "test_col"
+
+    def test_get_refresh_external_collection_progress_command(self, cli_runner):
+        """Test get_refresh_external_collection_progress command path."""
+        old_instance = init_client_cli._global_cli_instance
+        calls = {}
+
+        class FakeCollection:
+            def get_refresh_external_collection_progress(self, collectionName):
+                calls["collection"] = collectionName
+                return {"progress": 100}
+
+        init_client_cli._global_cli_instance = SimpleNamespace(collection=FakeCollection())
+        try:
+            result = cli_runner.invoke(cli, ["get_refresh_external_collection_progress", "-c", "test_col"])
+        finally:
+            init_client_cli._global_cli_instance = old_instance
+
+        assert result.exit_code == 0
+        assert calls["collection"] == "test_col"
+
+    def test_list_refresh_external_collection_jobs_command(self, cli_runner):
+        """Test list_refresh_external_collection_jobs command path."""
+        old_instance = init_client_cli._global_cli_instance
+        calls = {}
+
+        class FakeCollection:
+            def list_refresh_external_collection_jobs(self, collectionName):
+                calls["collection"] = collectionName
+                return []
+
+        init_client_cli._global_cli_instance = SimpleNamespace(collection=FakeCollection())
+        try:
+            result = cli_runner.invoke(cli, ["list_refresh_external_collection_jobs", "-c", "test_col"])
+        finally:
+            init_client_cli._global_cli_instance = old_instance
+
+        assert result.exit_code == 0
+        assert calls["collection"] == "test_col"
