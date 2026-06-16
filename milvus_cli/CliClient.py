@@ -10,6 +10,7 @@ try:
     from .RoleClient import MilvusClientRole
     from .ResourceGroup import MilvusResourceGroup
     from .PrivilegeGroup import MilvusPrivilegeGroup
+    from .ExternalCollectionClient import MilvusExternalCollection
     from .OutputFormatter import OutputFormatter
 except ImportError:
     from ConnectionClient import MilvusClientConnection
@@ -23,6 +24,7 @@ except ImportError:
     from RoleClient import MilvusClientRole
     from ResourceGroup import MilvusResourceGroup
     from PrivilegeGroup import MilvusPrivilegeGroup
+    from ExternalCollectionClient import MilvusExternalCollection
     from OutputFormatter import OutputFormatter
 from pymilvus import __version__
 
@@ -59,6 +61,10 @@ class MilvusClientCli(object):
         # Resource and privilege group clients
         self.resource_group = MilvusResourceGroup(self.connection)
         self.privilege_group = MilvusPrivilegeGroup(self.connection)
+        self.external_collection = MilvusExternalCollection(self.connection)
+
+        # Snapshot client
+        self.snapshot = MilvusSnapshot(self.connection)
 
         # Output formatter
         self.formatter = OutputFormatter()
