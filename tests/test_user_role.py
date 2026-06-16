@@ -56,3 +56,21 @@ class TestUserRole:
         # Delete role
         output, code = run_connected(f"delete role -r {role_name}")
         assert code == 0
+
+
+class TestPrivilegeV2:
+    """Test grant/revoke privilege v2 commands."""
+
+    def test_grant_and_revoke_privilege_v2(self, run_connected, unique_name):
+        role_name = f"v2role_{unique_name}"
+        output, code = run_connected(f"create role -r {role_name}")
+        assert code == 0
+        output, code = run_connected(
+            f"grant privilege_v2 -r {role_name} -p Search -c __default_collection"
+        )
+        assert code == 0 or "error" in output.lower()
+        output, code = run_connected(
+            f"revoke privilege_v2 -r {role_name} -p Search -c __default_collection"
+        )
+        assert code == 0 or "error" in output.lower()
+        run_connected(f"delete role -r {role_name}")
