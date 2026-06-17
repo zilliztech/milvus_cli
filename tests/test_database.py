@@ -81,3 +81,13 @@ class TestDatabase:
         assert result.exit_code == 0
         assert calls == [("test_db", ["database.replica.number"])]
         assert "Drop database test_db properties successfully!" in result.output
+
+    def test_has_database_exists(self, run_connected):
+        output, code = run_connected("has_database -db default")
+        assert code == 0
+        assert "True" in output
+
+    def test_has_database_not_exists(self, run_connected, unique_name):
+        output, code = run_connected(f"has_database -db nonexistent_{unique_name}")
+        assert code == 0
+        assert "False" in output

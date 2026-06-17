@@ -1,5 +1,5 @@
 from tabulate import tabulate
-from .helper_cli import create, getList, delete, use, show, alter
+from .helper_cli import cli, create, getList, delete, use, show, alter
 import click
 
 
@@ -286,5 +286,33 @@ def drop_database_properties(obj, db_name, propertyKey):
     try:
         result = obj.database.drop_database_properties(db_name, [propertyKey])
         click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("has_database")
+@click.option(
+    "-db",
+    "--db_name",
+    "db_name",
+    help="Database name.",
+    required=True,
+    type=str,
+)
+@click.pass_obj
+def has_database(obj, db_name):
+    """
+    Check if database exists.
+
+    USAGE:
+        milvus_cli > has_database -db <name>
+
+    EXAMPLES:
+        milvus_cli > has_database -db default
+        milvus_cli > has_database -db my_project
+    """
+    try:
+        result = obj.database.has_database(db_name)
+        click.echo(f"Database '{db_name}' exists: {result}")
     except Exception as e:
         click.echo(message=e, err=True)
