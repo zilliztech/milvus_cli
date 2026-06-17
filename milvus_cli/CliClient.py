@@ -63,9 +63,6 @@ class MilvusClientCli(object):
         self.privilege_group = MilvusPrivilegeGroup(self.connection)
         self.external_collection = MilvusExternalCollection(self.connection)
 
-        # Snapshot client
-        self.snapshot = MilvusSnapshot(self.connection)
-
         # Output formatter
         self.formatter = OutputFormatter()
 
