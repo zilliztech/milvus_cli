@@ -16,6 +16,7 @@ from . import partition_client_cli as _partition_client_cli  # noqa: F401
 from . import role_client_cli as _role_client_cli  # noqa: F401
 from . import resource_group_cli as _resource_group_cli  # noqa: F401
 from . import privilege_group_cli as _privilege_group_cli  # noqa: F401
+from . import snapshot_cli as _snapshot_cli  # noqa: F401
 
 from .helper_client_cli import cli, runCliPrompt  # noqa: F401
 

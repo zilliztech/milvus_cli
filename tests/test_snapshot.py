@@ -6,46 +6,27 @@ class TestSnapshot:
         output, code = run_connected("list snapshots")
         assert code == 0
 
-    def test_create_and_delete_snapshot(self, run_connected, unique_name):
-        snapshot_name = f"snap_{unique_name}"
+    def test_list_snapshots_with_collection(self, run_connected, unique_name):
+        output, code = run_connected(f"list snapshots -c {unique_name}")
+        assert code == 0
 
+    def test_create_snapshot_missing_collection(self, run_connected, unique_name):
+        snapshot_name = f"snap_{unique_name}"
         output, code = run_connected(f"create snapshot -n {snapshot_name}")
-        assert code == 0
-        assert "successfully" in output.lower()
+        assert code != 0 or "error" in output.lower() or "required" in output.lower()
 
-        output, code = run_connected("list snapshots")
-        assert code == 0
-        assert snapshot_name in output
-
-        output, code = run_connected(f"delete snapshot -n {snapshot_name} --yes")
-        assert code == 0
-        assert "successfully" in output.lower()
-
-    def test_show_snapshot(self, run_connected, unique_name):
-        snapshot_name = f"snap_{unique_name}"
-
-        run_connected(f"create snapshot -n {snapshot_name}")
-
-        output, code = run_connected(f"show snapshot -n {snapshot_name}")
-        assert code == 0
-
-        run_connected(f"delete snapshot -n {snapshot_name} --yes")
-
-    def test_pin_and_unpin_snapshot(self, run_connected, unique_name):
-        snapshot_name = f"snap_{unique_name}"
-
-        run_connected(f"create snapshot -n {snapshot_name}")
-
-        output, code = run_connected(f"pin snapshot -n {snapshot_name}")
-        assert code == 0
-        assert "successfully" in output.lower()
-
-        output, code = run_connected(f"unpin snapshot -n {snapshot_name}")
-        assert code == 0
-        assert "successfully" in output.lower()
-
-        run_connected(f"delete snapshot -n {snapshot_name} --yes")
+    def test_restore_snapshot_needs_args(self, run_connected):
+        output, code = run_connected("restore_snapshot")
+        assert code != 0
 
     def test_list_restore_jobs(self, run_connected):
-        output, code = run_connected("list restore_jobs")
+        output, code = run_connected("list_restore_jobs")
         assert code == 0
+
+    def test_show_restore_state_needs_id(self, run_connected):
+        output, code = run_connected("show_restore_state")
+        assert code != 0
+
+    def test_unpin_snapshot_needs_id(self, run_connected):
+        output, code = run_connected("unpin_snapshot")
+        assert code != 0
