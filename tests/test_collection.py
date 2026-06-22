@@ -195,6 +195,7 @@ class TestNewCollectionFeatures:
         assert code == 0
         assert "False" in output
 
+    @pytest.mark.skip(reason="get_replicate_configuration hangs on Milvus standalone")
     def test_get_replicate_configuration(self, run_connected, test_collection_with_index):
         output, code = run_connected(f"get_replicate_configuration -c {test_collection_with_index}")
         assert code == 0 or "error" in output.lower()
