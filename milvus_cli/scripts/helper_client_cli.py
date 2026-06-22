@@ -243,6 +243,71 @@ def insert(obj):
     """Insert entities"""
     pass
 
+@cli.command("restore_snapshot")
+@click.option("-n", "--name", "name", help="Snapshot name.", required=True, type=str)
+@click.option("-s", "--source-collection", "source", help="Source collection name.", required=True, type=str)
+@click.option("-t", "--target-collection", "target", help="Target collection name.", required=True, type=str)
+@click.option("--yes", is_flag=True, default=False, help="Skip confirmation prompt.")
+@click.pass_obj
+def restore_snapshot(obj, name, source, target, yes):
+    """Restore a snapshot."""
+    if not yes:
+        click.echo(
+            f"Warning!\nYou are trying to restore snapshot '{name}' from '{source}' to '{target}'.\n"
+        )
+        if not click.confirm("Do you want to continue?"):
+            return
+    try:
+        result = obj.snapshot.restore_snapshot(name, source, target)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+@cli.command("show_restore_state")
+@click.option("-id", "--job-id", "jobId", help="Restore job ID.", required=True, type=int)
+@click.pass_obj
+def show_restore_state(obj, jobId):
+    """Show restore snapshot state."""
+    try:
+        result = obj.snapshot.get_restore_snapshot_state(jobId)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+@cli.command("list_restore_jobs")
+@click.option("-c", "--collection-name", "collectionName", help="[Optional] Collection name.", default="", type=str)
+@click.pass_obj
+def list_restore_jobs(obj, collectionName):
+    """List all restore snapshot jobs."""
+    try:
+        result = obj.snapshot.list_restore_snapshot_jobs(collectionName)
+        click.echo(obj.formatter.format_list(result, header="Restore Job"))
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+@cli.command("pin_snapshot")
+@click.option("-n", "--name", "name", help="Snapshot name.", required=True, type=str)
+@click.option("-c", "--collection-name", "collectionName", help="Collection name.", required=True, type=str)
+@click.pass_obj
+def pin_snapshot(obj, name, collectionName):
+    """Pin snapshot data."""
+    try:
+        result = obj.snapshot.pin_snapshot_data(name, collectionName)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+@cli.command("unpin_snapshot")
+@click.option("-id", "--pin-id", "pinId", help="Pin ID.", required=True, type=int)
+@click.pass_obj
+def unpin_snapshot(obj, pinId):
+    """Unpin snapshot data."""
+    try:
+        result = obj.snapshot.unpin_snapshot_data(pinId)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
 @cli.command("exit")
 def exit_app():
     """Exit the CLI."""
