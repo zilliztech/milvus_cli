@@ -79,13 +79,13 @@ jobs:
 
       - name: Install package and pytest
         run: |
-          pip install pytest
+          pip install pytest pytest-timeout
           pip install .
 
       - name: Run integration tests
         env:
           MILVUS_URI: ${{ env.MILVUS_URI }}
-        run: pytest tests/ -v --tb=short
+        run: pytest tests/ -v --tb=short --timeout=60
 
       - name: Print Docker logs on failure
         if: failure()
