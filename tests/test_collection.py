@@ -195,6 +195,7 @@ class TestNewCollectionFeatures:
         assert code == 0
         assert "False" in output
 
+    @pytest.mark.skip(reason="get_replicate_configuration hangs on Milvus standalone")
     def test_get_replicate_configuration(self, run_connected, test_collection_with_index):
         output, code = run_connected(f"get_replicate_configuration -c {test_collection_with_index}")
         assert code == 0 or "error" in output.lower()
@@ -207,6 +208,7 @@ class TestNewCollectionFeatures:
             "fields": [
                 {"name": "id", "type": "INT64", "is_primary": True},
                 {"name": "text", "type": "VARCHAR", "max_length": 512},
+                {"name": "sparse", "type": "SPARSE_FLOAT_VECTOR"},
                 {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4}
             ]
         }
@@ -221,7 +223,7 @@ class TestNewCollectionFeatures:
         if code != 0:
             pytest.skip(f"Failed to create collection: {output}")
         output, code = run_connected(
-            f"add_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of text"
+            f"add_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of sparse"
         )
         assert code == 0 or "error" in output.lower() or "not support" in output.lower()
         if code == 0:
@@ -257,3 +259,52 @@ class TestNewCollectionFeatures:
             output, code = run_connected(f"drop_collection_field -c {coll} -f new_field")
             assert code == 0 or "error" in output.lower()
         run_connected(f"delete collection -c {coll} --yes")
+
+    def test_alter_collection_function(self, run_connected, unique_name):
+        coll = f"alterfn_{unique_name}"
+        schema = {
+            "collection_name": coll,
+            "auto_id": True,
+            "fields": [
+                {"name": "id", "type": "INT64", "is_primary": True},
+                {"name": "text", "type": "VARCHAR", "max_length": 512},
+                {"name": "sparse", "type": "SPARSE_FLOAT_VECTOR"},
+                {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4}
+            ]
+        }
+        schema_file = f"/tmp/{coll}_schema.json"
+        with open(schema_file, "w") as f:
+            json.dump(schema, f)
+        output, code = run_connected(f"create collection --schema-file {schema_file}")
+        try:
+            os.remove(schema_file)
+        except OSError:
+            pass
+        if code != 0:
+            pytest.skip(f"Failed to create collection: {output}")
+        output, code = run_connected(
+            f"add_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of sparse"
+        )
+        if code == 0:
+            output, code = run_connected(
+                f"alter_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of sparse"
+            )
+            assert code == 0 or "error" in output.lower()
+            run_connected(f"drop_collection_function -c {coll} -fn bm25_fn")
+        run_connected(f"delete collection -c {coll} --yes")
+
+    def test_create_field_schema(self, run_connected):
+        output, code = run_connected("create_field_schema -f id -dt INT64 -p --auto-id")
+        assert code == 0
+        assert "id" in output
+
+    def test_create_field_schema_vector(self, run_connected):
+        output, code = run_connected("create_field_schema -f embedding -dt FLOAT_VECTOR -d 128")
+        assert code == 0
+        assert "embedding" in output
+        assert "128" in output
+
+    def test_create_field_schema_varchar(self, run_connected):
+        output, code = run_connected("create_field_schema -f text -dt VARCHAR --max-length 512")
+        assert code == 0
+        assert "text" in output

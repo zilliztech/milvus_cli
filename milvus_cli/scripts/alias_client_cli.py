@@ -1,4 +1,4 @@
-from .helper_client_cli import create, getList, delete, show
+from .helper_client_cli import cli, create, getList, delete, show
 import click
 
 
@@ -166,5 +166,32 @@ def show_alias(obj, aliasName):
             click.echo(f"  Database: {alias_info.get('db_name', 'default')}")
         else:
             click.echo(alias_info)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("has_alias")
+@click.option(
+    "-a",
+    "--alias-name",
+    "aliasName",
+    required=True,
+    help="The alias name to check.",
+    type=str,
+)
+@click.pass_obj
+def has_alias(obj, aliasName):
+    """
+    Check if alias exists.
+
+    USAGE:
+        milvus_cli > has_alias -a <alias_name>
+
+    EXAMPLES:
+        milvus_cli > has_alias -a carAlias1
+    """
+    try:
+        result = obj.alias.has_alias(aliasName)
+        click.echo(f"Alias '{aliasName}' exists: {result}")
     except Exception as e:
         click.echo(message=e, err=True)

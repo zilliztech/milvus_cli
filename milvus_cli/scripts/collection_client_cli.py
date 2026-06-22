@@ -1279,6 +1279,94 @@ def drop_collection_function(obj, collectionName, functionName):
         click.echo(message=e, err=True)
 
 
+@cli.command("alter_collection_function")
+@click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
+@click.option("-fn", "--function-name", "functionName", required=True, help="Function name.")
+@click.option(
+    "-ft",
+    "--function-type",
+    "functionType",
+    required=True,
+    type=click.Choice(["BM25", "TextEmbedding", "OpenAI"], case_sensitive=True),
+    help="Function type.",
+)
+@click.option("-if", "--input-field", "inputField", required=True, help="Input field name.")
+@click.option("-of", "--output-field", "outputField", required=True, help="Output field name.")
+@click.pass_obj
+def alter_collection_function(obj, collectionName, functionName, functionType, inputField, outputField):
+    """
+    Alter a function in an existing collection.
+
+    USAGE:
+        milvus_cli > alter_collection_function -c <collection> -fn <name> -ft BM25 -if <input> -of <output>
+
+    EXAMPLES:
+        milvus_cli > alter_collection_function -c docs -fn bm25_fn -ft BM25 -if text -of embedding
+    """
+    try:
+        function = Function(
+            name=functionName,
+            function_type=getattr(FunctionType, functionType),
+            input_field_names=[inputField],
+            output_field_names=[outputField],
+        )
+        result = obj.collection.alter_collection_function(collectionName, function)
+        click.echo(result)
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
+@cli.command("create_field_schema")
+@click.option("-f", "--field-name", "fieldName", required=True, help="Field name.")
+@click.option(
+    "-dt",
+    "--data-type",
+    "dataType",
+    required=True,
+    type=click.Choice(FieldDataTypes),
+    help="Data type.",
+)
+@click.option("-d", "--dimension", "dimension", default=None, type=int, help="Dimension for vector fields.")
+@click.option("--max-length", "maxLength", default=None, type=int, help="Max length for string fields.")
+@click.option("-p", "--is-primary", "isPrimary", is_flag=True, default=False, help="Set as primary key field.")
+@click.option("--auto-id", "autoId", is_flag=True, default=False, help="Enable auto ID.")
+@click.pass_obj
+def create_field_schema(obj, fieldName, dataType, dimension, maxLength, isPrimary, autoId):
+    """
+    Create a field schema object.
+
+    USAGE:
+        milvus_cli > create_field_schema -f <name> -dt <type> [options]
+
+    EXAMPLES:
+        milvus_cli > create_field_schema -f id -dt INT64 -p --auto-id
+        milvus_cli > create_field_schema -f embedding -dt FLOAT_VECTOR -d 128
+        milvus_cli > create_field_schema -f text -dt VARCHAR --max-length 512
+    """
+    try:
+        kwargs = {"name": fieldName, "dtype": getattr(DataType, dataType)}
+        if dimension is not None:
+            kwargs["dim"] = dimension
+        if maxLength is not None:
+            kwargs["max_length"] = maxLength
+        if isPrimary:
+            kwargs["is_primary"] = True
+        if autoId:
+            kwargs["auto_id"] = True
+        field_schema = FieldSchema(**kwargs)
+        click.echo(f"Field schema created: {field_schema}")
+        click.echo(f"  Name: {field_schema.name}")
+        click.echo(f"  Type: {field_schema.dtype}")
+        if hasattr(field_schema, "dim") and field_schema.dim:
+            click.echo(f"  Dimension: {field_schema.dim}")
+        if hasattr(field_schema, "max_length") and field_schema.max_length:
+            click.echo(f"  Max Length: {field_schema.max_length}")
+        if field_schema.is_primary:
+            click.echo(f"  Primary Key: True")
+    except Exception as e:
+        click.echo(message=e, err=True)
+
+
 @cli.command("add_collection_field")
 @click.option("-c", "--collection-name", "collectionName", required=True, help="Collection name.")
 @click.option("-f", "--field-name", "fieldName", required=True, help="Field name.")

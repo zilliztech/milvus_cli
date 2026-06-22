@@ -89,3 +89,20 @@ class TestAlias:
         run_connected(f"delete alias -a {alias_name}")
 
         assert code == 0, f"Failed to alter alias: {output}"
+
+    def test_has_alias_exists(self, test_collection_for_alias, run_connected, unique_name):
+        coll = test_collection_for_alias
+        alias_name = f"alias_{unique_name}"
+
+        run_connected(f"create alias -c {coll} -a {alias_name}")
+
+        output, code = run_connected(f"has_alias -a {alias_name}")
+        assert code == 0
+        assert "True" in output
+
+        run_connected(f"delete alias -a {alias_name}")
+
+    def test_has_alias_not_exists(self, run_connected, unique_name):
+        output, code = run_connected(f"has_alias -a nonexistent_{unique_name}")
+        assert code == 0
+        assert "False" in output

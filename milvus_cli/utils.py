@@ -178,6 +178,11 @@ class Completer(object):
         "get_refresh_external_collection_progress": [],
         "list_refresh_external_collection_jobs": [],
         "has_collection": [],
+        "has_database": [],
+        "has_alias": [],
+        "alter_collection_function": [],
+        "create_field_schema": [],
+        "server_type": [],
         "get_replicate_configuration": [],
         "update_replicate_configuration": [],
     }

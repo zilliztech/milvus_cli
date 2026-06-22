@@ -46,6 +46,26 @@ def server_version(obj):
     except Exception as e:
         click.echo(message=e, err=True)
 
+@cli.command("server_type")
+@click.pass_obj
+def server_type(obj):
+    """
+    Get Milvus server type.
+
+    Example:
+
+        milvus_cli > server_type
+    """
+    try:
+        client = obj.connection.get_client()
+        if client is None:
+            click.echo("No connection. Use 'connect' first.", err=True)
+            return
+        stype = client.get_server_type()
+        click.echo(f"Server type: {stype}")
+    except Exception as e:
+        click.echo(message=e, err=True)
+
 @cli.command()
 def clear():
     """Clear screen."""
