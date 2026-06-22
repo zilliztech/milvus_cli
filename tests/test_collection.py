@@ -207,6 +207,7 @@ class TestNewCollectionFeatures:
             "fields": [
                 {"name": "id", "type": "INT64", "is_primary": True},
                 {"name": "text", "type": "VARCHAR", "max_length": 512},
+                {"name": "sparse", "type": "SPARSE_FLOAT_VECTOR"},
                 {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4}
             ]
         }
@@ -221,7 +222,7 @@ class TestNewCollectionFeatures:
         if code != 0:
             pytest.skip(f"Failed to create collection: {output}")
         output, code = run_connected(
-            f"add_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of text"
+            f"add_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of sparse"
         )
         assert code == 0 or "error" in output.lower() or "not support" in output.lower()
         if code == 0:
@@ -266,6 +267,7 @@ class TestNewCollectionFeatures:
             "fields": [
                 {"name": "id", "type": "INT64", "is_primary": True},
                 {"name": "text", "type": "VARCHAR", "max_length": 512},
+                {"name": "sparse", "type": "SPARSE_FLOAT_VECTOR"},
                 {"name": "embedding", "type": "FLOAT_VECTOR", "dim": 4}
             ]
         }
@@ -280,11 +282,11 @@ class TestNewCollectionFeatures:
         if code != 0:
             pytest.skip(f"Failed to create collection: {output}")
         output, code = run_connected(
-            f"add_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of text"
+            f"add_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of sparse"
         )
         if code == 0:
             output, code = run_connected(
-                f"alter_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of text"
+                f"alter_collection_function -c {coll} -fn bm25_fn -ft BM25 -if text -of sparse"
             )
             assert code == 0 or "error" in output.lower()
             run_connected(f"drop_collection_function -c {coll} -fn bm25_fn")
